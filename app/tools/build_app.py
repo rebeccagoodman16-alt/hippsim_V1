@@ -37,7 +37,7 @@ def harvest() -> set[str]:
         shutil.copy(f, T / f.name)
     shutil.copytree(SITE / "icons", T / "icons", dirs_exist_ok=True)
     page = json.loads(re.search(r"HS_PAGE = (\{.*?\});", (SITE / "sim-studio.html").read_text()).group(1))
-    urls = ["index.html", "simulator.html", "runs.html", "models.html", "library.html", "about.html", "atlas.html", "docs.html", "validation.html", "file.html"] + \
+    urls = ["index.html", "simulator.html", "runs.html", "models.html", "library.html", "about.html", "atlas.html", "docs.html", "validation.html", "file.html", "welcome.html"] + \
            [f"sim-{slug}.html#" + ".".join(x for x in r.split("/") if x) for r, _, slug, _ in page["all"]]
     srv = subprocess.Popen([sys.executable, "-m", "http.server", str(PORT)], cwd=T, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1)

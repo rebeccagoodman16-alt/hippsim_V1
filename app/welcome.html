@@ -1,0 +1,58 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Welcome · hippsim</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#f8cddd"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="hippsim"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png"><script src="hs-layout.js"></script>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="hs-sim.css">
+<style>
+.wx{max-width:980px;margin:0 auto;padding:36px 16px 96px}
+.wx .kick{font:600 12px system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--hs-accent);margin:0 0 8px}
+.wx h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.2rem,6vw,3.4rem);line-height:1.05;margin:0 0 14px}
+.wx .lead{font-size:clamp(1.05rem,2.4vw,1.25rem);line-height:1.55;max-width:720px;margin:0 0 22px}
+.wx .cta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 40px}
+.wx .cta a{font:600 15px system-ui,sans-serif;padding:11px 20px;border-radius:999px;text-decoration:none;border:1px solid var(--hs-line);color:var(--hs-ink);background:var(--hs-card)}
+.wx .cta a.go{background:var(--hs-accent);border-color:var(--hs-accent);color:#fff}
+.wx h2{font-family:Georgia,"Times New Roman",serif;font-size:1.5rem;margin:36px 0 14px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.steps a{display:flex;flex-direction:column;gap:6px;padding:16px;border:1px solid var(--hs-line);border-radius:14px;background:var(--hs-card);color:var(--hs-ink);text-decoration:none}
+.steps a:hover{border-color:var(--hs-accent)}
+.steps .n{display:flex;align-items:center;gap:8px;color:var(--hs-accent)}
+.steps .n svg{width:26px !important;height:26px !important;flex:none}
+.steps .n b{font:700 12px system-ui,sans-serif;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--hs-ink);color:var(--hs-card)}
+.steps h3{margin:2px 0 0;font-size:16px}.steps p{margin:0;font-size:14px;line-height:1.5;color:var(--hs-muted)}
+.steps .more{margin-top:auto;font-size:13px;color:var(--hs-accent)}
+.cats{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.cats li{display:grid;grid-template-columns:210px 1fr;gap:12px;padding:10px 14px;border:1px solid var(--hs-line);border-radius:10px;background:var(--hs-card);font-size:14.5px}
+.cats b{font-weight:600}
+.where{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.where a{padding:12px;border:1px solid var(--hs-line);border-radius:12px;text-decoration:none;color:var(--hs-ink);background:var(--hs-card);font-size:13.5px;line-height:1.4}
+.where a b{display:block;font-size:15px;margin-bottom:2px}
+.wx .fine{color:var(--hs-muted);font-size:13.5px;margin-top:36px}
+@media (max-width:820px){.steps{grid-template-columns:1fr 1fr} .where{grid-template-columns:1fr 1fr} .cats li{grid-template-columns:1fr;gap:2px}}
+@media (max-width:480px){.steps{grid-template-columns:1fr}}
+</style>
+</head><body class="hs-hubpage">
+<header></header>
+<main class="wx">
+  <p class="kick">hippsim 0.14 · lab simulator</p>
+  <h1>Simulate real neurons, and know where every number comes from.</h1>
+  <p class="lead">hippsim runs published neuron models on reconstructed cells, right in the browser. Pick a cell, run its baseline, change anything, and compare. Every value is tied to its source, and the solver is checked against NEURON and Brian2.</p>
+  <div class="cta"><a class="go" href="index.html">Explore the neurons →</a><a href="index.html#qhome">Start from a biological question</a><a href="docs.html#quick-start">Quick start (2 min)</a><a href="docs.html">Read the documentation</a></div>
+  <h2>How it works</h2>
+  <div class="steps"><a href="docs.html#cells"><span class="n"><b>1</b><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 3v18M12 8l-5-4M12 8l5-4M12 15l-6 4M12 15l6 4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></span><h3>Pick a neuron</h3><p>87 reconstructed cells, mostly hippocampal, from public archives. Rotate it in 3D, hover a branch to see what it is.</p><span class="more">Read more →</span></a><a href="docs.html#simulate"><span class="n"><b>2</b><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h3>Run a baseline</h3><p>Choose a model and a test (current step, F–I curve, Iₕ sag, back-propagation, resonance…). The baseline uses published values.</p><span class="more">Read more →</span></a><a href="docs.html#simulate"><span class="n"><b>3</b><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><h3>Manipulate it</h3><p>Drugs (TTX, ZD7288, XE991…), every channel and passive value, or tap a branch to block, cut, record or add a synapse.</p><span class="more">Read more →</span></a><a href="docs.html#validation"><span class="n"><b>4</b><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h3>Check and keep it</h3><p>See where every number comes from, compare with NEURON, save the run, download a NEURON or Brian2 script.</p><span class="more">Read more →</span></a></div>
+  <h2>What is measured and what is modelled</h2>
+  <p>Under every simulation, five rows keep these apart:</p>
+  <ul class="cats"><li><b>Experimental morphology</b><span>the reconstruction itself: who traced it, where it is archived</span></li><li><b>Published model</b><span>channel equations and densities, each with its paper; unknown sources say <i>unspecified</i></span></li><li><b>Adapted here</b><span>how a model was applied to this cell, and what you changed</span></li><li><b>Tested computationally</b><span>the test, every value, the assumptions</span></li><li><b>Validated</b><span>what has been checked (NEURON, Brian2) and what has not (recordings)</span></li></ul>
+  <h2>Where things are</h2>
+  <div class="where">
+    <a href="index.html"><b>Neurons</b>Every cell; open one to simulate it</a>
+    <a href="runs.html"><b>Runs</b>Your saved runs</a>
+    <a href="simulator.html"><b>Tools</b>The model library and lessons</a>
+    <a href="models.html"><b>Models</b>Every model, its sources and checks</a>
+    <a href="docs.html"><b>Docs</b>How everything works</a>
+  </div>
+  <p class="fine">This page is shown once. Find it again from the Neurons page (“How hippsim works”) or the footer. hippsim is a research and teaching tool; it is not validated against recordings for every cell type (see <a href="docs.html#limitations">Limitations</a>).</p>
+</main>
+<script>try { localStorage.setItem("hs-intro-seen", "1"); } catch (e) {}</script>
+<script src="hs-app-config.js"></script><script src="hs-backend-firebase.js"></script><script src="hs-app.js"></script>
+</body></html>
