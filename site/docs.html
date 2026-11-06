@@ -300,37 +300,50 @@
 <table>
 <thead>
 <tr>
-<th>Result over 60 cells</th>
+<th>Result over 87 cells</th>
 <th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Same soma spike count</td>
-<td>48 / 60</td>
+<td>53 / 87</td>
 </tr>
 <tr>
 <td>Different count</td>
-<td>12</td>
+<td>34</td>
 </tr>
 <tr>
 <td>… of which NEURON's count is reproduced by joining dendrites to the soma as NEURON does</td>
-<td>8</td>
+<td>16</td>
 </tr>
 <tr>
 <td>… by running hippsim on NEURON's geometry</td>
-<td>0</td>
+<td>8</td>
 </tr>
 <tr>
 <td>… by finer compartments (≤ 5 µm) alone</td>
 <td>2</td>
 </tr>
 <tr>
+<td>… by none of the single changes</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Within ±1 spike</td>
+<td>74 / 87</td>
+</tr>
+<tr>
 <td>Passive input resistance, hippsim vs NEURON: median / largest difference</td>
-<td>1.9 % / 104.2 %</td>
+<td>2.6 % / 104.2 %</td>
+</tr>
+<tr>
+<td>hippsim's input resistance lower than NEURON's (by &gt; 1 %)</td>
+<td>54 / 87</td>
 </tr>
 </tbody>
 </table>
+<p>What this shows: finer compartments almost never change either simulator's count (both are close to converged) and giving hippsim NEURON's soma area changes none, so the differences come from how the reconstruction's geometry is turned into compartments, chiefly where dendrites join the soma, zero-length points, and how NEURON's Import3d repositions soma-attached branches. hippsim usually has slightly more membrane and a lower input resistance, so near-threshold cells fire a little less. In 10 cells (ca1-5038804, pyr-nmo-121938, fly-gf-manc, ca1-n128, ca3-cell2zr, ca3-cell3zr, ca3-cell4zr, ca3-cell5zr, ca3-c31162, ca3-c60361) no single change restores NEURON's count; most are CA3 reconstructions where hippsim's input resistance is 10–30 % lower. Combinations of the changes, and how each simulator represents multi-point somata, have not been tested yet. Each cell's own comparison is in the app.</p>
 <h3>Worked example: CA3 pyramidal cell l24b</h3>
 <p>hippsim fires no spike for the 0.5 nA step; NEURON fires one (10.6 ms after onset). Equations, densities, reversal potentials, temperature, stimulus, initial state and time step are the same, and the soma area is identical (2 030.6 µm²). The difference is geometric:</p>
 <ul>
@@ -522,7 +535,10 @@ python ca1-n123_neuron_single.py
 </tr>
 </tbody>
 </table>
-<p><strong>Your data.</strong> Saved runs are stored with your account; only you can change or delete yours. Display settings stay on your device.</p></article><article id="doc-developers" data-p="developers" data-title="For developers" hidden><h1>For developers</h1><p>The site is generated: edit the sources, rebuild, run the tests, then publish.</p>
+<p><strong>Your data.</strong> Saved runs are stored with your account; only you can change or delete yours. Display settings stay on your device.</p>
+<h2>Keeping the installed app up to date</h2>
+<p>The installed app (from the GitHub Pages address) checks for a new version every time it opens or comes back to the front. A new version downloads in the background and a banner says <strong>hippsim has been updated · Reload</strong>; nothing reloads by itself, so a running simulation is never lost. <strong>Display → Check for updates</strong> checks on demand and shows the version you have. The claude.ai page is always the latest published version.</p>
+<p>If an old copy ever seems stuck (for example after a long time offline): close every hippsim window and open it again; as a last resort remove the app and install it again from the website.</p></article><article id="doc-developers" data-p="developers" data-title="For developers" hidden><h1>For developers</h1><p>The site is generated: edit the sources, rebuild, run the tests, then publish.</p>
 <table>
 <thead>
 <tr>

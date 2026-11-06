@@ -105,7 +105,10 @@ def validation_numbers(text: str) -> str:
                    and any(tag in x["run"] and x["spikes"] == r["metrics"]["neuron"]["soma"]["spikes"] for x in r.get("diagnostics", [])))
     same = sum(r["metrics"]["neuron"]["soma"]["spikes"] == r["metrics"]["hippsim"]["soma"]["spikes"] for r in c.values())
     rin = sorted(abs(r["passive"]["hippsim"]["rin_MOhm"] / r["passive"]["neuron"]["rin_MOhm"] - 1) * 100 for r in c.values() if r["passive"]["neuron"]["rin_MOhm"])
-    vals = {"CMP_N": len(c), "CMP_SAME": same, "CMP_DIFF": len(c) - same, "CMP_JOIN": fixed_by("joined at the soma"), "CMP_GEOM": fixed_by("NEURON's geometry"),
+    nn = lambda r: r["metrics"]["neuron"]["soma"]["spikes"]; hh = lambda r: r["metrics"]["hippsim"]["soma"]["spikes"]
+    none = [k for k, r in c.items() if nn(r) != hh(r) and not any(x["run"].startswith("hippsim") and x["spikes"] == nn(r) for x in r.get("diagnostics", []))]
+    rlow = sum(r["passive"]["hippsim"]["rin_MOhm"] < 0.99 * r["passive"]["neuron"]["rin_MOhm"] for r in c.values())
+    vals = {"CMP_W1": sum(abs(nn(r) - hh(r)) <= 1 for r in c.values()), "CMP_NONE": len(none), "CMP_NONE_IDS": ", ".join(none), "CMP_RLOW": rlow, "CMP_N": len(c), "CMP_SAME": same, "CMP_DIFF": len(c) - same, "CMP_JOIN": fixed_by("joined at the soma"), "CMP_GEOM": fixed_by("NEURON's geometry"),
             "CMP_FINE": fixed_by("compartments ≤ 5"), "CMP_RIN_MED": f"{rin[len(rin) // 2]:.1f}" if rin else "–", "CMP_RIN_MAX": f"{rin[-1]:.1f}" if rin else "–"}
     for k, v in vals.items():
         text = text.replace("{" + k + "}", str(v))

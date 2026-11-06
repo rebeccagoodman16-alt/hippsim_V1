@@ -533,7 +533,7 @@ function renderSide() {
       ${G.hasApical ? `<p class="note">Trunk, obliques and tuft are estimated: the trunk follows the largest apical branch; the tuft starts at 60 % of the apical height.</p>` : ""}</div>
     <div><h3>Sholl profile</h3>${shSvg}<p class="note">Dendrite crossings of spheres every ${step} µm from the soma: where branching is densest.</p></div>
     ${nrn ? `<div><h3>Passive NEURON check</h3><dl class="kv"><dt>Input resistance</dt><dd>${fmt(nrn.rin)} MΩ</dd><dt>Length constant (steady)</dt><dd>${fmt(nrn.lam0)} µm</dd><dt>Length constant (100 Hz)</dt><dd>${fmt(nrn.lam100)} µm</dd></dl><p class="note">R<sub>m</sub> 20 kΩ·cm², R<sub>a</sub> 150 Ω·cm, C<sub>m</sub> 1 µF/cm².</p></div>` : ""}
-    <div><h3>Source</h3><p class="note">${esc(C.cite)}</p><p><a href="library.html#cell/${encodeURIComponent(C.id)}">Full record, citation and SWC →</a></p></div>`;
+    <div><h3>Morphology source</h3><p class="note">${esc((C.prov || {}).archive || "")}${C.code ? " · " + esc(C.code) : ""}<br>${esc(C.cite)}</p><p class="note">The reconstruction only: channel models and their sources are under Simulate → Where this comes from.</p><p><a href="library.html#cell/${encodeURIComponent(C.id)}">Full record, citation and SWC →</a></p></div>`;
 }
 
 /* screenshot and video */

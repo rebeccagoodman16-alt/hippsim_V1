@@ -30,7 +30,12 @@ Then it changes **one thing at a time** in either simulator (finer compartments,
 | … of which NEURON's count is reproduced by joining dendrites to the soma as NEURON does | {CMP_JOIN} |
 | … by running hippsim on NEURON's geometry | {CMP_GEOM} |
 | … by finer compartments (≤ 5 µm) alone | {CMP_FINE} |
+| … by none of the single changes | {CMP_NONE} |
+| Within ±1 spike | {CMP_W1} / {CMP_N} |
 | Passive input resistance, hippsim vs NEURON: median / largest difference | {CMP_RIN_MED} % / {CMP_RIN_MAX} % |
+| hippsim's input resistance lower than NEURON's (by > 1 %) | {CMP_RLOW} / {CMP_N} |
+
+What this shows: finer compartments almost never change either simulator's count (both are close to converged) and giving hippsim NEURON's soma area changes none, so the differences come from how the reconstruction's geometry is turned into compartments, chiefly where dendrites join the soma, zero-length points, and how NEURON's Import3d repositions soma-attached branches. hippsim usually has slightly more membrane and a lower input resistance, so near-threshold cells fire a little less. In {CMP_NONE} cells ({CMP_NONE_IDS}) no single change restores NEURON's count; most are CA3 reconstructions where hippsim's input resistance is 10–30 % lower. Combinations of the changes, and how each simulator represents multi-point somata, have not been tested yet. Each cell's own comparison is in the app.
 
 ### Worked example: CA3 pyramidal cell l24b
 
