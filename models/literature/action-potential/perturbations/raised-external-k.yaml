@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: Raised external K⁺
+tool: action-potential
+kind: physiology
+what: '[K⁺]o raised: depolarises rest and inactivates Na⁺ channels.'
+expected_size: 3× squid value, illustrative
+references:
+- hodgkin1952
+ops:
+- control: '#apKo'
+  set: 60

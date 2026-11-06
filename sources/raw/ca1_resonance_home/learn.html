@@ -1,0 +1,1218 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>CA1 Resonance · Learn</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lab notebook — sticky stage index on the left, one reading column; plots sit on white "paper" plates so matplotlib output reads in both themes. Accent colors match the plots (dendrite magenta, soma indigo). */
+:root{
+  --bg:#f5f6f9; --surface:#ffffff; --ink:#1b1d2b; --muted:#5d6076; --rule:#dde0ea;
+  --dend:#c4006a; --soma:#4a4a8a; --theta:#b88a00; --theta-bg:#fff5cc;
+  --ok:#1f7a4d; --ok-bg:#e1f3ea; --warn:#9a6200; --warn-bg:#fdf0d5; --todo:#5d6076; --todo-bg:#eceef4;
+  --code-bg:#eef0f6;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#13141c; --surface:#1c1e29; --ink:#e7e8f0; --muted:#a2a5bb; --rule:#2f3242;
+  --dend:#ff5aa8; --soma:#9a9ae6; --theta:#e6c34a; --theta-bg:#3a3214;
+  --ok:#6fd3a0; --ok-bg:#16301f; --warn:#f2c065; --warn-bg:#3a2c10; --todo:#a2a5bb; --todo-bg:#262938;
+  --code-bg:#171925; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13141c; --surface:#1c1e29; --ink:#e7e8f0; --muted:#a2a5bb; --rule:#2f3242;
+  --dend:#ff5aa8; --soma:#9a9ae6; --theta:#e6c34a; --theta-bg:#3a3214;
+  --ok:#6fd3a0; --ok-bg:#16301f; --warn:#f2c065; --warn-bg:#3a2c10; --todo:#a2a5bb; --todo-bg:#262938;
+  --code-bg:#171925; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+a{color:var(--soma)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--dend);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:880px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+
+/* index */
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:13.5px}
+.toc p{font:600 11px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:4px;border-left:1px solid var(--rule)}
+.toc a{display:block;padding:3px 0 3px 12px;color:var(--muted);text-decoration:none;margin-left:-1px;border-left:2px solid transparent}
+.toc a:hover{color:var(--ink);border-left-color:var(--dend)}
+
+main{min-width:0;display:grid;gap:56px;padding-top:40px}
+section{display:grid;gap:18px;min-width:0;scroll-margin-top:16px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(2rem,5vw,3.1rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.6rem;font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.1rem;font-weight:500}
+p{margin:0;max-width:68ch}
+.eyebrow{font:600 11.5px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.12rem;color:var(--muted);max-width:62ch}
+.byline{font-size:13.5px;color:var(--muted)}
+
+/* header */
+header.top{display:grid;gap:14px;padding-bottom:28px;border-bottom:1px solid var(--rule)}
+.aim{border-left:3px solid var(--dend);padding:4px 0 4px 16px;max-width:70ch}
+.aim strong{font-family:var(--f-display);font-weight:500;font-size:1.15rem;display:block;line-height:1.35}
+
+/* findings */
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.finding{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:16px 18px;display:grid;gap:6px;align-content:start}
+.finding .num{font:700 1.7rem/1 var(--f-display);color:var(--dend);font-variant-numeric:tabular-nums}
+.finding .num small{font-size:.9rem;font-weight:500;color:var(--muted)}
+.finding p{font-size:14.5px}
+
+/* stages */
+.stages{display:grid;gap:0;border-top:1px solid var(--rule)}
+.stage{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--rule);align-items:start}
+.stage .n{font:700 1.5rem/1 var(--f-display);color:var(--muted);font-variant-numeric:tabular-nums}
+.stage h3{grid-column:2}
+.stage p{grid-column:2;font-size:14.5px;color:var(--muted)}
+.stage .chip{grid-column:3;grid-row:1}
+@media (max-width:520px){.stage{grid-template-columns:40px minmax(0,1fr)}.stage .chip{grid-column:2;grid-row:auto;justify-self:start}}
+.chip{font:600 11.5px/1 var(--f-body);letter-spacing:.04em;padding:6px 10px;border-radius:999px;white-space:nowrap}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}
+.chip.warn{background:var(--warn-bg);color:var(--warn)}
+.chip.todo{background:var(--todo-bg);color:var(--todo)}
+
+/* model diagram + equations */
+.model{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:24px;align-items:center}
+@media (max-width:760px){.model{grid-template-columns:minmax(0,1fr)}}
+.diagram{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px}
+.diagram svg{width:100%;height:auto;display:block}
+.eqs{display:grid;gap:14px;font-size:1.05rem;overflow-x:auto}
+.eqs math{font-size:1.05em}
+.eq{display:grid;gap:2px}
+.eq span{font-size:12.5px;color:var(--muted)}
+
+/* tables */
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:600 11.5px/1.3 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+td.num{text-align:right;font-family:var(--f-mono);font-size:13px}
+tr.hl td{background:var(--theta-bg)}
+.mark-d{color:var(--dend);font-weight:600}
+.mark-s{color:var(--soma);font-weight:600}
+
+/* figures: white plates so matplotlib output reads in both themes */
+figure{margin:0;display:grid;gap:8px}
+.plate{background:#ffffff;border:1px solid var(--rule);border-radius:10px;padding:10px;overflow-x:auto}
+.plate img{display:block;width:100%;height:auto;min-width:520px}
+.plate.narrow img{min-width:0;max-width:640px;margin:0 auto}
+figcaption{font-size:13.5px;color:var(--muted);max-width:75ch}
+figcaption b{color:var(--ink);font-weight:600}
+
+.callout{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--theta);border-radius:6px 10px 10px 6px;padding:14px 18px;display:grid;gap:8px}
+.callout p{font-size:15px}
+ul.tight{margin:0;padding-left:20px;display:grid;gap:6px;max-width:70ch}
+
+/* code */
+.code{display:grid;gap:0;background:var(--code-bg);border:1px solid var(--rule);border-radius:10px;overflow:hidden;min-width:0}
+.code-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--rule);font:500 12.5px/1 var(--f-mono);color:var(--muted)}
+.code-head button{font:600 12px/1 var(--f-body);background:var(--surface);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:6px 10px;cursor:pointer}
+.code-head button:hover{border-color:var(--soma)}
+pre{margin:0;padding:14px 16px;overflow-x:auto;font:13px/1.55 var(--f-mono);color:var(--ink);tab-size:4}
+.c{color:var(--muted);font-style:italic}
+.k{color:var(--soma);font-weight:500}
+.s{color:var(--ok)}
+
+.weeks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.week{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:16px 18px;display:grid;gap:8px;align-content:start}
+.week .when{font:600 12px/1 var(--f-mono);color:var(--dend)}
+.week ul{margin:0;padding-left:18px;font-size:14px;display:grid;gap:4px}
+
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--rule);padding-top:20px;display:grid;gap:6px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+<style>
+/* v2 additions: term color-coding for equations, symbol tables, protocol cards, recipes */
+:root{ --t-leak:#3f6c9e; --t-h:#c4006a; --t-ax:#a35f00; --t-in:#1f7a4d; --t-syn:#6b4fb3 }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){ --t-leak:#8ab4e8; --t-h:#ff5aa8; --t-ax:#f2b45a; --t-in:#6fd3a0; --t-syn:#b9a2ff }}
+:root[data-theme="dark"]{ --t-leak:#8ab4e8; --t-h:#ff5aa8; --t-ax:#f2b45a; --t-in:#6fd3a0; --t-syn:#b9a2ff }
+
+.leak{color:var(--t-leak)} .ih{color:var(--t-h)} .ax{color:var(--t-ax)} .in{color:var(--t-in)} .syn{color:var(--t-syn)}
+math .leak,math .ih,math .ax,math .in,math .syn{font-weight:600}
+
+.eqblock{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:18px 20px;display:grid;gap:14px;min-width:0}
+.eqblock h3{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.eqblock h3 .tag{font:500 12px/1 var(--f-mono);color:var(--muted)}
+.eqrow{overflow-x:auto;padding:4px 0}
+.eqrow math{font-size:1.18rem}
+.eqrow.num math{font-size:1.02rem}
+.eqrow.num{border-top:1px dashed var(--rule);padding-top:12px}
+.eqrow.num::before{content:"with the default values";display:block;font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.term{border-top:3px solid currentColor;padding-top:8px;display:grid;gap:3px;font-size:13.5px}
+.term b{font-weight:600}
+.term span{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;background:currentColor;margin-right:6px;vertical-align:-1px}
+
+.protocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.protocol div{background:var(--surface);padding:10px 14px;display:grid;gap:3px;align-content:start}
+.protocol dt{font:600 11px/1.2 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.protocol dd{margin:0;font-size:14px;font-variant-numeric:tabular-nums}
+dl.protocol{margin:0}
+
+.result{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.result div{display:grid;gap:2px;padding:10px 0;border-top:2px solid var(--ink)}
+.result b{font:700 1.35rem/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.result span{font-size:12.5px;color:var(--muted)}
+
+details{background:var(--surface);border:1px solid var(--rule);border-radius:10px;min-width:0}
+details summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style-position:inside}
+details[open] summary{border-bottom:1px solid var(--rule)}
+details .code{border:0;border-radius:0}
+.api td:first-child{white-space:nowrap}
+.api code{font-size:12.5px}
+code{font-family:var(--f-mono);font-size:.92em}
+.steps{counter-reset:s;display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start}
+.steps li::before{counter-increment:s;content:counter(s);font:700 13px/26px var(--f-display);text-align:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg)}
+.steps li > div{min-width:0;display:grid;gap:8px}
+</style>
+
+<style>
+/* v3: illustrated neuron, explorer controls, mermaid blocks */
+:root{ --cell-a:#f6b8d3; --cell-b:#e58db4; --cell-hi:#fde3ef; --nucleus:#b5578a; --ais:#7a5af0; --spike:#d9480f;
+  --shadow:#6b2049; --dend-wash:rgba(196,0,106,.06); --soma-wash:rgba(74,74,138,.07); --gamma-bg:#e9eef8 }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){ --cell-a:#9a3d6c; --cell-b:#7a2c55; --cell-hi:#c0628f; --nucleus:#f0a6c9; --ais:#a48bff; --spike:#ff8a50;
+  --shadow:#000000; --dend-wash:rgba(255,90,168,.08); --soma-wash:rgba(154,154,230,.09); --gamma-bg:#1f2536 }}
+:root[data-theme="dark"]{ --cell-a:#9a3d6c; --cell-b:#7a2c55; --cell-hi:#c0628f; --nucleus:#f0a6c9; --ais:#a48bff; --spike:#ff8a50;
+  --shadow:#000000; --dend-wash:rgba(255,90,168,.08); --soma-wash:rgba(154,154,230,.09); --gamma-bg:#1f2536 }
+
+.anat{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.anat{grid-template-columns:minmax(0,1fr)}}
+.anat-fig{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:12px;display:grid;gap:10px;min-width:0}
+.anat-fig svg{width:100%;height:auto;display:block}
+.anat-side{display:grid;gap:12px;min-width:0}
+.seg{display:inline-flex;gap:4px;padding:3px;background:var(--code-bg);border:1px solid var(--rule);border-radius:999px;justify-self:start;flex-wrap:wrap}
+.segbtn{font:600 12.5px/1 var(--f-body);color:var(--muted);background:transparent;border:0;border-radius:999px;padding:8px 13px;cursor:pointer}
+.segbtn.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.seg.small .segbtn{padding:7px 12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chipbtn{font:500 13px/1 var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:999px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.chipbtn i{width:12px;height:12px;border-radius:3px;background:currentColor;display:inline-block}
+.chipbtn.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.glyph{cursor:pointer;transition:opacity .2s}
+.glyph.dim{opacity:.15}
+.glyph.lit rect{stroke:var(--ink);stroke-width:1.1}
+.info{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;display:grid;gap:10px;align-content:start}
+.info h3{font-size:1.15rem}
+.info .gene{font:500 12.5px/1.3 var(--f-mono);color:var(--muted)}
+.info dl{margin:0;display:grid;gap:4px}
+.info dt{font:600 11px/1.2 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.info dd{margin:0;font-size:14px}
+.info .chip{justify-self:start}
+.hint{color:var(--muted);font-size:14px}
+
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.presets button{font:600 13px/1 var(--f-body);background:var(--surface);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:9px 12px;cursor:pointer}
+.presets button:hover{border-color:var(--dend)}
+.presets button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.xp{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.xp{grid-template-columns:minmax(0,1fr)}}
+.xp-controls{display:grid;gap:12px}
+fieldset{border:1px solid var(--rule);border-radius:10px;padding:10px 14px 12px;margin:0;display:grid;gap:8px;background:var(--surface)}
+legend{font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 6px}
+.xp-controls label{display:grid;grid-template-columns:62px minmax(0,1fr) 72px;gap:8px;align-items:center;font-size:13.5px}
+.xp-controls label.row{grid-template-columns:62px minmax(0,1fr)}
+.xp-controls label.check{grid-template-columns:auto minmax(0,1fr);gap:8px}
+.xp-controls output{font:500 12.5px/1 var(--f-mono);text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.xp-controls select{font:inherit;font-size:13px;padding:5px 6px;border:1px solid var(--rule);border-radius:6px;background:var(--bg);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--dend)}
+input[type=range]:disabled{opacity:.35}
+input[type=checkbox]{accent-color:var(--dend);width:16px;height:16px}
+.xp-out{display:grid;gap:12px;min-width:0}
+.xp-plate{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:8px}
+.xp-plate svg{width:100%;height:auto;display:block}
+.xp-read{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.tile{display:grid;gap:2px;padding:8px 0;border-top:2px solid var(--ink)}
+.tile b{font:700 1.15rem/1.15 var(--f-display);font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;color:var(--muted)}
+.verdict{grid-column:1/-1}
+.warnline{grid-column:1/-1;font-size:13.5px;color:var(--warn);background:var(--warn-bg);border-radius:8px;padding:8px 12px}
+
+.mm{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px;overflow-x:auto}
+.mm pre.mermaid{margin:0;background:transparent;text-align:center;font-family:var(--f-body)}
+.mmcap{font-size:13.5px;color:var(--muted)}
+</style>
+
+<style>
+:root{--pn-bg:#171313;--pn-ink:#fff9f2;--pn-mute:#cbbab3;--pn-on:#ff8dbd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn-bg:#2a2226;--pn-ink:#f6ecef;--pn-mute:#a8999d;--pn-on:#ff8dbd}}
+:root[data-theme="dark"]{--pn-bg:#2a2226;--pn-ink:#f6ecef;--pn-mute:#a8999d;--pn-on:#ff8dbd}
+.pnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--pn-bg);color:var(--pn-ink);margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+.pnav-in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;min-height:48px;padding-block:6px}
+.pnav b{font:800 14px/1 system-ui,sans-serif;letter-spacing:.02em;margin-right:6px}
+.pnav a{color:var(--pn-mute);text-decoration:none;font:600 13.5px/1 system-ui,sans-serif;padding:8px 2px;border-bottom:2px solid transparent}
+.pnav a:hover{color:var(--pn-ink)}
+.pnav a[aria-current=page]{color:var(--pn-ink);border-bottom-color:var(--pn-on)}
+.pnav .sp{flex:1}
+</style><style>
+.part{display:grid;gap:6px;padding-top:22px;border-top:3px solid var(--ink);scroll-margin-top:60px}
+.part:first-of-type{border-top:0;padding-top:0}
+.parth{font-size:clamp(1.6rem,3vw,2.1rem)}
+.nextpart{justify-self:end;font-weight:600;text-decoration:none;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;background:var(--surface);color:var(--ink)}
+.nextpart:hover{border-color:var(--dend)}
+main{gap:44px}
+section{scroll-margin-top:60px}
+.toc{top:calc(env(safe-area-inset-top,0px) + 56px);max-height:calc(100vh - 80px);overflow-y:auto}
+.toc .tocpart{display:block;font:700 12px/1.3 var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink);text-decoration:none;margin:14px 0 6px;padding:0;border:0}
+.toc .tocpart:first-of-type{margin-top:0}
+.toc ol{margin-bottom:4px}
+</style>
+<style>
+.partbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 48px);z-index:20;background:var(--bg);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--rule)}
+.pchips{display:flex;gap:6px;flex-wrap:wrap}
+.pchip{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--ink);border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:6px 12px 6px 6px;font:600 13px/1 var(--f-body)}
+.pchip span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--code-bg);font-size:11px}
+.pchip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pchip.on span{background:var(--dend);color:#fff}
+.pctl{display:flex;gap:6px}
+.ptog{font:600 12.5px/1 var(--f-body);border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 11px;cursor:pointer}
+.ptog[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.partwrap{display:grid;gap:44px}
+.partwrap[hidden],.pagenav[hidden]{display:none}
+.pagenav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.prevpart{font-weight:600;text-decoration:none;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;background:var(--surface);color:var(--ink)}
+body.toc-off .wrap{grid-template-columns:minmax(0,1fr);max-width:1060px}
+body.toc-off .toc{display:none}
+body.paged .part{border-top:0;padding-top:0}
+</style>
+<style>
+/* compendium layer: page nav, contents toggle, reading paths, evidence labels */
+.pnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--pn-bg);color:var(--pn-ink);margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+.pnav-in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:4px 16px;flex-wrap:wrap;min-height:48px;padding-block:6px}
+.pnav b{font:800 14px/1 system-ui,sans-serif;letter-spacing:.02em;margin-right:6px;color:var(--pn-ink);text-decoration:none}
+.pnav a{color:var(--pn-mute);text-decoration:none;font:600 13.5px/1 system-ui,sans-serif;padding:8px 2px;border-bottom:2px solid transparent}
+.pnav a:hover{color:var(--pn-ink)}
+.pnav a[aria-current=page]{color:var(--pn-ink);border-bottom-color:var(--pn-on)}
+.pnav .sp{flex:1}
+.pagebar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:10px}
+.crumb{font:600 12.5px/1.3 var(--f-body);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.ptog{font:600 12.5px/1 var(--f-body);border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 11px;cursor:pointer}
+.ptog[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+body.toc-off .wrap{grid-template-columns:minmax(0,1fr);max-width:1060px}
+body.toc-off .toc{display:none}
+.toc .tocpart{display:block;font:700 12px/1.3 var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink);text-decoration:none;margin:14px 0 6px}
+.toc .tocpart:first-of-type{margin-top:0}
+.partrule{font:700 13px/1.2 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--dend);border-top:2px solid var(--ink);padding-top:12px;margin:0}
+.abs{display:grid;gap:10px;background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--dend);border-radius:12px;padding:16px 18px}
+.abs p{margin:0}
+.pathgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.pathcard{display:grid;gap:6px;align-content:start;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px}
+.pathcard:hover{border-color:var(--dend)}
+.pathcard span:not(.lvl){color:var(--muted);font-size:14.5px}
+.pathcard em{font-style:normal;font-weight:600;color:var(--dend);font-size:13.5px}
+.lvl{justify-self:start;display:inline-block;font:700 11px/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:4px 8px;vertical-align:middle}
+.lvl.intro{background:#e3f4ea;color:#17613a}.lvl.mid{background:#e8eefc;color:#2848a8}.lvl.adv{background:#f6e6f0;color:#8a1f5c}
+.ev{display:inline-block;font:700 11.5px/1.2 var(--f-body);border-radius:6px;padding:3px 7px}
+.ev.val{background:#e3f4ea;color:#17613a}.ev.pre{background:#fff1d6;color:#7a4b00}.ev.hyp{background:#eee8fb;color:#4b2f9a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lvl.intro,:root:not([data-theme="light"]) .ev.val{background:#173a27;color:#9fe0b8}:root:not([data-theme="light"]) .lvl.mid{background:#1d2a4d;color:#aac0ff}:root:not([data-theme="light"]) .lvl.adv{background:#3d1a30;color:#f3a9d2}:root:not([data-theme="light"]) .ev.pre{background:#3d2e10;color:#ffd38a}:root:not([data-theme="light"]) .ev.hyp{background:#2b2147;color:#cbb8ff}}
+:root[data-theme="dark"] .lvl.intro,:root[data-theme="dark"] .ev.val{background:#173a27;color:#9fe0b8}:root[data-theme="dark"] .lvl.mid{background:#1d2a4d;color:#aac0ff}:root[data-theme="dark"] .lvl.adv{background:#3d1a30;color:#f3a9d2}:root[data-theme="dark"] .ev.pre{background:#3d2e10;color:#ffd38a}:root[data-theme="dark"] .ev.hyp{background:#2b2147;color:#cbb8ff}
+.refs{display:grid;gap:8px;padding-left:22px}
+.refs li{padding-left:4px}
+.tight{display:grid;gap:6px}
+.pager{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--rule);padding-top:16px}
+.pager a{font-weight:600;text-decoration:none;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;background:var(--surface);color:var(--ink)}
+.pager a:hover{border-color:var(--dend)}
+footer.foot{font-size:13px;color:var(--muted)}
+math[display=block]{display:block;max-width:100%;overflow-x:auto;overflow-y:hidden;padding-bottom:4px}
+main>section,main>header,main section div{min-width:0}
+.tbl{overflow-x:auto;max-width:100%}
+main,main section{grid-template-columns:minmax(0,1fr)}
+p code,li code{overflow-wrap:anywhere}
+</style><style>
+.bdgrid{display:grid;gap:10px}
+details.bd{background:var(--surface);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+details.bd[open]{border-color:var(--dend)}
+details.bd summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:14px 16px}
+details.bd summary::-webkit-details-marker{display:none}
+details.bd summary::after{content:"+";grid-column:3;grid-row:1;font:700 20px/1 var(--f-body);color:var(--muted)}
+details.bd[open] summary::after{content:"−"}
+.bdq{grid-column:2;font:700 16.5px/1.35 var(--f-display);color:var(--ink)}
+.bda{grid-column:2;color:var(--muted);font-size:15px}
+details.bd summary .lvl{grid-column:1;grid-row:1;margin-top:2px}
+.bdbody{display:grid;gap:12px;padding:0 16px 16px;border-top:1px solid var(--rule);padding-top:14px}
+.bdrow{display:grid;gap:6px}
+.bdrow h4{margin:0;font:700 12px/1.2 var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.bdrow p,.bdrow ul{margin:0}
+.bdrow.conn{border-left:3px solid var(--dend);padding-left:12px}
+.bdrow.dist{background:var(--warn-bg,#fff4e0);border-radius:8px;padding:10px 12px}
+.bdlinks{margin:0;font-size:14px;font-weight:600}
+.plain{background:var(--surface);border:1px dashed var(--rule);border-radius:10px;padding:10px 14px;font-size:15px}
+.plain b{color:var(--dend)}
+@media (max-width:560px){details.bd summary{grid-template-columns:minmax(0,1fr) auto}details.bd summary .lvl{grid-column:1}.bdq,.bda{grid-column:1}details.bd summary::after{grid-column:2}}
+</style>
+<nav class="pnav" aria-label="Compendium pages"><div class="pnav-in"><b>CA1 Resonance</b><a href="index.html">Home</a><a href="paper.html">Paper</a><a href="learn.html" aria-current=page>Learn</a><a href="lab.html">Lab</a><a href="reproduce.html">Reproduce</a><a href="log.html">Log</a><span class="sp"></span><a href="https://claude.ai/artifact/GB4Sg32iBpjD4vcVtd15j6" target="_blank" rel="noopener">Little Neural Guide ↗</a></div></nav>
+<div class="wrap">
+<nav class="toc" aria-label="On this page"><p>On this page</p>
+<a class="tocpart" href="#part-start-here">Start here</a>
+<ol>
+<li><a href="#learnintro">Learn the ideas behind the project</a></li>
+<li><a href="#biology">The cell, in plain language</a></li>
+</ol>
+<a class="tocpart" href="#part-break-it-down">Break it down</a>
+<ol>
+<li><a href="#breakdown">Break it down</a></li>
+</ol>
+<a class="tocpart" href="#part-see-it">See it</a>
+<ol>
+<li><a href="#anatomy">The neuron, its compartments, and its channels</a></li>
+<li><a href="#explorer">Impedance explorer</a></li>
+</ol>
+<a class="tocpart" href="#part-put-it-in-context">Put it in context</a>
+<ol>
+<li><a href="#compare">A real CA1 cell vs this model</a></li>
+<li><a href="#testing">What we are testing, and why</a></li>
+</ol>
+</nav>
+<main>
+<div class="pagebar"><span class="crumb">CA1 Resonance · Learn</span><button type="button" class="ptog" id="ptoc" aria-pressed="true">Contents sidebar</button></div>
+<header class="top"><span class="eyebrow">Learn · for students, clinicians and anyone new</span><h1>Learn the Ideas</h1><p class="lede">No equations needed to start. Each section is tagged by level; the Lab then lets you try every idea on a real CA1 cell.</p></header>
+<p class="partrule" id="part-start-here">Start here</p>
+<section id="learnintro">
+  <span class="eyebrow">Learning path · about 1 hour</span>
+  <h2>Learn the ideas behind the project</h2>
+  <ol class="steps">
+    <li><div><p><b>The cell, plainly</b> <span class="lvl intro">Intro</span> — what a CA1 pyramidal cell is, what "filter" and "resonance" mean.</p></div></li>
+    <li><div><p><b>Neuron and channels</b> <span class="lvl intro">Intro</span> — tap each ion channel on an illustrated cell.</p></div></li>
+    <li><div><p><b>Break it down</b> <span class="lvl intro">Intro</span>–<span class="lvl adv">Advanced</span> — eleven questions (amplitude, impedance, resonance, I<sub>h</sub>, threshold, phase locking…), each with model numbers, an everyday comparison and the connection to CA1.</p></div></li>
+    <li><div><p><b>Impedance explorer</b> <span class="lvl mid">Intermediate</span> — move sliders and watch a filter turn into a resonator.</p></div></li>
+    <li><div><p><b>Lab lessons 1–5</b> <span class="lvl mid">Intermediate</span> — the same ideas on a real 571-compartment cell, with Python. <a href="lab.html#lessons">Open the lessons →</a></p></div></li>
+    <li><div><p><b>The Paper</b> <span class="lvl adv">Advanced</span> — methods, results and discussion. <a href="paper.html">Read →</a></p></div></li>
+  </ol>
+</section>
+<section id="biology">
+  <span class="eyebrow">Start here if you are new to this</span>
+  <h2>The cell, in plain language</h2>
+  <div class="terms">
+    <div class="term leak"><b>What it is</b><span>A CA1 pyramidal neuron is the main output cell of the hippocampus. It has a cell body (soma) and a long branching apical dendrite that collects input.</span></div>
+    <div class="term ax"><b>What it hears</b><span>CA3 cells talk to the middle of the dendrite (Schaffer collaterals). Entorhinal cortex talks to the far tip. Inputs arrive in rhythms: theta (~4–12 Hz) during exploration, gamma (~30–100 Hz) nested inside it.</span></div>
+    <div class="term ih"><b>What it does</b><span>Many CA1 cells are place cells: they fire when an animal is in one spot. They fire either single spikes or short bursts, and Lowet et al. (2023) found bursts lock to theta while single spikes also lock to gamma.</span></div>
+    <div class="term in"><b>Why rhythms matter</b><span>If a cell responds more strongly to some input frequencies than others, it acts like a tuned receiver. That tuning could decide which messages get passed on, and when.</span></div>
+  </div>
+  <div class="callout">
+    <p><b>Two words this page uses a lot.</b> A <b>filter</b> passes slow signals and weakens fast ones, like a thick wall muffling high notes. Every membrane does this. <b>Resonance</b> is different: the cell responds best to one middle frequency, like a swing that goes highest when pushed at its natural rhythm. Resonance needs a current that pushes back on slow changes, such as I<sub>h</sub> or I<sub>M</sub>. Telling these two apart is the main job of this project.</p>
+  </div>
+</section>
+<p class="partrule" id="part-break-it-down">Break it down</p>
+<section id="breakdown">
+  <span class="eyebrow">Concepts, one at a time</span>
+  <h2>Break it down</h2>
+  <p>Each card answers one question in the same order: a short answer, an example with numbers from this model, an everyday comparison, how it connects to the CA1 model, and the distinction people most often miss. Tap a card to open it.</p>
+<div class="mm"><pre class="mermaid">
+flowchart LR
+  A["Input current<br/>amplitude (pA)"] -->|"× impedance Z(f)"| V["Voltage swing<br/>(mV)"]
+  F["Input frequency<br/>(Hz)"] --> Z["Impedance Z(f)<br/>(MΩ)"]
+  Z --> V
+  C["Capacitance + leak<br/>τm = 20 ms"] -->|"low-pass filter"| Z
+  H["I_h, I_M<br/>slow restoring currents"] -->|"resonance peak"| Z
+  X["Dendrite → soma<br/>coupling g_ax"] -->|"attenuation"| Z
+  V -->|"reaches −50 mV?"| T{"Threshold"}
+  T --> S["Spikes"]
+  S --> P["Phase locking<br/>(PPC)"]
+  S --> B["Bursts vs single<br/>spikes"]
+  V -. "large swings open channels" .-> NL["Nonlinear regime<br/>(Z changes)"]
+</pre></div>
+<p class="mmcap">How the ideas connect. Follow any arrow to its card below. Small inputs stay in the linear part of the map (left); spikes and bursts are on the right.</p>
+<div class="bdgrid">
+<details class="bd" id="bd-amplitude" open>
+  <summary><span class="lvl intro">Intro</span><span class="bdq">Does a bigger input current make a bigger voltage response?</span><span class="bda">Yes. In a linear membrane, doubling the current doubles the voltage.</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><p>Sine current injected into the dendrite at 2 Hz (passive model):</p>
+ <div class="tbl"><table><thead><tr><th>Current amplitude</th><th>Dendrite voltage amplitude</th><th>Soma voltage amplitude</th></tr></thead>
+ <tbody><tr><td>50 pA</td><td>0.53 mV</td><td>0.44 mV</td></tr>
+ <tr><td>100 pA</td><td>1.06 mV</td><td>0.88 mV</td></tr>
+ <tr><td>200 pA</td><td>2.12 mV</td><td>1.76 mV</td></tr>
+ <tr><td>400 pA</td><td>4.23 mV</td><td>3.53 mV</td></tr></tbody></table></div>
+ <p>Every row has the same ratio: 1.06 mV per 100 pA = 10.6 MΩ. That ratio is the impedance.</p></div>
+    <div class="bdrow"><h4>Think of it this way</h4><ul class="tight"><li><b>Current amplitude (pA)</b>: how much charge you push in per unit time.</li>
+ <li><b>Voltage amplitude (mV)</b>: how far the membrane potential swings in response.</li>
+ <li><b>Frequency (Hz)</b>: how many times per second the swing repeats.</li>
+ <li><b>Impedance (MΩ)</b>: how many mV you get per nA at that frequency.</li></ul></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>Turn the amplitude up far enough and the soma reaches spike threshold (−50 mV, 20 mV above rest). Whether it gets there depends on both amplitude and frequency; see <a href="#bd-threshold">"How much current does it take to fire?"</a></p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>Raising the amplitude makes the <i>input</i> stronger; it does not change how efficiently the membrane responds. That efficiency is impedance, and in a linear model it stays the same at every amplitude. Once active channels start to open or close, this stops being true; see <a href="#bd-linear">"When does doubling stop doubling?"</a></p></div>
+    <p class="bdlinks"><a href="learn.html#explorer">Try it: impedance explorer</a> · <a href="lab.html#lessons">Lab lesson 2</a> · <a href="paper.html#stage1">Paper 3.1</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-impedance">
+  <summary><span class="lvl intro">Intro</span><span class="bdq">What is impedance, in one line?</span><span class="bda">Voltage response divided by current input, measured at one frequency: Z(f) = V(f) / I(f).</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><p>Same model, measured at the dendrite:</p>
+ <div class="tbl"><table><thead><tr><th>Frequency</th><th>|Z<sub>dd</sub>|</th><th>Voltage for a 100 pA input</th></tr></thead>
+ <tbody><tr><td>2 Hz (delta)</td><td>10.6 MΩ</td><td>1.06 mV</td></tr>
+ <tr><td>8 Hz (theta)</td><td>7.8 MΩ</td><td>0.78 mV</td></tr>
+ <tr><td>40 Hz (gamma)</td><td>2.5 MΩ</td><td>0.25 mV</td></tr></tbody></table></div></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>Resistance (Ohm's law, V = IR) for signals that change over time. MΩ × nA = mV, so a 10 MΩ impedance turns 0.1 nA into 1 mV.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>Impedance is the main quantity in this project: a curve of |Z| against frequency shows which input rhythms the cell favours. Every result in the Paper is a statement about the shape of that curve.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p><b>Input impedance</b> (inject and record at the same place, Z<sub>dd</sub>) vs <b>transfer impedance</b> (inject at the dendrite, record at the soma, Z<sub>sd</sub>). The transfer impedance shows what actually reaches the spike-generating soma.</p></div>
+    <p class="bdlinks"><a href="paper.html#measures">Paper 2.4 Measurements</a> · <a href="reproduce.html#recipes">Recipe</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-frequency">
+  <summary><span class="lvl intro">Intro</span><span class="bdq">Why do faster inputs give smaller voltage changes?</span><span class="bda">The membrane is a capacitor. It needs time to charge, and fast inputs reverse before it has finished.</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><p>With C = 1 nF and g<sub>L</sub> = 0.05 µS, the membrane time constant is τ<sub>m</sub> = C/g<sub>L</sub> = 20 ms. The corner frequency is roughly 1/(2πτ<sub>m</sub>) ≈ 8 Hz. Above that, |Z| falls steadily: 10.6 MΩ at 2 Hz, 2.5 MΩ at 40 Hz.</p></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>Filling a bucket that has a small hole in it. Pour slowly and the level rises a long way. Switch between pouring and scooping 40 times a second and the level barely moves.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>This is why a passive CA1 model responds more to theta than to gamma, with no special channels at all. It is a <b>low-pass filter</b>: the response always falls with frequency and never peaks.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>Preferring theta over gamma is <b>not</b> resonance. Resonance means the response peaks at a non-zero frequency, so the cell responds less to slower inputs as well. A passive membrane cannot do that.</p></div>
+    <p class="bdlinks"><a href="paper.html#stage1">Paper 3.1</a> · <a href="learn.html#explorer">Explorer: "passive" preset</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-resonance">
+  <summary><span class="lvl mid">Intermediate</span><span class="bdq">What is resonance, and how is it measured?</span><span class="bda">A peak in |Z| at a preferred frequency. Its strength is Q = |Z(peak)| / |Z(lowest frequency)|.</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><p>Q = 1 means there is no peak (pure low-pass). In this project, Q = 1.53 with dendritic I<sub>h</sub> (ḡ<sub>h</sub> = 2 µS, peak at 2.3 Hz).</p></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>A swing pushed in time with its natural rhythm. Pushes that are too slow and pushes that are too fast both move it less.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>For a peak you need a <b>slow restoring current</b>, one that opposes voltage changes but only after a delay. Slow inputs give it time to cancel them; fast inputs are filtered by the capacitor. The middle frequency wins. In CA1, I<sub>h</sub> and I<sub>M</sub> play this role.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>Report Q and f<sub>res</sub> together. A peak at 0.6 Hz with Q = 1.02 is technically resonance but means little biologically.</p></div>
+    <p class="bdlinks"><a href="paper.html#stage2">Paper 3.2</a> · <a href="lab.html#lessons">Lab lesson 3</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-attenuation">
+  <summary><span class="lvl intro">Intro</span><span class="bdq">Why is the soma's voltage smaller than the dendrite's?</span><span class="bda">Current leaks out through the dendrite's membrane before it reaches the soma, and more leaks at high frequencies.</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><div class="tbl"><table><thead><tr><th>Frequency</th><th>Dendrite (Z<sub>dd</sub>)</th><th>Soma (Z<sub>sd</sub>)</th><th>Fraction reaching soma</th></tr></thead>
+ <tbody><tr><td>2 Hz</td><td>10.6 MΩ</td><td>8.8 MΩ</td><td>0.83</td></tr>
+ <tr><td>40 Hz</td><td>2.5 MΩ</td><td>1.6 MΩ</td><td>0.64</td></tr></tbody></table></div>
+ <p>In the reconstructed cell, from a site 300 µm out, 26% of an 8 Hz signal reaches the soma, but only 8% of a 40 Hz signal.</p></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>A leaky garden hose: the longer the hose and the more holes it has, the less water arrives at the end.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>The axial conductance g<sub>ax</sub> sets how strongly the two compartments are coupled (steady-state fraction = g<sub>ax</sub>/(g<sub>ax</sub>+g<sub>L</sub>) = 0.833). With two compartments there is only one "distance"; the 571-compartment model has hundreds.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>Attenuation is a second filter stacked on the first, so distal gamma input is doubly disadvantaged by the time it reaches the soma.</p></div>
+    <p class="bdlinks"><a href="lab.html#lessons">Lab lesson 4</a> · <a href="paper.html#morphresults">Paper 3.6</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-ih">
+  <summary><span class="lvl mid">Intermediate</span><span class="bdq">What does I<sub>h</sub> do: conductance or kinetics?</span><span class="bda">Its conductance lowers the response at every frequency; its slowness (τ<sub>h</sub>) is what creates the peak and sets where it falls.</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><div class="tbl"><table><thead><tr><th>Dendrite model</th><th>2 Hz</th><th>8 Hz</th><th>40 Hz</th><th>Shape</th></tr></thead>
+ <tbody><tr><td>Passive</td><td>10.6</td><td>7.8</td><td>2.5</td><td>low-pass</td></tr>
+ <tr><td>I<sub>h</sub> 2 µS, Lowet kinetics (τ<sub>h</sub> ≈ 0.6–3 s)</td><td>5.6</td><td>5.0</td><td>2.3</td><td>tiny peak ≈ 2 Hz</td></tr>
+ <tr><td>Same, gate frozen</td><td>5.6</td><td>5.0</td><td>2.3</td><td>low-pass, no peak</td></tr>
+ <tr><td>I<sub>h</sub> 2 µS, τ<sub>h</sub> = 40 ms</td><td>3.3</td><td>4.7</td><td>2.3</td><td>peak ≈ 9 Hz (theta)</td></tr></tbody></table></div>
+ <p class="note">|Z<sub>dd</sub>| in MΩ.</p></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>A thermostat. How hard the heater can push is the conductance; how long the thermostat takes to react is τ<sub>h</sub>. A slow thermostat corrects only slow drifts, so the frequencies it lets through are set by its delay.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>This is the project's main reduced-model finding: with the published Lowet kinetics, dendritic I<sub>h</sub> resonates in the delta range, not theta. The kinetics, and the temperature they were measured at, matter as much as the density.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>The <b>frozen-gate control</b> keeps the conductance but stops the gate from moving. If the peak disappears and the attenuation stays, the peak came from the kinetics and the attenuation from the conductance.</p></div>
+    <p class="bdlinks"><a href="paper.html#stage2">Paper 3.2</a> · <a href="learn.html#explorer">Explorer: compare presets</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-im">
+  <summary><span class="lvl mid">Intermediate</span><span class="bdq">Why does resonance depend on membrane potential?</span><span class="bda">I<sub>M</sub> and I<sub>NaP</sub> only switch on near spike threshold, so their resonance appears when the cell is depolarized.</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><p>Somatic I<sub>M</sub> + I<sub>NaP</sub>: almost no peak at −80 or −70 mV, but a 5 Hz peak at −60 mV (theory 31.4 MΩ, simulation 31.4 MΩ). Hu et al. (2002) called these "H-resonance" (hyperpolarized) and "M-resonance" (near threshold).</p></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>Two thermostats with different settings: I<sub>h</sub> works in the cold range (hyperpolarized) and I<sub>M</sub> in the warm range (depolarized). I<sub>NaP</sub> is an amplifier that boosts the response near threshold.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>During exploration, CA1 cells are depolarized by input, so the near-threshold M-resonance may be the one that shapes spiking. That is why somatic I<sub>M</sub> is the next rung of the model.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>Impedance is always measured <i>at</i> a membrane potential. Quote the holding voltage with every resonance value.</p></div>
+    <p class="bdlinks"><a href="paper.html#nextrung">Paper 3.5</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-linear">
+  <summary><span class="lvl adv">Advanced</span><span class="bdq">When does doubling the current stop doubling the voltage?</span><span class="bda">When the input is big enough to open or close channels. The response then grows faster than the input (amplification) or slower (saturation).</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><p>Dendritic sine at 2 Hz, with I<sub>h</sub> + somatic I<sub>M</sub> + I<sub>NaP</sub> (no spikes):</p>
+ <div class="tbl"><table><thead><tr><th>Current</th><th>Soma voltage amplitude</th><th>mV per 100 pA</th></tr></thead>
+ <tbody><tr><td>50 pA</td><td>0.34 mV</td><td>0.68</td></tr><tr><td>100 pA</td><td>0.68 mV</td><td>0.68</td></tr>
+ <tr><td>200 pA</td><td>1.44 mV</td><td>0.72</td></tr><tr><td>400 pA</td><td>13.2 mV</td><td>3.3 (!)</td></tr></tbody></table></div>
+ <p>Up to 200 pA the cell behaves linearly. At 400 pA the swings reach the voltages where I<sub>NaP</sub> turns on, and the response jumps almost fivefold.</p></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>A microphone: quiet speech is recorded faithfully, while shouting distorts. Impedance describes the "quiet" regime.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>All impedance curves in this project use small inputs (20 pA) and the <b>quasi-active</b> method: each channel is treated as a fixed resistor plus a slow "spring" around rest. That is accurate for small signals and is why theory and simulation agree to within 0.3%. Spiking, bursting and phase locking are large-signal behaviours, so they are measured by simulation.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>"Impedance stays the same" is a property of the small-signal regime, not of the cell. In real CA1 cells, synaptic input often pushes the cell out of that regime.</p></div>
+    <p class="bdlinks"><a href="paper.html#numerics">Paper 2.7</a> · <a href="paper.html#provenance">Paper 2.5</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-threshold">
+  <summary><span class="lvl intro">Intro</span><span class="bdq">How much current does it take to make the cell fire?</span><span class="bda">Enough to swing the soma 20 mV, from rest (−70 mV) to threshold (−50 mV). Divide 20 mV by the transfer impedance to estimate it.</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><div class="tbl"><table><thead><tr><th>Dendritic sine</th><th>Predicted (20 mV ÷ |Z<sub>sd</sub>|)</th><th>Simulated</th></tr></thead>
+ <tbody><tr><td>2 Hz</td><td>20 / 8.8 MΩ ≈ 2.3 nA</td><td>2.0 nA: 0 spikes · 2.4 nA: 6 spikes · 2.8 nA: 18 spikes</td></tr>
+ <tr><td>40 Hz</td><td>20 / 1.6 MΩ ≈ 12.4 nA</td><td>no spikes at 2.8 nA</td></tr></tbody></table></div></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>Throwing a ball over a fence. Height reached = throw strength × efficiency. Amplitude is the throw strength, impedance is the efficiency, and the fence height is threshold minus rest.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>This card ties the others together: <b>amplitude × impedance = voltage</b>, and voltage against threshold decides whether a spike occurs. A cell's frequency preference below threshold therefore becomes a preference in its spiking.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>The prediction holds because the passive model stays linear up to threshold. With I<sub>NaP</sub>, the cell fires at lower currents than the linear estimate (see the previous card).</p></div>
+    <p class="bdlinks"><a href="paper.html#stage4">Paper 3.4</a> · <a href="lab.html#lessons">Lab lesson 5</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-phase">
+  <summary><span class="lvl mid">Intermediate</span><span class="bdq">What is phase locking, and what does PPC measure?</span><span class="bda">Phase locking means spikes fall at a consistent point in each input cycle; PPC measures how consistent, from 0 (random) to 1 (identical phase).</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><p>Reconstructed cell, 0.3 nA somatic sine at 8 Hz: about 5 spikes per cycle at a consistent phase (vector strength R = 0.77; 0.93 after adding I<sub>M</sub>). At 40 Hz, the same amplitude produces no spikes.</p></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>Clapping along to music. Clapping on the beat every time is high PPC; clapping at random is PPC ≈ 0.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>Lowet et al. (2023) used PPC = (N R² − 1)/(N − 1), which corrects R for the number of spikes N (Vinck 2010). CA1 place cells phase-lock to theta, and their firing phase carries information about position.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>R is biased upward when there are few spikes; PPC is not. Use PPC when comparing conditions with different spike counts.</p></div>
+    <p class="bdlinks"><a href="paper.html#stage4">Paper 3.4</a> · <a href="reproduce.html#api">API: ppc()</a></p>
+  </div>
+</details>
+<details class="bd" id="bd-burst">
+  <summary><span class="lvl mid">Intermediate</span><span class="bdq">What counts as a burst, and why does it matter?</span><span class="bda">A burst is two or more spikes closer together than 14.6 ms (Lowet) or 14 ms (Ceballos); everything else is a single spike.</span></summary>
+  <div class="bdbody">
+    <div class="bdrow"><h4>Example from the model</h4><p>Lowet et al. and Ceballos et al. found that bursts and single spikes prefer different input rhythms: bursts favour theta, single spikes follow faster rhythms.</p></div>
+    <div class="bdrow"><h4>Think of it this way</h4><p>Two channels on one radio, with bursts carrying one message and single spikes another, multiplexed in the same cell.</p></div>
+    <div class="bdrow conn"><h4>Connection to the CA1 model</h4><p>The models here have no intrinsic burst mechanism (no Ca<sup>2+</sup> currents or burst-generating I<sub>NaP</sub>/I<sub>M</sub> dynamics), so this is hypothesis H4: not yet testable. It is the next major step.</p></div>
+    <div class="bdrow dist"><h4>Important distinction</h4><p>Spikes that happen to fall close together are not a burst <i>mechanism</i>. A burst is defined by ISI, but explaining one requires a current that drives it.</p></div>
+    <p class="bdlinks"><a href="paper.html#discussion">Paper 4</a> · <a href="log.html#roadmap">Roadmap</a></p>
+  </div>
+</details>
+</div>
+  <div class="code"><div class="code-head"><span>check the first card yourself</span><button type="button" data-copy="bdcode">Copy</button></div>
+<pre id="bdcode">import numpy as np, ca1_reduced as m
+p = m.Params()                                  # passive two-compartment model
+for A in [0.05, 0.1, 0.2, 0.4]:                 # nA = 50, 100, 200, 400 pA
+    r = m.simulate(p, 3000, I_d=m.sine_current(0, A, 2.0))
+    vs = r["Vs"][r["t"] &gt; 1000]                  # drop the first second
+    amp = (vs.max() - vs.min()) / 2
+    print(f"{A*1000:.0f} pA -&gt; soma {amp:.2f} mV  ({amp/A:.1f} MOhm)")</pre></div>
+<script>
+(function () {
+  function openHash() { var h = location.hash.slice(1), el = h && document.getElementById(h);
+    if (el && el.tagName === "DETAILS") { el.open = true; el.scrollIntoView(); } }
+  window.addEventListener("hashchange", openHash); openHash();
+  document.querySelectorAll('#breakdown a[href^="#bd-"]').forEach(function (a) {
+    a.addEventListener("click", function () { var t = document.getElementById(a.getAttribute("href").slice(1)); if (t) t.open = true; }); });
+})();
+</script>
+</section>
+<p class="partrule" id="part-see-it">See it</p>
+<section id="anatomy">
+  <span class="eyebrow">Interactive · tap a channel or a layer</span>
+  <h2>The neuron, its compartments, and its channels</h2>
+  <p>A CA1 pyramidal cell drawn to show where each ion channel sits. Switch layers to see how the reduced model lumps the cell into two compartments, and its equivalent electrical circuit.</p>
+  <div class="anat">
+    <div class="anat-fig">
+      <div class="seg" role="tablist" aria-label="Figure layer">
+        <button type="button" class="segbtn on" data-layer="bio" id="layer-bio">Biology</button>
+        <button type="button" class="segbtn" data-layer="comp" id="layer-comp">Two compartments</button>
+        <button type="button" class="segbtn" data-layer="circ" id="layer-circ">Circuit</button>
+      </div>
+      <svg id="neuron" viewBox="0 0 640 620" role="img" aria-label="CA1 pyramidal neuron with apical dendrite, tuft, soma, basal dendrites and axon; ion channels marked along the membrane; CA3 input at the middle of the dendrite and entorhinal input at the tuft.">
+        <defs>
+          <linearGradient id="gCell" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--cell-a)"/><stop offset="1" stop-color="var(--cell-b)"/>
+          </linearGradient>
+          <radialGradient id="gSoma" cx="0.45" cy="0.35" r="0.8">
+            <stop offset="0" stop-color="var(--cell-hi)"/><stop offset="1" stop-color="var(--cell-b)"/>
+          </radialGradient>
+          <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="var(--shadow)" flood-opacity="0.35"/></filter>
+        </defs>
+        <g id="bioLayer">
+          <!-- layer labels -->
+          <g class="strata" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--muted)">
+            <text x="14" y="58">str. lacunosum-moleculare</text>
+            <text x="14" y="250">str. radiatum</text>
+            <text x="14" y="440">str. pyramidale</text>
+            <text x="14" y="560">str. oriens</text>
+            <line x1="14" y1="150" x2="200" y2="150" stroke="var(--rule)" stroke-dasharray="3 4"/>
+            <line x1="14" y1="395" x2="200" y2="395" stroke="var(--rule)" stroke-dasharray="3 4"/>
+            <line x1="14" y1="490" x2="200" y2="490" stroke="var(--rule)" stroke-dasharray="3 4"/>
+          </g>
+          <!-- inputs -->
+          <g class="input">
+            <path d="M 630 92 C 560 92, 500 78, 425 80" stroke="var(--t-in)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="420" cy="80" r="5.5" fill="var(--t-in)"/><circle cx="372" cy="58" r="5" fill="var(--t-in)" opacity=".85"/>
+            <path d="M 425 80 C 405 74 388 64 376 60" stroke="var(--t-in)" stroke-width="1.6" fill="none"/>
+            <text x="630" y="112" text-anchor="end" font-family="IBM Plex Sans, sans-serif" font-size="12.5" fill="var(--t-in)" font-weight="600">Entorhinal cortex</text>
+            <text x="630" y="127" text-anchor="end" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="var(--muted)">perforant path → distal tuft</text>
+            <path d="M 548 140 q 6 -9 12 0 t 12 0 t 12 0 t 12 0" stroke="var(--t-in)" stroke-width="1.6" fill="none"/>
+            <path d="M 10 318 C 120 318, 220 312, 300 296" stroke="var(--t-syn)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="304" cy="295" r="5.5" fill="var(--t-syn)"/><circle cx="262" cy="270" r="5" fill="var(--t-syn)" opacity=".85"/>
+            <path d="M 230 314 C 245 296 252 282 260 272" stroke="var(--t-syn)" stroke-width="1.6" fill="none"/>
+            <text x="14" y="340" font-family="IBM Plex Sans, sans-serif" font-size="12.5" fill="var(--t-syn)" font-weight="600">CA3</text>
+            <text x="14" y="355" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="var(--muted)">Schaffer collaterals → mid dendrite</text>
+            <path d="M 14 372 q 4 -6 8 0 t 8 0 t 8 0 t 8 0 t 8 0 t 8 0 t 8 0 t 8 0" stroke="var(--t-syn)" stroke-width="1.4" fill="none"/>
+          </g>
+          <!-- cell body -->
+          <g filter="url(#soft)">
+            <!-- tuft -->
+            <g stroke="url(#gCell)" stroke-linecap="round" fill="none">
+              <path d="M320 175 C 300 140, 270 110, 238 64" stroke-width="7"/>
+              <path d="M320 175 C 318 130, 310 90, 300 40" stroke-width="7"/>
+              <path d="M320 175 C 335 130, 352 95, 368 52" stroke-width="7"/>
+              <path d="M320 175 C 352 150, 392 120, 418 78" stroke-width="7"/>
+              <path d="M268 105 C 250 98, 228 96, 206 92" stroke-width="4"/>
+              <path d="M352 100 C 372 86, 390 70, 398 44" stroke-width="4"/>
+              <!-- obliques -->
+              <path d="M320 330 C 290 318, 262 300, 232 296" stroke-width="5"/>
+              <path d="M320 300 C 350 288, 380 272, 412 268" stroke-width="5"/>
+              <path d="M320 245 C 296 236, 276 222, 256 206" stroke-width="4.5"/>
+              <path d="M320 220 C 344 210, 370 196, 392 178" stroke-width="4.5"/>
+              <!-- basal -->
+              <path d="M300 470 C 282 500, 254 525, 222 545" stroke-width="6"/>
+              <path d="M312 474 C 304 510, 296 545, 286 582" stroke-width="5.5"/>
+              <path d="M332 474 C 344 510, 360 545, 372 576" stroke-width="5.5"/>
+              <path d="M342 468 C 366 492, 398 512, 424 528" stroke-width="6"/>
+            </g>
+            <!-- apical trunk (tapered) -->
+            <path d="M 309 400 L 313 175 Q 320 168 327 175 L 331 400 Z" fill="url(#gCell)"/>
+            <!-- soma -->
+            <path d="M 320 382 C 336 400, 362 440, 368 462 C 372 476, 360 482, 320 482 C 280 482, 268 476, 272 462 C 278 440, 304 400, 320 382 Z" fill="url(#gSoma)"/>
+            <ellipse cx="320" cy="448" rx="15" ry="12" fill="var(--nucleus)" opacity=".8"/>
+            <!-- axon + AIS -->
+            <path d="M 320 482 L 322 520" stroke="var(--ais)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 322 520 C 326 550, 340 580, 360 612" stroke="url(#gCell)" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </g>
+          <text x="388" y="434" font-family="IBM Plex Sans, sans-serif" font-size="12.5" fill="var(--ink)" font-weight="600">soma</text>
+          <text x="338" y="300" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--muted)">apical trunk</text>
+          <text x="432" y="168" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--muted)">tuft</text>
+          <text x="332" y="515" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="var(--muted)">AIS</text>
+          <text x="368" y="604" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="var(--muted)">axon → subiculum</text>
+          <g id="channels"></g>
+        </g>
+        <g id="compLayer" style="display:none">
+          <rect x="196" y="28" width="250" height="364" rx="22" fill="var(--dend-wash)" stroke="var(--dend)" stroke-width="2" stroke-dasharray="7 6"/>
+          <rect x="200" y="402" width="240" height="190" rx="22" fill="var(--soma-wash)" stroke="var(--soma)" stroke-width="2" stroke-dasharray="7 6"/>
+          <g transform="translate(456 120)" font-family="IBM Plex Sans, sans-serif">
+            <text font-size="15" font-weight="700" fill="var(--dend)">Compartment d</text>
+            <text y="20" font-size="12" fill="var(--muted)">trunk + obliques + tuft</text>
+            <text y="36" font-size="12" fill="var(--muted)">lumped into one voltage V_d</text>
+            <text y="58" font-size="12" fill="var(--ink)">C_d · g_L,d · I_h</text>
+          </g>
+          <g transform="translate(456 470)" font-family="IBM Plex Sans, sans-serif">
+            <text font-size="15" font-weight="700" fill="var(--soma)">Compartment s</text>
+            <text y="20" font-size="12" fill="var(--muted)">soma + basal + AIS</text>
+            <text y="36" font-size="12" fill="var(--muted)">one voltage V_s, spikes here</text>
+            <text y="58" font-size="12" fill="var(--ink)">C_s · g_L,s · (I_M, I_NaP)</text>
+          </g>
+          <g transform="translate(320 397)">
+            <rect x="-34" y="-11" width="68" height="22" rx="11" fill="var(--surface)" stroke="var(--t-ax)" stroke-width="2"/>
+            <path d="M -22 0 l 5 -6 l 7 12 l 7 -12 l 7 12 l 7 -12 l 5 6" stroke="var(--t-ax)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+          </g>
+          <text x="360" y="401" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--t-ax)" font-weight="600">g_ax = 0.25 µS</text>
+        </g>
+        <g id="circLayer" style="display:none" font-family="IBM Plex Sans, sans-serif">
+          <rect x="0" y="0" width="640" height="620" fill="var(--surface)"/>
+          <text x="320" y="38" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">Equivalent circuit of the reduced model</text>
+          <!-- rails -->
+          <line x1="70" y1="130" x2="570" y2="130" stroke="var(--ink)" stroke-width="0"/>
+          <!-- dendrite node -->
+          <g transform="translate(60 120)">
+            <text x="0" y="-20" font-size="14" font-weight="700" fill="var(--dend)">Dendrite node V_d</text>
+            <line x1="0" y1="0" x2="230" y2="0" stroke="var(--dend)" stroke-width="2.5"/>
+            <line x1="0" y1="300" x2="230" y2="300" stroke="var(--muted)" stroke-width="2"/>
+            <!-- C -->
+            <g transform="translate(20 0)"><line x1="0" y1="0" x2="0" y2="130" stroke="var(--ink)" stroke-width="1.6"/><line x1="-14" y1="130" x2="14" y2="130" stroke="var(--ink)" stroke-width="2.4"/><line x1="-14" y1="140" x2="14" y2="140" stroke="var(--ink)" stroke-width="2.4"/><line x1="0" y1="140" x2="0" y2="300" stroke="var(--ink)" stroke-width="1.6"/><text x="-14" y="165" font-size="12" fill="var(--ink)" text-anchor="end">C_d</text></g>
+            <!-- leak -->
+            <g transform="translate(85 0)"><line x1="0" y1="0" x2="0" y2="90" stroke="var(--t-leak)" stroke-width="1.6"/><path d="M0 90 l -8 6 l 16 12 l -16 12 l 16 12 l -16 12 l 8 6" stroke="var(--t-leak)" stroke-width="1.8" fill="none"/><line x1="0" y1="150" x2="0" y2="190" stroke="var(--t-leak)" stroke-width="1.6"/><line x1="-12" y1="190" x2="12" y2="190" stroke="var(--t-leak)" stroke-width="2.4"/><line x1="-6" y1="198" x2="6" y2="198" stroke="var(--t-leak)" stroke-width="2.4"/><line x1="0" y1="198" x2="0" y2="300" stroke="var(--t-leak)" stroke-width="1.6"/><text x="14" y="125" font-size="12" fill="var(--t-leak)">g_L</text><text x="14" y="200" font-size="12" fill="var(--t-leak)">E_L</text></g>
+            <!-- Ih variable -->
+            <g transform="translate(150 0)"><line x1="0" y1="0" x2="0" y2="90" stroke="var(--t-h)" stroke-width="1.6"/><path d="M0 90 l -8 6 l 16 12 l -16 12 l 16 12 l -16 12 l 8 6" stroke="var(--t-h)" stroke-width="1.8" fill="none"/><line x1="-18" y1="146" x2="18" y2="94" stroke="var(--t-h)" stroke-width="1.6"/><path d="M18 94 l -8 1 l 5 6 z" fill="var(--t-h)"/><line x1="0" y1="150" x2="0" y2="190" stroke="var(--t-h)" stroke-width="1.6"/><line x1="-12" y1="190" x2="12" y2="190" stroke="var(--t-h)" stroke-width="2.4"/><line x1="-6" y1="198" x2="6" y2="198" stroke="var(--t-h)" stroke-width="2.4"/><line x1="0" y1="198" x2="0" y2="300" stroke="var(--t-h)" stroke-width="1.6"/><text x="22" y="125" font-size="12" fill="var(--t-h)">g_h·h(V,t)</text><text x="16" y="200" font-size="12" fill="var(--t-h)">E_h</text></g>
+            <!-- current source -->
+            <g transform="translate(215 0)"><line x1="0" y1="0" x2="0" y2="125" stroke="var(--t-in)" stroke-width="1.6"/><circle cx="0" cy="150" r="22" fill="var(--surface)" stroke="var(--t-in)" stroke-width="2"/><path d="M0 162 L0 138 M -6 145 L0 137 L6 145" stroke="var(--t-in)" stroke-width="2" fill="none"/><line x1="0" y1="172" x2="0" y2="300" stroke="var(--t-in)" stroke-width="1.6"/><text x="-4" y="210" font-size="12" fill="var(--t-in)" text-anchor="end">I_d(t)</text></g>
+          </g>
+          <!-- axial -->
+          <g transform="translate(290 120)">
+            <line x1="0" y1="0" x2="20" y2="0" stroke="var(--t-ax)" stroke-width="1.8"/>
+            <path d="M20 0 l 5 -8 l 10 16 l 10 -16 l 10 16 l 10 -16 l 5 8" stroke="var(--t-ax)" stroke-width="2" fill="none"/>
+            <line x1="70" y1="0" x2="90" y2="0" stroke="var(--t-ax)" stroke-width="1.8"/>
+            <text x="45" y="-16" text-anchor="middle" font-size="12.5" fill="var(--t-ax)" font-weight="600">g_ax</text>
+          </g>
+          <!-- soma node -->
+          <g transform="translate(380 120)">
+            <text x="0" y="-20" font-size="14" font-weight="700" fill="var(--soma)">Soma node V_s</text>
+            <line x1="0" y1="0" x2="220" y2="0" stroke="var(--soma)" stroke-width="2.5"/>
+            <line x1="0" y1="300" x2="220" y2="300" stroke="var(--muted)" stroke-width="2"/>
+            <g transform="translate(20 0)"><line x1="0" y1="0" x2="0" y2="130" stroke="var(--ink)" stroke-width="1.6"/><line x1="-14" y1="130" x2="14" y2="130" stroke="var(--ink)" stroke-width="2.4"/><line x1="-14" y1="140" x2="14" y2="140" stroke="var(--ink)" stroke-width="2.4"/><line x1="0" y1="140" x2="0" y2="300" stroke="var(--ink)" stroke-width="1.6"/><text x="16" y="165" font-size="12" fill="var(--ink)">C_s</text></g>
+            <g transform="translate(80 0)"><line x1="0" y1="0" x2="0" y2="90" stroke="var(--t-leak)" stroke-width="1.6"/><path d="M0 90 l -8 6 l 16 12 l -16 12 l 16 12 l -16 12 l 8 6" stroke="var(--t-leak)" stroke-width="1.8" fill="none"/><line x1="0" y1="150" x2="0" y2="190" stroke="var(--t-leak)" stroke-width="1.6"/><line x1="-12" y1="190" x2="12" y2="190" stroke="var(--t-leak)" stroke-width="2.4"/><line x1="-6" y1="198" x2="6" y2="198" stroke="var(--t-leak)" stroke-width="2.4"/><line x1="0" y1="198" x2="0" y2="300" stroke="var(--t-leak)" stroke-width="1.6"/><text x="14" y="125" font-size="12" fill="var(--t-leak)">g_L</text></g>
+            <g transform="translate(140 0)" opacity=".85"><line x1="0" y1="0" x2="0" y2="90" stroke="var(--t-syn)" stroke-width="1.6" stroke-dasharray="4 3"/><path d="M0 90 l -8 6 l 16 12 l -16 12 l 16 12 l -16 12 l 8 6" stroke="var(--t-syn)" stroke-width="1.8" fill="none"/><line x1="-18" y1="146" x2="18" y2="94" stroke="var(--t-syn)" stroke-width="1.6"/><path d="M18 94 l -8 1 l 5 6 z" fill="var(--t-syn)"/><line x1="0" y1="150" x2="0" y2="300" stroke="var(--t-syn)" stroke-width="1.6" stroke-dasharray="4 3"/><text x="16" y="125" font-size="12" fill="var(--t-syn)">I_M, I_NaP</text><text x="16" y="141" font-size="11" fill="var(--muted)">optional</text></g>
+            <g transform="translate(205 0)"><line x1="0" y1="0" x2="0" y2="120" stroke="var(--ink)" stroke-width="1.6"/><rect x="-16" y="120" width="32" height="44" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.6"/><text x="0" y="147" text-anchor="middle" font-size="11" fill="var(--ink)">LIF</text><line x1="0" y1="164" x2="0" y2="300" stroke="var(--ink)" stroke-width="1.6"/></g>
+          </g>
+          <g font-size="12.5" fill="var(--muted)">
+            <text x="60" y="470">Each vertical branch is one membrane current. Branches in parallel add up.</text>
+            <text x="60" y="490">The zigzag between the nodes is the axial conductance that links the two compartments.</text>
+            <text x="60" y="510">An arrow through a resistor marks a voltage-gated conductance (it changes with V and time).</text>
+            <text x="60" y="530">The LIF box resets V_s to −65 mV when it reaches −50 mV.</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div class="anat-side">
+      <p class="eyebrow">Channels</p>
+      <div class="chips" id="chips">
+        <button type="button" class="chipbtn" data-ch="leak" id="ch-leak"><i style="color:var(--t-leak)"></i>Leak</button>
+        <button type="button" class="chipbtn" data-ch="hcn" id="ch-hcn"><i style="color:var(--t-h)"></i>HCN · I<sub>h</sub></button>
+        <button type="button" class="chipbtn" data-ch="kv7" id="ch-kv7"><i style="color:var(--t-syn)"></i>Kv7 · I<sub>M</sub></button>
+        <button type="button" class="chipbtn" data-ch="nap" id="ch-nap"><i style="color:var(--t-ax)"></i>Na<sub>V</sub> · I<sub>NaP</sub></button>
+        <button type="button" class="chipbtn" data-ch="spike" id="ch-spike"><i style="color:var(--spike)"></i>Na<sub>V</sub> + K<sub>dr</sub> · spike</button>
+        <button type="button" class="chipbtn" data-ch="ka" id="ch-ka"><i style="color:var(--t-in)"></i>K<sub>A</sub> · I<sub>A</sub></button>
+      </div>
+      <div class="info" id="chinfo" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+<section id="explorer">
+  <span class="eyebrow">Interactive · computed live in your browser</span>
+  <h2>Impedance explorer</h2>
+  <p>Change a conductance and watch the frequency response update. This is the same linearized math as <code>impedance_matrix()</code> in <code>ca1_reduced.py</code>, so the numbers match the notebook. A curve that falls steadily is a filter; a curve with a hump is resonance.</p>
+  <div class="presets" id="presets">
+    <button type="button" data-preset="passive" id="pr-passive">Passive</button>
+    <button type="button" data-preset="early" id="pr-early">Earlier runs (g<sub>h</sub> 0.05)</button>
+    <button type="button" data-preset="lowet" id="pr-lowet">Lowet I<sub>h</sub></button>
+    <button type="button" data-preset="warm" id="pr-warm">Lowet, τ<sub>h</sub> ÷ 3</button>
+    <button type="button" data-preset="ceb" id="pr-ceb">Ceballos dendrite</button>
+    <button type="button" data-preset="mres" id="pr-mres">I<sub>M</sub> resonance, −60 mV</button>
+  </div>
+  <div class="xp">
+    <div class="xp-controls">
+      <fieldset><legend>Dendrite</legend>
+        <label for="s-gh"><span>ḡ<sub>h</sub></span><input type="range" id="s-gh" min="0" max="10" step="0.05"><output id="o-gh"></output></label>
+        <label for="s-ths"><span>τ<sub>h</sub> × </span><input type="range" id="s-ths" min="-2.3" max="0.7" step="0.01"><output id="o-ths"></output></label>
+        <label class="row" for="s-kin"><span>Kinetics</span><select id="s-kin"><option value="lowet2023">Lowet τh(V)</option><option value="simple">constant 40 ms</option></select></label>
+        <label class="row check" for="s-freeze"><input type="checkbox" id="s-freeze"><span>Freeze h at rest (control)</span></label>
+      </fieldset>
+      <fieldset><legend>Coupling and leak</legend>
+        <label for="s-gax"><span>g<sub>ax</sub></span><input type="range" id="s-gax" min="0.01" max="1" step="0.01"><output id="o-gax"></output></label>
+        <label for="s-gl"><span>g<sub>L</sub></span><input type="range" id="s-gl" min="0.02" max="0.1" step="0.005"><output id="o-gl"></output></label>
+      </fieldset>
+      <fieldset><legend>Soma</legend>
+        <label for="s-gm"><span>g<sub>M</sub></span><input type="range" id="s-gm" min="0" max="3" step="0.05"><output id="o-gm"></output></label>
+        <label for="s-gnap"><span>g<sub>NaP</sub></span><input type="range" id="s-gnap" min="0" max="1" step="0.01"><output id="o-gnap"></output></label>
+        <label class="row check" for="s-hold"><input type="checkbox" id="s-hold"><span>Hold soma at</span></label>
+        <label for="s-vh"><span>V<sub>hold</sub></span><input type="range" id="s-vh" min="-90" max="-52" step="0.5"><output id="o-vh"></output></label>
+      </fieldset>
+      <fieldset><legend>Input goes into</legend>
+        <div class="seg small"><button type="button" class="segbtn on" data-site="d" id="site-d">Dendrite</button><button type="button" class="segbtn" data-site="s" id="site-s">Soma</button></div>
+      </fieldset>
+    </div>
+    <div class="xp-out">
+      <div class="xp-plate"><svg id="zplot" viewBox="0 0 640 330" role="img" aria-label="Impedance magnitude versus input frequency"></svg></div>
+      <div class="xp-read" id="readout"></div>
+      <div class="xp-plate"><svg id="gplot" viewBox="0 0 640 210" role="img" aria-label="Gate steady-state open fraction versus voltage with rest markers"></svg></div>
+    </div>
+  </div>
+</section>
+<p class="partrule" id="part-put-it-in-context">Put it in context</p>
+<section id="compare">
+  <span class="eyebrow">Benchmarks from recordings</span>
+  <h2>A real CA1 cell vs this model</h2>
+  <p>What experiments on real CA1 pyramidal cells show, and whether the reduced model reproduces it.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Property</th><th>Real CA1 pyramidal cell</th><th>This model</th><th>Match?</th></tr></thead>
+    <tbody>
+      <tr><td>Subthreshold resonance</td><td>Peak at ~2–5 Hz at 33 °C, ~7 Hz at 38 °C, in rat slices (Hu et al. 2002)</td><td>2.3 Hz with Lowet I<sub>h</sub>; ~4 Hz if τ<sub>h</sub> is scaled to body temperature (÷3)</td><td><span class="chip ok">Yes, for 33 °C</span></td></tr>
+      <tr><td>Two kinds of resonance</td><td>Strongest at −80 mV (I<sub>h</sub>, "H-resonance") and −60 mV (I<sub>M</sub> + I<sub>NaP</sub>, "M-resonance"); weak near rest, −72 mV (Hu et al. 2002)</td><td>Theory: I<sub>M</sub> gives 5.2 Hz at −60 mV, almost nothing at −70 mV. H-resonance at −80 mV is weak (Q 1.06)</td><td><span class="chip warn">Partly</span></td></tr>
+      <tr><td>I<sub>h</sub> along the dendrite</td><td>Density rises more than sixfold from soma to distal dendrite (Magee 1998)</td><td>One dendritic compartment with uniform I<sub>h</sub></td><td><span class="chip todo">No</span></td></tr>
+      <tr><td>Resonance vs location</td><td>Resonance frequency differs more than 3× between soma and distal dendrites, and changes after LTP through h channels (Narayanan &amp; Johnston 2007)</td><td>Only two points; no plasticity</td><td><span class="chip todo">No</span></td></tr>
+      <tr><td>I<sub>h</sub> shortens EPSPs</td><td>Dendritic I<sub>h</sub> reduces EPSP amplitude and duration and narrows temporal summation (Magee 1998)</td><td>EPSP smaller with I<sub>h</sub> (1.07 → 0.70 mV at the dendrite)</td><td><span class="chip ok">Yes, qualitatively</span></td></tr>
+      <tr><td>Bursting</td><td>Complex-spike bursts; I<sub>M</sub> switches the cell between silent and firing states, I<sub>NaP</sub> adds spikes per burst (Golomb et al. 2006)</td><td>LIF reset cannot burst (burst fraction 0)</td><td><span class="chip todo">No</span></td></tr>
+      <tr><td>Bursts vs single spikes</td><td>Bursts lock to theta, single spikes also to gamma (Lowet 2023); the two have separate resonances (Ceballos 2025)</td><td>Not testable until bursts exist</td><td><span class="chip todo">No</span></td></tr>
+      <tr><td>Resting potential</td><td>About −72 mV in Hu et al.'s slices</td><td>−70 passive; −55 (soma) with Lowet I<sub>h</sub> and no somatic K<sup>+</sup> currents to hold it down</td><td><span class="chip warn">Too depolarized with I<sub>h</sub></span></td></tr>
+      <tr><td>Input resistance</td><td>Typically tens of MΩ</td><td>10.9 MΩ (set by the assumed compartment area)</td><td><span class="chip warn">Scale only</span></td></tr>
+    </tbody>
+  </table></div>
+  <p>The input-resistance mismatch matters less than it looks. Scaling the area scales every conductance and capacitance together, so time constants, resonance frequency and Q stay the same; only the mV-per-nA scale changes.</p>
+</section>
+<section id="testing">
+  <span class="eyebrow">The questions, plainly</span>
+  <h2>What we are testing, and why</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Stage</th><th>Plain question</th><th>Why it matters biologically</th><th>Answer so far</th></tr></thead>
+    <tbody>
+      <tr><td>1 · Passive</td><td>If the cell were just a leaky bag of membrane, how would it handle slow vs fast input?</td><td>Sets the baseline. Anything a passive cell already does needs no special channel to explain it.</td><td>It only muffles fast input. No preferred frequency.</td></tr>
+      <tr><td>2 · I<sub>h</sub></td><td>Does adding HCN channels to the dendrite give the cell a favourite frequency?</td><td>HCN channels are dense in CA1 dendrites and are blamed for theta resonance.</td><td>Yes, but Lowet's slow kinetics put it at ~2 Hz. Speed of the channel decides where the peak sits.</td></tr>
+      <tr><td>2 · control</td><td>Is the change from the channel's timing, or just from extra open channels?</td><td>Separates "the cell is leakier" from "the cell is tuned".</td><td>Timing makes the peak; extra conductance makes the overall drop.</td></tr>
+      <tr><td>3 · Rhythms + noise</td><td>Does theta get through better than gamma, and does background noise change that?</td><td>Real inputs are noisy rhythms, not clean waves.</td><td>Theta gets through better by filtering. Noise level tested was too small to matter.</td></tr>
+      <tr><td>4 · Spikes</td><td>Does the cell fire at a consistent point in each cycle, and can it burst?</td><td>Spike timing relative to theta is how place cells code position (phase precession).</td><td>It locks to the rhythm but cannot burst.</td></tr>
+      <tr><td>Next · I<sub>M</sub></td><td>Does a slow potassium current in the soma give theta tuning near firing threshold?</td><td>Hu et al. found this "M-resonance" at −60 mV; Golomb showed I<sub>M</sub> drives bursting.</td><td>Theory says yes: ~5 Hz at −60 mV. Simulation check pending.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="mm"><pre class="mermaid">
+flowchart LR
+  O1["Theta beats gamma in amplitude"] --> X1["Passive filtering by C and g_L"]
+  O2["Response peak at 2 Hz"] --> X2["Ih kinetics, tau_h about 0.7 s"]
+  O3["Peak at 5 Hz near -60 mV"] --> X3["I_M with tau 75 ms, amplified by I_NaP"]
+  O4["Smaller response with Ih"] --> X4["Extra open Ih conductance, not kinetics"]
+  O5["Bursts lock to theta"] --> X5["Needs a burst mechanism: not in model yet"]
+</pre></div>
+  <p class="mmcap">Which mechanism explains which observation, based on the tests so far.</p>
+</section>
+<nav class="pager" aria-label="Pages"><a href="paper.html">← Paper</a><a href="lab.html">Lab →</a></nav>
+<footer class="foot">Rebecca Goodman · CA1 resonance compendium v1.0 · 2 Nov 2026</footer>
+</main>
+</div>
+<script>
+// Quasi-active two-compartment CA1 model — JS port of ca1_reduced.impedance_matrix
+// Units: ms, mV, nF, uS, nA, MOhm. Mirrors Params() defaults.
+var CA1 = (function () {
+  function hInf(V, p) { return 1 / (1 + Math.exp((V - p.Vh_half) / p.k_h)); }
+  function dhInf(V, p) { var h = hInf(V, p); return -h * (1 - h) / p.k_h; }
+  function tauH(V, p) {
+    if (p.ih_kinetics === "lowet2023")
+      return p.tau_h_scale * (1 / (Math.exp(-17.9 - 0.116 * V) + Math.exp(-1.84 + 0.09 * V)) + 0.1);
+    return p.tau_h_scale * p.tau_h;
+  }
+  function zInf(V, p) { return 1 / (1 + Math.exp(-(V - p.theta_z) / p.sigma_z)); }
+  function pInf(V, p) { return 1 / (1 + Math.exp(-(V - p.theta_p) / p.sigma_p)); }
+
+  function defaults() {
+    return { C_s: 1, C_d: 1, gL_s: 0.05, gL_d: 0.05, E_L: -70, g_ax: 0.25,
+      ih_kinetics: "lowet2023", g_h: 0, E_h: -32.9, Vh_half: -84, k_h: 10.2, tau_h: 40,
+      tau_h_scale: 1, freeze_h: false,
+      g_M: 0, E_K: -90, theta_z: -39, sigma_z: 5, tau_z: 75,
+      g_NaP: 0, E_Na: 55, theta_p: -47, sigma_p: 3 };
+  }
+
+  // dendrite steady state for a fixed soma voltage (monotone -> bisection)
+  function vdOf(vs, p, Id0) {
+    var lo = -150, hi = 50;
+    for (var i = 0; i < 80; i++) {
+      var mid = 0.5 * (lo + hi);
+      var F = -p.gL_d * (mid - p.E_L) - p.g_h * hInf(mid, p) * (mid - p.E_h) - p.g_ax * (mid - vs) + Id0;
+      if (F > 0) lo = mid; else hi = mid;
+    }
+    return 0.5 * (lo + hi);
+  }
+  function Fs(vs, vd, p, Is0) {
+    return -p.gL_s * (vs - p.E_L) - p.g_M * zInf(vs, p) * (vs - p.E_K)
+      - p.g_NaP * pInf(vs, p) * (vs - p.E_Na) + p.g_ax * (vd - vs) + Is0;
+  }
+  // free rest (no holding current), same rule as Python: root closest to E_L
+  function restFree(p) {
+    var N = 1201, prevV = null, prevG = null, best = null;
+    for (var i = 0; i < N; i++) {
+      var v = -200 + 240 * i / (N - 1), g = Fs(v, vdOf(v, p, 0), p, 0);
+      if (prevG !== null && (prevG > 0) !== (g > 0)) {
+        var lo = prevV, hi = v, glo = prevG;
+        for (var k = 0; k < 50; k++) {
+          var mid = 0.5 * (lo + hi), gm = Fs(mid, vdOf(mid, p, 0), p, 0);
+          if ((gm > 0) === (glo > 0)) { lo = mid; glo = gm; } else hi = mid;
+        }
+        var r = 0.5 * (lo + hi);
+        if (best === null || Math.abs(r - p.E_L) < Math.abs(best - p.E_L)) best = r;
+      }
+      prevV = v; prevG = g;
+    }
+    if (best === null) return null;
+    return { vs: best, vd: vdOf(best, p, 0) };
+  }
+  // soma held at Vs by a somatic current; returns the current too
+  function restHeld(p, Vs) {
+    var vd = vdOf(Vs, p, 0);
+    return { vs: Vs, vd: vd, Ihold: -Fs(Vs, vd, p, 0) };
+  }
+
+  // complex helpers [re, im]
+  function cadd(a, b) { return [a[0] + b[0], a[1] + b[1]]; }
+  function cmul(a, b) { return [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]]; }
+  function cdiv(a, b) { var d = b[0] * b[0] + b[1] * b[1]; return [(a[0] * b[0] + a[1] * b[1]) / d, (a[1] * b[0] - a[0] * b[1]) / d]; }
+  function cabs(a) { return Math.hypot(a[0], a[1]); }
+
+  function impedance(p, freqs, rest) {
+    var vs = rest.vs, vd = rest.vd, h0 = hInf(vd, p), out = { Zss: [], Zsd: [], Zdd: [] };
+    var th = tauH(vd, p), z0 = zInf(vs, p), p0 = pInf(vs, p);
+    for (var i = 0; i < freqs.length; i++) {
+      var w = 2 * Math.PI * freqs[i] / 1000;
+      var yd = [p.gL_d, w * p.C_d], ys = [p.gL_s, w * p.C_s];
+      if (p.g_h) {
+        yd = cadd(yd, [p.g_h * h0, 0]);
+        if (!p.freeze_h) yd = cadd(yd, cdiv([p.g_h * (vd - p.E_h) * dhInf(vd, p), 0], [1, w * th]));
+      }
+      if (p.g_M) {
+        ys = cadd(ys, [p.g_M * z0, 0]);
+        ys = cadd(ys, cdiv([p.g_M * (vs - p.E_K) * z0 * (1 - z0) / p.sigma_z, 0], [1, w * p.tau_z]));
+      }
+      if (p.g_NaP) ys = cadd(ys, [p.g_NaP * p0 + p.g_NaP * (vs - p.E_Na) * p0 * (1 - p0) / p.sigma_p, 0]);
+      var g = [p.g_ax, 0];
+      var det = cadd(cmul(cadd(ys, g), cadd(yd, g)), [-p.g_ax * p.g_ax, 0]);
+      out.Zss.push(cabs(cdiv(cadd(yd, g), det)));
+      out.Zdd.push(cabs(cdiv(cadd(ys, g), det)));
+      out.Zsd.push(cabs(cdiv(g, det)));
+    }
+    return out;
+  }
+  function metrics(freqs, Z) {
+    var k = 0; for (var i = 1; i < Z.length; i++) if (Z[i] > Z[k]) k = i;
+    return { fres: freqs[k], Q: Z[k] / Z[0], k: k };
+  }
+  return { defaults: defaults, restFree: restFree, restHeld: restHeld, impedance: impedance,
+           metrics: metrics, hInf: hInf, tauH: tauH, zInf: zInf, pInf: pInf };
+})();
+
+
+(function () {
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  /* ---------------- Neuron: channel glyphs ---------------- */
+  var CH = {
+    leak: { color: "var(--t-leak)", name: "Leak channels", gene: "K2P and other background channels",
+      where: "Everywhere on the membrane.",
+      does: "Always open. Pull the voltage toward −70 mV and set how fast the cell charges (τ<sub>m</sub> = C/g<sub>L</sub> = 20 ms).",
+      model: ["ok", "In the model"], eq: "I<sub>L</sub> = g<sub>L</sub>(V − E<sub>L</sub>)", src: "Lowet HHca2 <code>Gl = 0.05</code>" },
+    hcn: { color: "var(--t-h)", name: "HCN channels · I<sub>h</sub>", gene: "HCN1 (mainly) and HCN2",
+      where: "Dendrites, rising more than sixfold from soma to distal tuft (Magee 1998). Drawn denser toward the tuft.",
+      does: "Open when the membrane hyperpolarizes, let in a depolarizing mixed Na<sup>+</sup>/K<sup>+</sup> current, and close slowly when it depolarizes. This slow push-back can make a resonance peak.",
+      model: ["ok", "In the model (dendrite)"], eq: "I<sub>h</sub> = ḡ<sub>h</sub> h (V − E<sub>h</sub>), E<sub>h</sub> = −32.9 mV", src: "Lowet HHca2 <code>Gh2</code>, <code>h2_inf</code>, <code>tauh2</code>" },
+    kv7: { color: "var(--t-syn)", name: "Kv7 channels · I<sub>M</sub>", gene: "KCNQ2/3",
+      where: "Soma and axon initial segment.",
+      does: "Slow K<sup>+</sup> current (τ 75 ms) that opens above about −65 mV and pulls the voltage back down. Creates theta resonance near threshold and drives bursting (Hu 2002; Golomb 2006).",
+      model: ["warn", "Optional in the model"], eq: "I<sub>M</sub> = g<sub>M</sub> z (V − E<sub>K</sub>)", src: "Golomb 2006; HHca <code>Gm</code>, <code>thetaz</code>, <code>tauz</code>" },
+    nap: { color: "var(--t-ax)", name: "Persistent Na<sup>+</sup> · I<sub>NaP</sub>", gene: "Na<sub>V</sub>1.6 and others (non-inactivating fraction)",
+      where: "Soma and axon initial segment.",
+      does: "Opens instantly near −50 mV and adds inward current. Amplifies resonance and adds spikes to bursts.",
+      model: ["warn", "Optional in the model"], eq: "I<sub>NaP</sub> = g<sub>NaP</sub> p<sub>∞</sub>(V)(V − E<sub>Na</sub>)", src: "Golomb 2006; HHca <code>Gnap</code>, <code>thetap</code>" },
+    spike: { color: "var(--spike)", name: "Spike channels · I<sub>NaT</sub> + I<sub>Kdr</sub>", gene: "Na<sub>V</sub>1.6 / 1.2; Kv2.1",
+      where: "Densest at the axon initial segment, where spikes start; also soma.",
+      does: "Produce the action potential: fast Na<sup>+</sup> up, delayed K<sup>+</sup> down.",
+      model: ["todo", "Replaced by LIF threshold/reset"], eq: "LIF: if V<sub>s</sub> ≥ −50 → spike, V<sub>s</sub> = −65", src: "Golomb 2006 for the full version" },
+    ka: { color: "var(--t-in)", name: "A-type K<sup>+</sup> · I<sub>A</sub>", gene: "Kv4.2",
+      where: "Dendrites, increasing with distance from the soma.",
+      does: "Fast-inactivating K<sup>+</sup> current that limits back-propagating spikes and dendritic excitability.",
+      model: ["todo", "Not in the model"], eq: "I<sub>A</sub> = g<sub>A</sub> a<sub>∞</sub><sup>3</sup> b (V − E<sub>K</sub>)", src: "Golomb 2006; HHca <code>Ga</code>" }
+  };
+  // glyph positions [x, y, angleDeg]
+  var POS = {
+    hcn: [[313,370,90],[327,340,-90],[313,300,90],[327,262,-90],[313,230,90],[327,205,-90],[313,186,90],[300,140,60],[288,124,60],[276,108,60],[262,90,60],[250,78,60],[312,120,80],[306,90,80],[302,62,80],[338,128,-70],[346,104,-70],[356,80,-70],[362,64,-70],[372,128,-50],[390,112,-50],[404,96,-50],[412,84,-50],[226,94,0],[386,58,-60],[248,212,40],[402,186,-40],[388,270,0]],
+    kv7: [[296,420,-50],[344,420,50],[322,488,0],[322,500,0],[318,512,0]],
+    nap: [[300,452,-30],[340,452,30],[325,494,0],[325,506,0]],
+    spike: [[317,486,0],[317,498,0],[317,510,0],[327,482,0],[290,470,0],[352,470,0],[336,540,25]],
+    ka: [[313,320,90],[327,240,-90],[296,154,60],[344,150,-60],[262,300,10],[372,282,-10],[388,140,-50]],
+    leak: [[313,355,90],[327,280,-90],[278,452,-45],[362,452,45],[250,532,30],[296,560,10],[350,556,-10],[400,516,-30],[240,100,0],[296,50,90]]
+  };
+  var chG = document.getElementById("channels");
+  function glyph(x, y, a, ch) {
+    var g = el("g", { transform: "translate(" + x + " " + y + ") rotate(" + a + ")", "data-ch": ch, "class": "glyph" }, chG);
+    var c = CH[ch].color;
+    el("rect", { x: -6.5, y: -4.5, width: 5, height: 9, rx: 2.2, fill: c, stroke: "var(--surface)", "stroke-width": 0.8 }, g);
+    el("rect", { x: 1.5, y: -4.5, width: 5, height: 9, rx: 2.2, fill: c, stroke: "var(--surface)", "stroke-width": 0.8 }, g);
+    return g;
+  }
+  Object.keys(POS).forEach(function (ch) { POS[ch].forEach(function (q) { glyph(q[0], q[1], q[2], ch); }); });
+
+  var info = document.getElementById("chinfo"), chips = document.querySelectorAll(".chipbtn"), current = null;
+  function showCh(ch) {
+    current = (current === ch) ? null : ch;
+    chips.forEach(function (b) { b.classList.toggle("on", b.dataset.ch === current); });
+    chG.querySelectorAll(".glyph").forEach(function (g) { g.classList.toggle("dim", current && g.getAttribute("data-ch") !== current); g.classList.toggle("lit", g.getAttribute("data-ch") === current); });
+    if (!current) { info.innerHTML = '<p class="hint">Pick a channel to see where it sits, what it does, and whether the model includes it.</p>'; return; }
+    var c = CH[current];
+    info.innerHTML = '<h3>' + c.name + '</h3><p class="gene">' + c.gene + '</p>' +
+      '<dl><dt>Where</dt><dd>' + c.where + '</dd><dt>What it does</dt><dd>' + c.does + '</dd>' +
+      '<dt>Equation</dt><dd>' + c.eq + '</dd><dt>Source</dt><dd>' + c.src + '</dd></dl>' +
+      '<span class="chip ' + c.model[0] + '">' + c.model[1] + '</span>';
+  }
+  chips.forEach(function (b) { b.addEventListener("click", function () { showCh(b.dataset.ch); }); });
+  chG.addEventListener("click", function (e) { var g = e.target.closest(".glyph"); if (g) showCh(g.getAttribute("data-ch")); });
+  current = "hcn"; showCh("hcn"); current = "hcn";
+
+  var layers = { bio: document.getElementById("bioLayer"), comp: document.getElementById("compLayer"), circ: document.getElementById("circLayer") };
+  document.querySelectorAll("[data-layer]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll("[data-layer]").forEach(function (x) { x.classList.toggle("on", x === b); });
+      var L = b.dataset.layer;
+      layers.comp.style.display = (L === "comp") ? "" : "none";
+      layers.circ.style.display = (L === "circ") ? "" : "none";
+      layers.bio.style.opacity = (L === "comp") ? "0.55" : "1";
+    });
+  });
+
+  /* ---------------- Impedance explorer ---------------- */
+  var state = { site: "d" };
+  var $ = function (id) { return document.getElementById(id); };
+  var S = { gh: $("s-gh"), ths: $("s-ths"), kin: $("s-kin"), freeze: $("s-freeze"), gax: $("s-gax"), gl: $("s-gl"),
+            gm: $("s-gm"), gnap: $("s-gnap"), hold: $("s-hold"), vh: $("s-vh") };
+  var PRESETS = {
+    passive: { gh: 0, ths: 1, kin: "lowet2023", freeze: false, gax: 0.25, gl: 0.05, gm: 0, gnap: 0, hold: false, vh: -60, site: "d" },
+    early:   { gh: 0.05, ths: 1, kin: "lowet2023", freeze: false, gax: 0.25, gl: 0.05, gm: 0, gnap: 0, hold: false, vh: -60, site: "d" },
+    lowet:   { gh: 2, ths: 1, kin: "lowet2023", freeze: false, gax: 0.25, gl: 0.05, gm: 0, gnap: 0, hold: false, vh: -60, site: "d" },
+    warm:    { gh: 2, ths: 1 / 3, kin: "lowet2023", freeze: false, gax: 0.25, gl: 0.05, gm: 0, gnap: 0, hold: false, vh: -60, site: "d" },
+    ceb:     { gh: 8.46, ths: 1, kin: "lowet2023", freeze: false, gax: 0.2, gl: 0.04, gm: 0, gnap: 0, hold: false, vh: -60, site: "d" },
+    mres:    { gh: 2, ths: 1, kin: "lowet2023", freeze: false, gax: 0.25, gl: 0.05, gm: 1, gnap: 0.3, hold: true, vh: -60, site: "s" }
+  };
+  function applyPreset(name) {
+    var P = PRESETS[name];
+    S.gh.value = P.gh; S.ths.value = Math.log(P.ths); S.kin.value = P.kin; S.freeze.checked = P.freeze;
+    S.gax.value = P.gax; S.gl.value = P.gl; S.gm.value = P.gm; S.gnap.value = P.gnap; S.hold.checked = P.hold; S.vh.value = P.vh;
+    setSite(P.site);
+    document.querySelectorAll("[data-preset]").forEach(function (b) { b.classList.toggle("on", b.dataset.preset === name); });
+    update();
+  }
+  function setSite(s) {
+    state.site = s;
+    document.querySelectorAll("[data-site]").forEach(function (b) { b.classList.toggle("on", b.dataset.site === s); });
+  }
+  document.querySelectorAll("[data-preset]").forEach(function (b) { b.addEventListener("click", function () { applyPreset(b.dataset.preset); }); });
+  document.querySelectorAll("[data-site]").forEach(function (b) { b.addEventListener("click", function () { setSite(b.dataset.site); update(); }); });
+  Object.keys(S).forEach(function (k) {
+    S[k].addEventListener("input", function () { document.querySelectorAll("[data-preset]").forEach(function (b) { b.classList.remove("on"); }); update(); });
+  });
+
+  var NF = 220, FREQS = [];
+  for (var i = 0; i < NF; i++) FREQS.push(Math.exp(Math.log(0.3) + (Math.log(80) - Math.log(0.3)) * i / (NF - 1)));
+
+  function params() {
+    var p = CA1.defaults();
+    p.g_h = +S.gh.value; p.tau_h_scale = Math.exp(+S.ths.value); p.ih_kinetics = S.kin.value; p.freeze_h = S.freeze.checked;
+    p.g_ax = +S.gax.value; p.gL_s = p.gL_d = +S.gl.value; p.g_M = +S.gm.value; p.g_NaP = +S.gnap.value;
+    return p;
+  }
+  function fmt(x, d) { return (Math.abs(x) < 1e-9 ? 0 : x).toFixed(d); }
+
+  var zsvg = $("zplot"), gsvg = $("gplot");
+  var W = 640, H = 330, m = { l: 56, r: 16, t: 18, b: 42 };
+  function xs(f) { return m.l + (Math.log(f) - Math.log(0.3)) / (Math.log(80) - Math.log(0.3)) * (W - m.l - m.r); }
+
+  function drawZ(curves, rest, mt) {
+    while (zsvg.firstChild) zsvg.removeChild(zsvg.firstChild);
+    var ymax = 0; curves.forEach(function (c) { c.Z.forEach(function (z) { if (z > ymax) ymax = z; }); });
+    ymax = niceMax(ymax * 1.08);
+    function ys(z) { return H - m.b - z / ymax * (H - m.t - m.b); }
+    el("rect", { x: xs(4), y: m.t, width: xs(12) - xs(4), height: H - m.t - m.b, fill: "var(--theta-bg)" }, zsvg);
+    el("rect", { x: xs(30), y: m.t, width: xs(80) - xs(30), height: H - m.t - m.b, fill: "var(--gamma-bg)" }, zsvg);
+    txt(xs(8), m.t + 14, "theta", "var(--theta)", "middle", 11);
+    txt(xs(50), m.t + 14, "gamma", "var(--muted)", "middle", 11);
+    [0.5, 1, 2, 5, 10, 20, 50].forEach(function (f) {
+      el("line", { x1: xs(f), x2: xs(f), y1: m.t, y2: H - m.b, stroke: "var(--rule)", "stroke-width": 1 }, zsvg);
+      txt(xs(f), H - m.b + 16, String(f), "var(--muted)", "middle", 11);
+    });
+    for (var k = 0; k <= 4; k++) {
+      var v = ymax * k / 4, y = ys(v);
+      el("line", { x1: m.l, x2: W - m.r, y1: y, y2: y, stroke: "var(--rule)", "stroke-width": k === 0 ? 1.4 : 0.8 }, zsvg);
+      txt(m.l - 8, y + 4, fmt(v, v < 10 ? 1 : 0), "var(--muted)", "end", 11);
+    }
+    txt((m.l + W - m.r) / 2, H - 6, "input frequency (Hz, log scale)", "var(--muted)", "middle", 11.5);
+    var yl = el("text", { x: 14, y: (m.t + H - m.b) / 2, transform: "rotate(-90 14 " + ((m.t + H - m.b) / 2) + ")", "text-anchor": "middle", fill: "var(--muted)", "font-size": 11.5, "font-family": "IBM Plex Sans, sans-serif" }, zsvg);
+    yl.textContent = "|Z| (MΩ)";
+    curves.forEach(function (c) {
+      var d = c.Z.map(function (z, i) { return (i ? "L" : "M") + xs(FREQS[i]).toFixed(1) + " " + ys(z).toFixed(1); }).join(" ");
+      el("path", { d: d, fill: "none", stroke: c.color, "stroke-width": c.w || 2.4, "stroke-dasharray": c.dash || "", "stroke-linejoin": "round" }, zsvg);
+    });
+    var main = curves[0];
+    var px = xs(FREQS[mt.k]), py = ys(main.Z[mt.k]);
+    if (mt.Q > 1.005) {
+      el("circle", { cx: px, cy: py, r: 5.5, fill: main.color, stroke: "var(--surface)", "stroke-width": 2 }, zsvg);
+      txt(px + 9, py - 8, fmt(FREQS[mt.k], 1) + " Hz", main.color, "start", 12, 700);
+    }
+    // legend
+    var lx = W - m.r - 190, ly = m.t + 30;
+    curves.forEach(function (c, i) {
+      el("line", { x1: lx, x2: lx + 22, y1: ly + i * 17, y2: ly + i * 17, stroke: c.color, "stroke-width": 2.4, "stroke-dasharray": c.dash || "" }, zsvg);
+      txt(lx + 28, ly + i * 17 + 4, c.label, "var(--ink)", "start", 11.5);
+    });
+  }
+  function niceMax(v) { var e = Math.pow(10, Math.floor(Math.log10(v))); var n = v / e; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * e; }
+  function txt(x, y, s, fill, anchor, size, weight, svg) {
+    var t = el("text", { x: x, y: y, fill: fill, "text-anchor": anchor || "start", "font-size": size || 11, "font-family": "IBM Plex Sans, sans-serif", "font-weight": weight || 400 }, svg || zsvg);
+    t.textContent = s; return t;
+  }
+
+  function drawGates(p, rest) {
+    while (gsvg.firstChild) gsvg.removeChild(gsvg.firstChild);
+    var GW = 640, GH = 210, g = { l: 56, r: 16, t: 14, b: 36 };
+    function gx(v) { return g.l + (v + 110) / 90 * (GW - g.l - g.r); }
+    function gy(o) { return GH - g.b - o * (GH - g.t - g.b); }
+    [-110, -90, -70, -50, -30].forEach(function (v) {
+      el("line", { x1: gx(v), x2: gx(v), y1: g.t, y2: GH - g.b, stroke: "var(--rule)" }, gsvg);
+      txt(gx(v), GH - g.b + 15, String(v), "var(--muted)", "middle", 11, 400, gsvg);
+    });
+    [0, 0.5, 1].forEach(function (o) { el("line", { x1: g.l, x2: GW - g.r, y1: gy(o), y2: gy(o), stroke: "var(--rule)" }, gsvg); txt(g.l - 8, gy(o) + 4, String(o), "var(--muted)", "end", 11, 400, gsvg); });
+    txt((g.l + GW - g.r) / 2, GH - 4, "membrane voltage (mV)", "var(--muted)", "middle", 11.5, 400, gsvg);
+    var yl = el("text", { x: 14, y: (g.t + GH - g.b) / 2, transform: "rotate(-90 14 " + ((g.t + GH - g.b) / 2) + ")", "text-anchor": "middle", fill: "var(--muted)", "font-size": 11.5, "font-family": "IBM Plex Sans, sans-serif" }, gsvg);
+    yl.textContent = "open fraction";
+    var gates = [
+      { f: function (v) { return CA1.hInf(v, p); }, c: "var(--t-h)", lab: "h∞ (I_h)", at: rest.vd },
+      { f: function (v) { return CA1.zInf(v, p); }, c: "var(--t-syn)", lab: "z∞ (I_M)", at: rest.vs },
+      { f: function (v) { return CA1.pInf(v, p); }, c: "var(--t-ax)", lab: "p∞ (I_NaP)", at: rest.vs }
+    ];
+    gates.forEach(function (G, i) {
+      var d = ""; for (var v = -110; v <= -20; v += 1) d += (v === -110 ? "M" : "L") + gx(v).toFixed(1) + " " + gy(G.f(v)).toFixed(1) + " ";
+      el("path", { d: d, fill: "none", stroke: G.c, "stroke-width": 2.2 }, gsvg);
+      el("circle", { cx: gx(G.at), cy: gy(G.f(G.at)), r: 5, fill: G.c, stroke: "var(--surface)", "stroke-width": 1.5 }, gsvg);
+      txt(GW - g.r - 120, g.t + 14 + i * 16, G.lab, G.c, "start", 11.5, 600, gsvg);
+    });
+    el("line", { x1: gx(rest.vd), x2: gx(rest.vd), y1: g.t, y2: GH - g.b, stroke: "var(--dend)", "stroke-dasharray": "4 3" }, gsvg);
+    el("line", { x1: gx(rest.vs), x2: gx(rest.vs), y1: g.t, y2: GH - g.b, stroke: "var(--soma)", "stroke-dasharray": "4 3" }, gsvg);
+    txt(gx(rest.vd) + 4, g.t + 10, "V_d", "var(--dend)", "start", 11, 600, gsvg);
+    txt(gx(rest.vs) - 4, g.t + 10, "V_s", "var(--soma)", "end", 11, 600, gsvg);
+  }
+
+  function update() {
+    $("o-gh").textContent = fmt(+S.gh.value, 2) + " µS";
+    $("o-ths").textContent = "× " + fmt(Math.exp(+S.ths.value), 2);
+    $("o-gax").textContent = fmt(+S.gax.value, 2) + " µS";
+    $("o-gl").textContent = fmt(+S.gl.value, 3) + " µS";
+    $("o-gm").textContent = fmt(+S.gm.value, 2) + " µS";
+    $("o-gnap").textContent = fmt(+S.gnap.value, 2) + " µS";
+    $("o-vh").textContent = fmt(+S.vh.value, 1) + " mV";
+    S.vh.disabled = !S.hold.checked;
+    S.ths.disabled = false;
+
+    var p = params();
+    var rest = S.hold.checked ? CA1.restHeld(p, +S.vh.value) : CA1.restFree(p);
+    var R = $("readout");
+    if (!rest) { R.innerHTML = '<p class="warnline">No resting state: the cell would fire on its own. Turn on "Hold soma at" or lower g<sub>NaP</sub>.</p>'; return; }
+    var Z = CA1.impedance(p, FREQS, rest);
+    var pp = CA1.defaults(); pp.g_ax = p.g_ax; pp.gL_s = pp.gL_d = p.gL_s;
+    var Zp = CA1.impedance(pp, FREQS, { vs: -70, vd: -70 });
+    var local = state.site === "d" ? Z.Zdd : Z.Zss, transfer = Z.Zsd; // Zsd == Zds for this network
+    var localP = state.site === "d" ? Zp.Zdd : Zp.Zss;
+    var nameL = state.site === "d" ? "Z_dd · at dendrite" : "Z_ss · at soma";
+    var nameT = state.site === "d" ? "Z_sd · at soma" : "Z_ds · at dendrite";
+    var cL = state.site === "d" ? "var(--dend)" : "var(--soma)", cT = state.site === "d" ? "var(--soma)" : "var(--dend)";
+    var mt = CA1.metrics(FREQS, local), mtT = CA1.metrics(FREQS, transfer);
+    drawZ([{ Z: local, color: cL, label: nameL }, { Z: transfer, color: cT, label: nameT, w: 2 }, { Z: localP, color: "var(--muted)", label: "passive reference", dash: "5 4", w: 1.6 }], rest, mt);
+    drawGates(p, rest);
+
+    function at(Zarr, f) { var k = 0; for (var i = 1; i < FREQS.length; i++) if (Math.abs(FREQS[i] - f) < Math.abs(FREQS[k] - f)) k = i; return Zarr[k]; }
+    var verdict, cls;
+    if (mt.Q < 1.02) { verdict = "Low-pass filter"; cls = "todo"; }
+    else if (mt.fres < 4) { verdict = "Resonant, below theta (" + fmt(mt.fres, 1) + " Hz)"; cls = "warn"; }
+    else if (mt.fres <= 12) { verdict = "Theta resonance (" + fmt(mt.fres, 1) + " Hz)"; cls = "ok"; }
+    else { verdict = "Resonant above theta (" + fmt(mt.fres, 1) + " Hz)"; cls = "warn"; }
+    var near = (rest.vs > -52) ? '<p class="warnline">Soma rests above −52 mV: the LIF soma (threshold −50 mV) would be close to firing.</p>' : "";
+    R.innerHTML =
+      '<div class="tile"><b>' + fmt(rest.vs, 1) + '</b><span>V<sub>s</sub> at rest (mV)</span></div>' +
+      '<div class="tile"><b>' + fmt(rest.vd, 1) + '</b><span>V<sub>d</sub> at rest (mV)</span></div>' +
+      (S.hold.checked ? '<div class="tile"><b>' + fmt(rest.Ihold, 3) + '</b><span>holding current (nA)</span></div>' : '') +
+      '<div class="tile"><b>' + (mt.Q < 1.005 ? "none" : fmt(mt.fres, 1) + " Hz") + '</b><span>peak, ' + (state.site === "d" ? "Z<sub>dd</sub>" : "Z<sub>ss</sub>") + '</span></div>' +
+      '<div class="tile"><b>' + fmt(mt.Q, 2) + '</b><span>Q, ' + (state.site === "d" ? "Z<sub>dd</sub>" : "Z<sub>ss</sub>") + ' (transfer ' + fmt(mtT.Q, 2) + ')</span></div>' +
+      '<div class="tile"><b>' + fmt(at(local, 8), 2) + ' / ' + fmt(at(local, 40), 2) + '</b><span>|Z| at 8 / 40 Hz (MΩ)</span></div>' +
+      '<div class="tile"><b>' + fmt(CA1.tauH(rest.vd, p), 0) + ' ms</b><span>τ<sub>h</sub> at V<sub>d</sub></span></div>' +
+      '<div class="verdict"><span class="chip ' + cls + '">' + verdict + '</span></div>' + near;
+  }
+  applyPreset("lowet");
+})();
+
+</script><script>
+document.querySelectorAll('[data-copy]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var el = document.getElementById(btn.dataset.copy);
+    var text = el.innerText;
+    function done(msg){ btn.textContent = msg; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }
+    function fallback(){
+      var r = document.createRange(); r.selectNodeContents(el);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      done('Selected');
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function(){ done('Copied'); }, fallback);
+    } catch (e) { fallback(); }
+  });
+});
+</script><script>
+(function () {
+  function load(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var toc = load("ca1c-toc", window.innerWidth > 1100 ? "on" : "off"), bt = document.getElementById("ptoc");
+  function apply() { document.body.classList.toggle("toc-off", toc === "off"); bt.setAttribute("aria-pressed", toc === "on"); }
+  bt.onclick = function () { toc = toc === "on" ? "off" : "on"; save("ca1c-toc", toc); apply(); };
+  apply();
+})();
+</script><script type="module">
+// Render Mermaid blocks if the host has not already done so.
+const blocks = [...document.querySelectorAll("pre.mermaid")].filter(b => !b.querySelector("svg") && !b.dataset.processed);
+if (blocks.length) {
+  try {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs");
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches && document.documentElement.dataset.theme !== "light";
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", securityLevel: "strict" });
+    await mermaid.run({ nodes: blocks });
+  } catch (e) { console.warn("mermaid", e); }
+}
+</script></body></html>

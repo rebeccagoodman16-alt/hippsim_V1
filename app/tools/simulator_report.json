@@ -1,0 +1,161 @@
+{
+ "studio": {
+  "routes": [
+   [
+    "/biology/cell-atlas/",
+    38837,
+    64
+   ],
+   [
+    "/workbench/morphology/",
+    8187,
+    80
+   ],
+   [
+    "/biology/neuron-lab/",
+    15595,
+    83
+   ],
+   [
+    "/biology/circuit-builder/",
+    8419,
+    86
+   ],
+   [
+    "/biology/whole-brain/",
+    3652,
+    1
+   ],
+   [
+    "/biology/neuron-viewer/",
+    8596,
+    0
+   ]
+  ],
+  "errors": [
+   "Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+   "Failed to load resource: the server responded with a status of 404 (File not found)"
+  ]
+ },
+ "ca1-neuron": {
+  "routes": [
+   [
+    "/biology/dendritic-resonance/",
+    6318,
+    2
+   ],
+   [
+    "/biology/active-dendrites/",
+    5571,
+    3
+   ],
+   [
+    "/biology/axo-axonic/",
+    5199,
+    3
+   ]
+  ],
+  "errors": [
+   "Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED"
+  ]
+ },
+ "ca1-bursting": {
+  "routes": [
+   [
+    "/biology/ca1-bursting/",
+    4735,
+    4
+   ]
+  ],
+  "errors": []
+ },
+ "ladder": {
+  "routes": [
+   [
+    "/biology/interleaved-resonance/",
+    4349,
+    6
+   ],
+   [
+    "/biology/research-resonance/",
+    3149,
+    4
+   ],
+   [
+    "/biology/research-spiking/",
+    3254,
+    6
+   ]
+  ],
+  "errors": []
+ },
+ "ca1-research": {
+  "routes": [
+   [
+    "/biology/research-morphology/",
+    1967,
+    3
+   ],
+   [
+    "/biology/research-circuit/",
+    3938,
+    2
+   ],
+   [
+    "/biology/research-place-fields/",
+    3194,
+    6
+   ]
+  ],
+  "errors": []
+ },
+ "circuit": {
+  "routes": [
+   [
+    "/biology/network/",
+    7677,
+    2
+   ],
+   [
+    "/biology/real-circuit/",
+    4371,
+    2
+   ]
+  ],
+  "errors": []
+ },
+ "giant-fiber": {
+  "routes": [
+   [
+    "/biology/giant-fiber/",
+    7392,
+    10
+   ]
+  ],
+  "errors": [
+   "Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED"
+  ]
+ },
+ "nerve-muscle": {
+  "routes": [
+   [
+    "/biology/action-potential/",
+    2373,
+    5
+   ],
+   [
+    "/biology/reflex/",
+    4284,
+    5
+   ],
+   [
+    "/biology/mechanisms/",
+    4976,
+    10
+   ]
+  ],
+  "errors": [
+   "Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED"
+  ]
+ }
+}

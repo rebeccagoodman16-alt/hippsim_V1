@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: Demyelination
+tool: reflex
+kind: disease
+what: Slowed conduction, as in MS or neuropathy.
+expected_size: complete block in the model
+references: []
+ops:
+- control: '#rxDemy'
+  set: true

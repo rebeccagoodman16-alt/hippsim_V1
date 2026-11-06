@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: 'Iberiotoxin: BK block'
+tool: interleaved-resonance
+kind: pharmacology
+what: Fast Ca²⁺-activated K⁺ removed.
+expected_size: complete block in the model
+references: []
+ops:
+- control: '#irp-gfKCa'
+  set: 0

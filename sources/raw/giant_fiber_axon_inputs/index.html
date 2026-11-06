@@ -1,0 +1,798 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Giant Fiber Axon Inputs</title>
+<meta name="description" content="Presynaptic partners onto the DNp01 / Giant Fiber axon compartment in the Drosophila MANC connectome, broken down by neuron class, cell type, and predicted neurotransmitter." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+
+<style>
+  :root {
+    color-scheme: light;
+    --ground:      #f5f6f8;
+    --surface:     #fdfdfc;
+    --surface-2:   #f0f1f3;
+    --ink:         #14181b;
+    --ink-2:       #586169;
+    --ink-3:       #8b939a;
+    --hairline:    #e3e5e8;
+    --baseline:    #c7cace;
+    --accent:      #2a78d6;
+
+    --c-an:   #2a78d6;
+    --c-in:   #eb6834;
+    --c-dn:   #1baf7a;
+    --c-oth:  #eda100;
+    --c-un:   #e87ba4;
+
+    --nt-ach:  #2a78d6;
+    --nt-gaba: #eb6834;
+    --nt-glut: #1baf7a;
+    --nt-unk:  #8b939a;
+
+    --shadow: 0 1px 2px rgba(20,24,27,.04), 0 6px 20px rgba(20,24,27,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground:    #121518;
+      --surface:   #1b1e21;
+      --surface-2: #23272b;
+      --ink:       #eef1f2;
+      --ink-2:     #a7afb5;
+      --ink-3:     #7b838a;
+      --hairline:  #2b2f33;
+      --baseline:  #3a3f44;
+      --accent:    #3987e5;
+
+      --c-an:   #3987e5;
+      --c-in:   #d95926;
+      --c-dn:   #199e70;
+      --c-oth:  #c98500;
+      --c-un:   #d55181;
+
+      --nt-ach:  #3987e5;
+      --nt-gaba: #d95926;
+      --nt-glut: #199e70;
+      --nt-unk:  #7b838a;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 22px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground:    #121518;
+    --surface:   #1b1e21;
+    --surface-2: #23272b;
+    --ink:       #eef1f2;
+    --ink-2:     #a7afb5;
+    --ink-3:     #7b838a;
+    --hairline:  #2b2f33;
+    --baseline:  #3a3f44;
+    --accent:    #3987e5;
+
+    --c-an:   #3987e5;
+    --c-in:   #d95926;
+    --c-dn:   #199e70;
+    --c-oth:  #c98500;
+    --c-un:   #d55181;
+
+    --nt-ach:  #3987e5;
+    --nt-gaba: #d95926;
+    --nt-glut: #199e70;
+    --nt-unk:  #7b838a;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 22px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px 96px; }
+
+  /* ---- header ---- */
+  header { padding: 64px 0 40px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 18px;
+  }
+  h1 {
+    font-family: "Spectral", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(30px, 4.6vw, 46px);
+    line-height: 1.12;
+    letter-spacing: -.01em;
+    text-wrap: balance;
+    margin: 0 0 20px;
+  }
+  .standfirst {
+    font-size: 17px; color: var(--ink-2); max-width: 64ch; margin: 0;
+  }
+  .standfirst b { color: var(--ink); font-weight: 600; }
+
+  /* ---- theme toggle ---- */
+  .toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 10;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px;
+    background: var(--surface); color: var(--ink-2);
+    border: 1px solid var(--hairline); border-radius: 999px;
+    padding: 7px 13px; cursor: pointer;
+  }
+  .toggle:hover { color: var(--ink); border-color: var(--baseline); }
+  .toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---- stat strip ---- */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    margin: 8px 0 44px;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 12px; padding: 18px 18px 16px; box-shadow: var(--shadow);
+  }
+  .stat .n {
+    font-family: "Spectral", Georgia, serif; font-weight: 600;
+    font-size: 30px; line-height: 1; letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .l {
+    display: block; margin-top: 8px; font-size: 12.5px; color: var(--ink-2);
+  }
+  .stat .k {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+    display: block; margin-bottom: 9px;
+  }
+
+  /* ---- sections ---- */
+  section {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 14px; padding: 28px 28px 26px; margin-bottom: 22px;
+    box-shadow: var(--shadow);
+  }
+  .sec-head { margin-bottom: 4px; }
+  h2 {
+    font-family: "Spectral", Georgia, serif; font-weight: 600;
+    font-size: 21px; letter-spacing: -.005em; margin: 0 0 6px;
+  }
+  .caption { font-size: 14px; color: var(--ink-2); margin: 0 0 22px; max-width: 68ch; }
+  .caption code {
+    font-family: "IBM Plex Mono", monospace; font-size: .92em;
+    background: var(--surface-2); padding: 1px 5px; border-radius: 4px;
+  }
+
+  /* ---- legend ---- */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 20px;
+    font-size: 12.5px; color: var(--ink-2);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+
+  /* ---- horizontal bar chart ---- */
+  .bars { display: flex; flex-direction: column; gap: 9px; }
+  .row {
+    display: grid;
+    grid-template-columns: var(--labw, 168px) 1fr;
+    align-items: center; gap: 14px;
+  }
+  .row .rl {
+    font-size: 12.5px; color: var(--ink-2); text-align: right;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .row .rl .rid {
+    font-family: "IBM Plex Mono", monospace; color: var(--ink);
+    font-size: 12px;
+  }
+  .track {
+    position: relative; height: 22px;
+    display: flex; align-items: center; gap: 2px;
+  }
+  .seg {
+    height: 100%; border-radius: 3px; min-width: 2px;
+    transition: filter .12s ease;
+  }
+  .seg:first-child { border-radius: 3px; }
+  .bar-single {
+    height: 100%; border-radius: 3px; min-width: 3px;
+    transition: filter .12s ease;
+  }
+  .row:hover .seg, .row:hover .bar-single { filter: brightness(1.08) saturate(1.05); }
+  .rv {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px;
+    color: var(--ink); font-variant-numeric: tabular-nums;
+    margin-left: 9px; white-space: nowrap;
+  }
+  .rv .pct { color: var(--ink-3); }
+
+  /* compartment single stacked bar */
+  .compbar {
+    display: flex; height: 46px; border-radius: 8px; overflow: hidden;
+    gap: 2px; margin-bottom: 14px;
+  }
+  .compbar div {
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 13px; font-weight: 500;
+    font-family: "IBM Plex Mono", monospace;
+  }
+  .comp-note { font-size: 13px; color: var(--ink-2); margin: 0; }
+
+  /* two-up */
+  .twoup { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+  .twoup h3 {
+    font-size: 12px; font-family: "IBM Plex Mono", monospace;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+    margin: 0 0 16px; font-weight: 500;
+  }
+
+  /* callout */
+  .callout {
+    border-left: 3px solid var(--accent); padding: 4px 0 4px 18px;
+    margin: 0 0 22px; font-size: 14.5px; color: var(--ink-2);
+  }
+  .callout b { color: var(--ink); font-weight: 600; }
+
+  /* ---- table ---- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  thead th {
+    text-align: left; padding: 11px 14px; background: var(--surface-2);
+    font-family: "IBM Plex Mono", monospace; font-weight: 500;
+    font-size: 11px; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--ink-3); position: sticky; top: 0;
+  }
+  tbody td {
+    padding: 9px 14px; border-top: 1px solid var(--hairline);
+    color: var(--ink-2); font-variant-numeric: tabular-nums;
+  }
+  tbody td.mono { font-family: "IBM Plex Mono", monospace; color: var(--ink); }
+  tbody tr:hover td { background: var(--surface-2); }
+  .cls-pill {
+    display: inline-block; padding: 1px 8px; border-radius: 999px;
+    font-size: 11px; font-family: "IBM Plex Mono", monospace;
+    color: #fff;
+  }
+  .scroll-tall { max-height: 460px; overflow-y: auto; }
+
+  /* ---- tooltip ---- */
+  #tip {
+    position: fixed; z-index: 40; pointer-events: none; opacity: 0;
+    transition: opacity .1s ease; background: var(--ink); color: var(--ground);
+    font-size: 12px; padding: 7px 10px; border-radius: 7px; max-width: 240px;
+    font-family: "IBM Plex Mono", monospace; line-height: 1.45;
+    box-shadow: 0 6px 24px rgba(0,0,0,.28);
+  }
+  #tip b { color: var(--surface); }
+
+  footer {
+    margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--hairline);
+    font-size: 12.5px; color: var(--ink-3); max-width: 74ch;
+  }
+  footer p { margin: 0 0 9px; }
+  footer code {
+    font-family: "IBM Plex Mono", monospace;
+    background: var(--surface-2); padding: 1px 5px; border-radius: 4px;
+  }
+
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .twoup { grid-template-columns: 1fr; gap: 26px; }
+    .row { grid-template-columns: var(--labw-m, 120px) 1fr; gap: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<button class="toggle" id="themeBtn" type="button">theme</button>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Drosophila MANC v1.2.1 · body 10000 · DNp01 / Giant Fiber</p>
+    <h1>What synapses onto the Giant Fiber axon</h1>
+    <p class="standfirst">
+      The GF skeleton was split into axon and dendrite by synapse-flow centrality.
+      Of the inputs onto the axon, <b>800 synapses from 145 presynaptic partners</b>
+      land on the axonal compartment &mdash; the genuinely axo-axonic contacts.
+      Here is who they come from.
+    </p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><span class="k">Axonic input</span><span class="n">800</span><span class="l">synapses onto the GF axon compartment</span></div>
+    <div class="stat"><span class="k">Partners</span><span class="n">145</span><span class="l">distinct presynaptic neurons &amp; fragments</span></div>
+    <div class="stat"><span class="k">Ascending</span><span class="n">45%</span><span class="l">357 synapses from 25 AN partners</span></div>
+    <div class="stat"><span class="k">Intrinsic</span><span class="n">33%</span><span class="l">265 synapses from 56 IN partners</span></div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>Where the inputs land</h2>
+      <p class="caption">
+        Every presynaptic contact onto the GF, assigned to a compartment by matching its
+        postsynaptic coordinate against the split skeleton. Just over half of all input
+        sits on the axon.
+      </p>
+    </div>
+    <div class="compbar" id="compbar"></div>
+    <p class="comp-note" id="compnote"></p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Axonic input by neuron class</h2>
+      <p class="caption">
+        Partners classified by MANC type prefix &mdash; <b>AN</b> ascending, <b>IN</b> VNC-intrinsic,
+        <b>DN</b> descending, <b>other</b> named non-AN/IN/DN (GFC2&ndash;4, pIP9),
+        <b>unidentified</b> untyped connectome fragments. Ascending neurons dominate the
+        synapse count; intrinsic neurons are the most numerous partners.
+      </p>
+    </div>
+    <div class="legend" id="clsLegend"></div>
+    <div class="twoup">
+      <div>
+        <h3>Synapses onto axon &nbsp;/&nbsp; 800 total</h3>
+        <div class="bars" id="clsSyn"></div>
+      </div>
+      <div>
+        <h3>Distinct partners &nbsp;/&nbsp; 145 total</h3>
+        <div class="bars" id="clsPart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Top presynaptic partners onto the axon</h2>
+      <p class="caption">
+        Individual bodies, ranked by number of synapses onto the GF axon. Bar colour is the
+        neuron class; the mono label is <code>body&nbsp;&mdash;&nbsp;type</code>. The AN08B098
+        octet and the AN05B006 pair carry most of the axo-axonic weight.
+      </p>
+    </div>
+    <div class="legend" id="clsLegend2"></div>
+    <div class="bars" id="topPartners" style="--labw:210px;--labw-m:150px"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Axonic input by cell type</h2>
+      <p class="caption">
+        Synapses grouped by presynaptic type. <code>AN08B098</code> alone accounts for 221 of
+        the 800 axonic synapses &mdash; and all 221 come from the eight known octet bodies.
+      </p>
+    </div>
+    <div class="legend" id="clsLegend3"></div>
+    <div class="bars" id="byType" style="--labw:132px;--labw-m:104px"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Predicted neurotransmitter</h2>
+      <p class="caption">
+        From the MANC per-synapse NT predictions. Ascending input onto the axon is
+        mostly cholinergic; intrinsic input is mostly GABAergic with a glutamatergic
+        minority. The unidentified fragments split three ways.
+      </p>
+    </div>
+    <div class="legend" id="ntLegend"></div>
+    <div class="twoup">
+      <div>
+        <h3>Synapses by class &times; NT</h3>
+        <div class="bars" id="ntByClass" style="--labw:96px;--labw-m:84px"></div>
+      </div>
+      <div>
+        <h3>Unidentified fragments &nbsp;/&nbsp; 40 partners</h3>
+        <div class="bars" id="ntUnid" style="--labw:110px;--labw-m:96px"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>The AN08B098 octet</h2>
+    </div>
+    <p class="callout">
+      All <b>221</b> axo-axonic synapses of type AN08B098 come from the <b>eight</b>
+      known octet bodies &mdash; no AN08B098 input onto the GF axon is unaccounted for.
+      Predicted cholinergic throughout.
+    </p>
+    <div class="bars" id="octet" style="--labw:96px;--labw-m:88px"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Every partner onto the axon</h2>
+      <p class="caption">All 145 presynaptic partners, ranked by axonic synapse count. Scroll for the long tail.</p>
+    </div>
+    <div class="tablewrap scroll-tall">
+      <table>
+        <thead>
+          <tr><th>Body ID</th><th>Type</th><th>Class</th><th>Pred. NT</th><th style="text-align:right">Axon syn.</th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>Method.</b> GF skeleton fetched from neuPrint (<code>manc:v1.2.1</code>), healed, and
+      split with <code>navis.split_axon_dendrite(metric="synapse_flow_centrality")</code>. Each
+      presynaptic contact was labelled axon / dendrite by rounding its postsynaptic voxel
+      coordinate and matching it to the split fragments' connectors.</p>
+    <p><b>Caveat.</b> 40 partners (95 synapses, ~12% of axonic input) are untyped connectome
+      fragments with no type, soma, or status in MANC v1.2.1; checked individually against
+      <code>fetch_neurons</code>. Their strongest partner is usually the GF itself. Not recoverable
+      from released metadata.</p>
+    <p>Generated from <code>data/processed/gf_10000_axon_partners_by_class.csv</code>.</p>
+  </footer>
+</div>
+
+<div id="tip"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- data ----------
+  var COMP = [
+    { k: "axon", label: "Axon", n: 800, c: "var(--accent)" },
+    { k: "dendrite", label: "Dendrite", n: 749, c: "var(--nt-unk)" }
+  ];
+
+  var CLS = {
+    AN:  { label: "AN — ascending",    c: "var(--c-an)" },
+    IN:  { label: "IN — intrinsic",    c: "var(--c-in)" },
+    DN:  { label: "DN — descending",   c: "var(--c-dn)" },
+    other: { label: "other (named)",   c: "var(--c-oth)" },
+    unidentified: { label: "unidentified", c: "var(--c-un)" }
+  };
+  var CLS_ORDER = ["AN", "IN", "DN", "other", "unidentified"];
+
+  var CLS_SYN  = { AN: 357, IN: 265, unidentified: 95, DN: 61, other: 22 };
+  var CLS_PART = { IN: 56, unidentified: 40, AN: 25, DN: 13, other: 11 };
+
+  var NT = {
+    acetylcholine: { label: "acetylcholine", c: "var(--nt-ach)" },
+    gaba:          { label: "GABA",          c: "var(--nt-gaba)" },
+    glutamate:     { label: "glutamate",     c: "var(--nt-glut)" },
+    unknown:       { label: "unknown",       c: "var(--nt-unk)" }
+  };
+  var NT_ORDER = ["acetylcholine", "gaba", "glutamate", "unknown"];
+
+  var NT_BY_CLASS = {
+    AN:  { acetylcholine: 266, gaba: 88,  glutamate: 3,  unknown: 0 },
+    IN:  { acetylcholine: 29,  gaba: 171, glutamate: 65, unknown: 0 },
+    DN:  { acetylcholine: 44,  gaba: 17,  glutamate: 0,  unknown: 0 },
+    other: { acetylcholine: 20, gaba: 0,  glutamate: 2,  unknown: 0 },
+    unidentified: { acetylcholine: 23, gaba: 33, glutamate: 35, unknown: 4 }
+  };
+  var NT_UNID = { glutamate: 19, gaba: 11, acetylcholine: 7, unknown: 3 };
+
+  // full partner list: [bodyId, type, class, nt, count]
+  var PARTNERS = [
+    [10758,"AN05B006","AN","gaba",41],[21041,"AN08B098","AN","acetylcholine",37],
+    [21589,"AN08B098","AN","acetylcholine",35],[10603,"AN05B006","AN","gaba",35],
+    [22275,"AN08B098","AN","acetylcholine",33],[22805,"IN00A062","IN","glutamate",31],
+    [16900,"AN08B098","AN","acetylcholine",31],[23949,"AN08B098","AN","acetylcholine",29],
+    [10002,"DNp01","DN","acetylcholine",25],[24038,"AN08B098","AN","acetylcholine",23],
+    [26076,"IN00A039","IN","gaba",22],[20238,"IN00A047","IN","gaba",18],
+    [22856,"IN00A064","IN","gaba",18],[152261,"AN08B098","AN","acetylcholine",17],
+    [19312,"IN00A039","IN","gaba",17],[20444,"AN08B098","AN","acetylcholine",16],
+    [22265,"AN08B102","AN","acetylcholine",15],[12787,"IN12B015","IN","gaba",14],
+    [25503,"AN08B099","AN","acetylcholine",14],[18793,"IN00A047","IN","gaba",13],
+    [12698,"DNp59","DN","gaba",13],[24246,"AN08B099","AN","acetylcholine",10],
+    [18321,"IN07B054","IN","acetylcholine",10],[13773,"IN05B032","IN","gaba",9],
+    [77360,null,"unidentified","acetylcholine",8],[23253,"IN00A062","IN","glutamate",8],
+    [18306,"IN21A034","IN","glutamate",7],[11521,"IN06B059","IN","gaba",7],
+    [10241,"AN05B006","AN","gaba",6],[19065,"IN00A047","IN","gaba",6],
+    [16522,"DNp70","DN","acetylcholine",6],[40850,null,"unidentified","gaba",6],
+    [30966,null,"unidentified","gaba",6],[40421782420,null,"unidentified","gaba",5],
+    [27642,"IN11A001","IN","gaba",5],[141535,null,"unidentified","glutamate",5],
+    [85190,null,"unidentified","acetylcholine",5],[42164,"GFC4","other","acetylcholine",5],
+    [17889,"IN06B056","IN","gaba",4],[12855,"DNp103","DN","acetylcholine",4],
+    [40421748320,null,"unidentified","gaba",4],[13446,"IN17A029","IN","acetylcholine",4],
+    [17558,"IN21A032","IN","glutamate",4],[100018,null,"unidentified","glutamate",4],
+    [23019,null,"unidentified","gaba",4],[152817,null,"unidentified","glutamate",4],
+    [10221,"AN05B006","AN","gaba",4],[10802,"IN07B007","IN","glutamate",4],
+    [24821,null,"unidentified","glutamate",4],[15308,"IN06B056","IN","gaba",3],
+    [15505,"GFC2","other","acetylcholine",3],[12773,"IN12B015","IN","gaba",3],
+    [153296,"IN00A050","IN","gaba",3],[166096,null,"unidentified","acetylcholine",3],
+    [10751,"DNa01","DN","acetylcholine",3],[35900813194,null,"unidentified","acetylcholine",3],
+    [17817,"IN11A021","IN","acetylcholine",3],[22034,"IN00A047","IN","gaba",3],
+    [10423,"IN07B007","IN","glutamate",3],[10882,"AN23B001","AN","acetylcholine",2],
+    [19605,"IN00A043","IN","gaba",2],[11512,"IN06B016","IN","gaba",2],
+    [11873,"INXXX084","IN","acetylcholine",2],[10950,"IN06B008","IN","gaba",2],
+    [16816,"IN11A032","IN","acetylcholine",2],[12983,"IN05B032","IN","gaba",2],
+    [18516,"IN07B055","IN","acetylcholine",2],[11492,"IN06B059","IN","gaba",2],
+    [19651,"IN21A045","IN","glutamate",2],[10634,"DNp06","DN","acetylcholine",2],
+    [10085,"IN11A001","IN","gaba",2],[14882,"IN18B034","IN","acetylcholine",2],
+    [19225,"IN21A030","IN","glutamate",2],[26767,"DNxn134","DN","acetylcholine",2],
+    [46187934218,null,"unidentified","gaba",2],[100012,null,"unidentified","glutamate",2],
+    [25629,"GFC3","other","acetylcholine",2],[27502,"GFC4","other","acetylcholine",2],
+    [42200,null,"unidentified","gaba",2],[42526,null,"unidentified","glutamate",2],
+    [24436,"GFC3","other","acetylcholine",2],[166304,"pIP9","other","glutamate",2],
+    [100021,null,"unidentified","unknown",2],[101549,"GFC4","other","acetylcholine",2],
+    [25798,"IN00A043","IN","gaba",2],[166265,"IN00A062","IN","gaba",2],
+    [100025,null,"unidentified","glutamate",2],[37128330873,null,"unidentified","acetylcholine",2],
+    [24198,"GFC3","other","acetylcholine",1],[16427,"IN21A029","IN","glutamate",1],
+    [16448,"IN00A022","IN","gaba",1],[25286,null,"unidentified","glutamate",1],
+    [16568,"IN06B056","IN","gaba",1],[17883,"DNp30","DN","gaba",1],
+    [19834,"IN18B031","IN","acetylcholine",1],[19367,"DNxn156","DN","gaba",1],
+    [19872,"IN00A047","IN","gaba",1],[20329,"IN00A059","IN","gaba",1],
+    [22240,"DNxn172","DN","gaba",1],[13846,"GFC2","other","acetylcholine",1],
+    [25905,null,"unidentified","glutamate",1],[30181,null,"unidentified","glutamate",1],
+    [15572,"AN27X018","AN","glutamate",1],[26376,"GFC4","other","acetylcholine",1],
+    [26756,null,"unidentified","gaba",1],[14850,"IN07B055","IN","acetylcholine",1],
+    [13946,"ANXXX116","AN","acetylcholine",1],[21792,"IN07B080","IN","acetylcholine",1],
+    [13859,"IN00A043","IN","gaba",1],[32092,"IN11A044","IN","acetylcholine",1],
+    [33946,null,"unidentified","glutamate",1],[34018,null,"unidentified","gaba",1],
+    [37477,null,"unidentified","glutamate",1],[38210,null,"unidentified","glutamate",1],
+    [40029,"GFC3","other","acetylcholine",1],[20568,"IN21A034","IN","glutamate",1],
+    [10456,"IN07B007","IN","glutamate",1],[16082,"DNxn140","DN","acetylcholine",1],
+    [13361,"IN06B008","IN","gaba",1],[72474,null,"unidentified","acetylcholine",1],
+    [12914,"AN18B019","AN","acetylcholine",1],[53197,null,"unidentified","glutamate",1],
+    [48294,null,"unidentified","glutamate",1],[11997,"AN04B003","AN","acetylcholine",1],
+    [46268,null,"unidentified","unknown",1],[100014,null,"unidentified","glutamate",1],
+    [100015,null,"unidentified","gaba",1],[43958,null,"unidentified","gaba",1],
+    [21033,null,"unidentified","glutamate",1],[100023,null,"unidentified","glutamate",1],
+    [11335,"AN00A006","AN","gaba",1],[11205,"AN00A006","AN","glutamate",1],
+    [11111,"IN13B008","IN","gaba",1],[13299,"DNxn152","DN","gaba",1],
+    [10989,"IN27X005","IN","gaba",1],[164229,"IN00A064","IN","gaba",1],
+    [10807,"IN06B008","IN","gaba",1],[10650,"AN00A002","AN","gaba",1],
+    [10613,"AN07B004","AN","glutamate",1],[39183604983,null,"unidentified","acetylcholine",1],
+    [10306,"IN07B007","IN","glutamate",1],[40835672689,null,"unidentified","glutamate",1],
+    [11084,"AN08B009","AN","acetylcholine",1],[39757,null,"unidentified","unknown",1],
+    [20799,"DNxn130","DN","acetylcholine",1]
+  ];
+
+  var OCTET = [
+    [21041,37],[21589,35],[22275,33],[16900,31],[23949,29],[24038,23],[152261,17],[20444,16]
+  ];
+
+  var BY_TYPE = [
+    ["AN08B098","AN",221],["(unidentified)","unidentified",95],["AN05B006","AN",86],
+    ["IN00A062","IN",41],["IN00A047","IN",41],["IN00A039","IN",39],["DNp01","DN",25],
+    ["AN08B099","AN",24],["IN00A064","IN",19],["IN12B015","IN",17],["AN08B102","AN",15],
+    ["DNp59","DN",13],["IN05B032","IN",11],["GFC4","other",10],["IN07B054","IN",10],
+    ["IN06B059","IN",9]
+  ];
+
+  // ---------- helpers ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var cvar = function (v) {
+    return getComputedStyle(document.documentElement).getPropertyValue(v.replace(/var\(|\)/g, "").trim()).trim();
+  };
+  var resolve = function (c) { return c.indexOf("var(") === 0 ? cvar(c) : c; };
+
+  var tip = $("tip");
+  function showTip(html, e) {
+    tip.innerHTML = html;
+    tip.style.opacity = "1";
+    moveTip(e);
+  }
+  function moveTip(e) {
+    var pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+    var x = e.clientX + pad, y = e.clientY + pad;
+    if (x + w > innerWidth - 8) x = e.clientX - w - pad;
+    if (y + h > innerHeight - 8) y = e.clientY - h - pad;
+    tip.style.left = x + "px";
+    tip.style.top = y + "px";
+  }
+  function hideTip() { tip.style.opacity = "0"; }
+  document.addEventListener("mousemove", function (e) {
+    if (tip.style.opacity === "1") moveTip(e);
+  });
+
+  function bindTip(el, html) {
+    el.addEventListener("mouseenter", function (e) { showTip(html, e); });
+    el.addEventListener("mouseleave", hideTip);
+    el.tabIndex = 0;
+    el.addEventListener("focus", function () {
+      var r = el.getBoundingClientRect();
+      showTip(html, { clientX: r.left + r.width / 2, clientY: r.top });
+    });
+    el.addEventListener("blur", hideTip);
+  }
+
+  // simple single-series horizontal bar list
+  function renderBars(mount, items, max) {
+    var m = max || Math.max.apply(null, items.map(function (d) { return d.n; }));
+    mount.innerHTML = "";
+    items.forEach(function (d) {
+      var row = document.createElement("div");
+      row.className = "row";
+
+      var lab = document.createElement("div");
+      lab.className = "rl";
+      lab.innerHTML = d.labelHtml || d.label;
+      row.appendChild(lab);
+
+      var track = document.createElement("div");
+      track.className = "track";
+      var bar = document.createElement("div");
+      bar.className = "bar-single";
+      bar.style.width = (100 * d.n / m) + "%";
+      bar.style.background = d.c;
+      var val = document.createElement("span");
+      val.className = "rv";
+      val.innerHTML = d.valueHtml != null ? d.valueHtml : d.n;
+      track.appendChild(bar);
+      track.appendChild(val);
+      row.appendChild(track);
+
+      if (d.tip) bindTip(row, d.tip);
+      mount.appendChild(row);
+    });
+  }
+
+  // stacked horizontal bar list
+  function renderStacked(mount, rows, order, meta, max) {
+    var m = max || Math.max.apply(null, rows.map(function (r) {
+      return order.reduce(function (s, k) { return s + (r.parts[k] || 0); }, 0);
+    }));
+    mount.innerHTML = "";
+    rows.forEach(function (r) {
+      var total = order.reduce(function (s, k) { return s + (r.parts[k] || 0); }, 0);
+      var row = document.createElement("div");
+      row.className = "row";
+
+      var lab = document.createElement("div");
+      lab.className = "rl";
+      lab.innerHTML = r.labelHtml || r.label;
+      row.appendChild(lab);
+
+      var track = document.createElement("div");
+      track.className = "track";
+      order.forEach(function (k) {
+        var v = r.parts[k] || 0;
+        if (!v) return;
+        var seg = document.createElement("div");
+        seg.className = "seg";
+        seg.style.width = (100 * v / m) + "%";
+        seg.style.background = meta[k].c;
+        bindTip(seg, "<b>" + r.label + "</b><br>" + meta[k].label + ": " + v +
+          " (" + Math.round(100 * v / total) + "%)");
+        track.appendChild(seg);
+      });
+      var val = document.createElement("span");
+      val.className = "rv";
+      val.textContent = total;
+      track.appendChild(val);
+      row.appendChild(track);
+      mount.appendChild(row);
+    });
+  }
+
+  function legend(mount, order, meta) {
+    mount.innerHTML = "";
+    order.forEach(function (k) {
+      var s = document.createElement("span");
+      s.innerHTML = '<i style="background:' + meta[k].c + '"></i>' + meta[k].label;
+      mount.appendChild(s);
+    });
+  }
+
+  // ---------- compartment ----------
+  (function () {
+    var total = COMP.reduce(function (s, d) { return s + d.n; }, 0);
+    var bar = $("compbar");
+    COMP.forEach(function (d) {
+      var seg = document.createElement("div");
+      seg.style.flex = d.n;
+      seg.style.background = d.c;
+      seg.textContent = d.label + "  " + d.n;
+      bindTip(seg, "<b>" + d.label + "</b><br>" + d.n + " synapses (" +
+        Math.round(100 * d.n / total) + "% of " + total + ")");
+      bar.appendChild(seg);
+    });
+    $("compnote").innerHTML = "<b style='color:var(--ink)'>" +
+      Math.round(100 * 800 / total) + "%</b> of the " + total +
+      " input synapses onto the GF land on the axon compartment (800); the rest (749) are dendritic.";
+  })();
+
+  // ---------- class charts ----------
+  legend($("clsLegend"), CLS_ORDER, CLS);
+  legend($("clsLegend2"), CLS_ORDER, CLS);
+  legend($("clsLegend3"), CLS_ORDER, CLS);
+
+  renderBars($("clsSyn"), CLS_ORDER.map(function (k) {
+    return {
+      label: CLS[k].label, n: CLS_SYN[k], c: CLS[k].c,
+      valueHtml: CLS_SYN[k] + ' <span class="pct">' + Math.round(100 * CLS_SYN[k] / 800) + '%</span>',
+      tip: "<b>" + k + "</b><br>" + CLS_SYN[k] + " axonic synapses"
+    };
+  }), 357);
+
+  renderBars($("clsPart"), CLS_ORDER.map(function (k) {
+    return {
+      label: CLS[k].label, n: CLS_PART[k], c: CLS[k].c,
+      valueHtml: CLS_PART[k] + ' <span class="pct">' + Math.round(100 * CLS_PART[k] / 145) + '%</span>',
+      tip: "<b>" + k + "</b><br>" + CLS_PART[k] + " distinct partners"
+    };
+  }), 56);
+
+  // ---------- top partners ----------
+  var top = PARTNERS.slice().sort(function (a, b) { return b[4] - a[4]; }).slice(0, 25);
+  renderBars($("topPartners"), top.map(function (p) {
+    var ty = p[1] || "untyped";
+    return {
+      labelHtml: '<span class="rid">' + p[0] + '</span> &nbsp;' + ty,
+      n: p[4], c: CLS[p[2]].c,
+      tip: "<b>" + p[0] + "</b> &middot; " + ty + "<br>class " + p[2] +
+        " &middot; " + NT[p[3]].label + "<br>" + p[4] + " synapses onto GF axon"
+    };
+  }), top[0][4]);
+
+  // ---------- by type ----------
+  renderBars($("byType"), BY_TYPE.map(function (t) {
+    return {
+      label: '<span class="rid">' + t[0] + '</span>',
+      labelHtml: '<span class="rid">' + t[0] + '</span>',
+      n: t[2], c: CLS[t[1]].c,
+      tip: "<b>" + t[0] + "</b><br>class " + t[1] + "<br>" + t[2] + " axonic synapses"
+    };
+  }), 221);
+
+  // ---------- NT ----------
+  legend($("ntLegend"), NT_ORDER, NT);
+  renderStacked($("ntByClass"),
+    CLS_ORDER.map(function (k) { return { label: k, parts: NT_BY_CLASS[k] }; }),
+    NT_ORDER, NT, 357);
+
+  renderBars($("ntUnid"), NT_ORDER.filter(function (k) { return NT_UNID[k]; }).map(function (k) {
+    return {
+      label: NT[k].label, n: NT_UNID[k], c: NT[k].c,
+      tip: "<b>" + NT[k].label + "</b><br>" + NT_UNID[k] + " unidentified fragments"
+    };
+  }), 19);
+
+  // ---------- octet ----------
+  renderBars($("octet"), OCTET.map(function (o) {
+    return {
+      label: '<span class="rid">' + o[0] + '</span>',
+      labelHtml: '<span class="rid">' + o[0] + '</span>',
+      n: o[1], c: CLS.AN.c,
+      tip: "<b>" + o[0] + "</b> &middot; AN08B098<br>" + o[1] + " synapses onto GF axon"
+    };
+  }), 37);
+
+  // ---------- table ----------
+  var tb = $("tbody");
+  PARTNERS.slice().sort(function (a, b) { return b[4] - a[4]; }).forEach(function (p) {
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td class="mono">' + p[0] + '</td>' +
+      '<td>' + (p[1] || '<span style="color:var(--ink-3)">untyped</span>') + '</td>' +
+      '<td><span class="cls-pill" style="background:' + CLS[p[2]].c + '">' + p[2] + '</span></td>' +
+      '<td>' + NT[p[3]].label + '</td>' +
+      '<td style="text-align:right" class="mono">' + p[4] + '</td>';
+    tb.appendChild(tr);
+  });
+
+  // ---------- theme toggle ----------
+  var btn = $("themeBtn");
+  function apply(t) {
+    if (t) document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+  }
+  var saved = null;
+  try { saved = localStorage.getItem("gf-theme"); } catch (e) {}
+  if (saved) apply(saved);
+  btn.addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var sys = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    var next = (cur || sys) === "dark" ? "light" : "dark";
+    apply(next);
+    try { localStorage.setItem("gf-theme", next); } catch (e) {}
+  });
+})();
+</script>
+
+</body></html>

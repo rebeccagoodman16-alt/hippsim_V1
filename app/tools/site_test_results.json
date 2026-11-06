@@ -1,0 +1,26 @@
+{
+ "presets": {
+  "date": "2026-11-03",
+  "passed": 45,
+  "total": 45,
+  "fails": []
+ },
+ "runs": {
+  "date": "2026-11-03",
+  "passed": 21,
+  "total": 21,
+  "fails": []
+ },
+ "flows": {
+  "date": "2026-11-05",
+  "passed": 19,
+  "total": 19,
+  "fails": []
+ },
+ "all": {
+  "date": "2026-11-05",
+  "passed": 66,
+  "total": 66,
+  "fails": []
+ }
+}

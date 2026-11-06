@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: 'Riluzole: reduce I_NaP'
+tool: interleaved-resonance
+kind: pharmacology
+what: Persistent Na⁺ reduced.
+expected_size: 50% reduction, illustrative
+references:
+- golomb2006
+ops:
+- control: '#irp-gNaP'
+  set: 0.45

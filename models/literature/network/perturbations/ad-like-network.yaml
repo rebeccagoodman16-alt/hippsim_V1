@@ -1,0 +1,12 @@
+schema: hippsim.perturbation/1.0
+name: AD-like network
+tool: network
+kind: disease
+what: Hyperactive neurons and network hypersynchrony as in APP mouse models (Busche 2008; Palop 2007).
+expected_size: 50% on the tool's AD scale
+references:
+- busche2008
+- palop2007
+ops:
+- control: '#nfAD'
+  set: 0.5

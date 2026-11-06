@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: 'ZD7288: I_h block'
+tool: neuron-lab
+kind: pharmacology
+what: HCN × 0.
+expected_size: complete block in the model
+references:
+- magee1998
+ops:
+- control: range:~^Ih \(hd\)
+  set: 0

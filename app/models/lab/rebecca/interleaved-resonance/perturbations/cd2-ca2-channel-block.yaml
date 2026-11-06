@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: 'Cd²⁺: Ca²⁺ channel block'
+tool: interleaved-resonance
+kind: pharmacology
+what: High-threshold Ca²⁺ removed.
+expected_size: complete block in the model
+references: []
+ops:
+- control: '#irp-gHCa'
+  set: 0

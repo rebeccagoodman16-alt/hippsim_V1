@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+message: "If you use hippsim, please cite it as below, and cite the models and morphologies you used (references.bib, morphologies/references.bib)."
+title: "hippsim: lab simulator for hippocampal and cellular neuroscience"
+type: software
+authors:
+  - given-names: Rebecca
+date-released: 2026-11-05
+version: "0.10.0"
+keywords: [computational neuroscience, hippocampus, CA1, NEURON, compartmental model, Alzheimer's disease]
+references:
+  - type: article
+    authors:
+      - name: "Ceballos CC"
+      - name: "Chadly N"
+      - name: "Lowet E"
+      - name: "Pena RFO"
+    title: "Interleaved single and bursting spiking resonance in neurons"
+    journal: "PLoS Comput Biol"
+    year: 2025
+    doi: 10.1371/journal.pcbi.1013126
+  - type: article
+    authors:
+      - name: "Golomb D"
+      - name: "Yue C"
+      - name: "Yaari Y"
+    title: "Persistent Na+ and M-type K+ currents' contributions to somatic bursting in CA1 pyramidal cells: combined experimental and modeling study"
+    journal: "J Neurophysiol"
+    year: 2006
+    doi: 10.1152/jn.00205.2006
+  - type: article
+    authors:
+      - name: "Lowet E et al."
+    title: "Theta and gamma rhythmic coding through two spike output modes in the hippocampus during spatial navigation"
+    journal: "Cell Rep"
+    year: 2023
+    doi: 10.1016/j.celrep.2023.112906
+  - type: article
+    authors:
+      - name: "Magee JC"
+    title: "Dendritic hyperpolarization-activated currents modify the integrative properties of hippocampal CA1 pyramidal neurons"
+    journal: "J Neurosci"
+    year: 1998
+    doi: 10.1523/JNEUROSCI.18-19-07613.1998
+  - type: article
+    authors:
+      - name: "Hines ML"
+      - name: "Carnevale NT"
+    title: "The NEURON simulation environment"
+    journal: "Neural Comput"
+    year: 1997
+    doi: 10.1162/neco.1997.9.6.1179
+  - type: article
+    authors:
+      - name: "Ascoli GA"
+      - name: "Donohue DE"
+      - name: "Halavi M"
+    title: "NeuroMorpho.Org: a central resource for neuronal morphologies"
+    journal: "J Neurosci"
+    year: 2007
+    doi: 10.1523/JNEUROSCI.2055-07.2007

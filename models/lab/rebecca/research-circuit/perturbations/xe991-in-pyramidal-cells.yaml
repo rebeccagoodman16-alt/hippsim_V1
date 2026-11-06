@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: XE991 in pyramidal cells
+tool: research-circuit
+kind: pharmacology
+what: Pyramidal cells without I_M.
+expected_size: complete block in the model
+references:
+- golomb2006
+ops:
+- control: '#nsNoM'
+  set: true

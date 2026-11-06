@@ -1,0 +1,52 @@
+# CA1 pyramidal cell, full morphology, dendritic I_h gradient.
+# Author: Rebecca (CA1 Morphology Lab). Status: validated against Guide engine.
+model: ca1_morph_ih_gradient
+provenance: lab
+author: rebecca
+status: validated
+morphology: hippocampal_formation/ca1/ca1-jarsky-lab.swc        # relative to morphologies/
+references:
+  - "Jarsky, Roxin, Kath & Spruston (2005) Nat Neurosci 8:1667 (morphology, ModelDB 116084)"
+  - "Magee (1998) J Neurosci 18:7613 (I_h gradient > 6-fold)"
+  - "Pospischil et al. (2008) Biol Cybern 99:427 (Traub Na/Kdr, M-current)"
+  - "Lowet et al. (2023) Cell Rep (HHca2 I_h tau, optional)"
+params:
+  # passive                     units
+  Cm: 1.0                       # uF/cm2
+  Rm: 30000                     # ohm cm2
+  Ra: 150                       # ohm cm
+  E_L: -70                      # mV
+  soma_diam: 20                 # um (sphere replaces traced soma)
+  spine_factor: 2.0             # area multiplier beyond spine_start
+  spine_start: 100              # um path distance
+  max_seg: 20                   # um, compartment length cap
+  # I_h (hd.mod)
+  gh_soma: 0.05                 # mS/cm2
+  gh_fold: 6                    # distal/soma density ratio (apical only)
+  gh_dist: 350                  # um where the fold is reached
+  E_h: -30                      # mV
+  h_vhalf: -90                  # mV
+  h_k: 8.5                      # mV
+  h_kin: bell                   # bell | lowet2023
+  h_tau_peak: 40                # ms
+  h_vtau: -75                   # mV
+  h_tau_scale: 1.0              # 0.33 ~ room -> body temperature
+  # spikes (soma + apical < 50 um)
+  spikes: false
+  g_na: 50                      # mS/cm2
+  g_kdr: 10                     # mS/cm2
+  g_na_dend: 0                  # mS/cm2 (apical > 50 um); > ~5 gives bAPs
+  VT: -58                       # mV
+  E_Na: 50                      # mV
+  E_K: -90                      # mV
+  legacy_js_kdr: false          # true = old CA1 Morphology Lab page (pre 2026-11-04: no distal K_dr; see VALIDATION.md)
+  # M-current (soma)
+  g_m_soma: 0                   # mS/cm2
+  m_taumax: 1000                # ms
+  # numerics
+  dt: 0.025                     # ms
+  celsius: 34                   # degC (kinetics not temperature-scaled; tau scale handles it)
+validation:
+  rest_soma_mV: -63             # Guide engine
+  Rin_soma_MOhm: 66
+  tolerance_rel: 0.03

@@ -1,0 +1,442 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>hippsim Docs</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#f8cddd"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="hippsim"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png"><script src="hs-layout.js"></script>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="hs-sim.css">
+<style>
+.dx{max-width:1180px;margin:0 auto;padding:24px 16px 72px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+.dx nav{position:sticky;top:16px;align-self:start;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.dx nav .ver{font:12px ui-monospace,Menlo,monospace;color:var(--hs-muted);margin:0 0 10px}
+.dx nav input{font:inherit;padding:8px 12px;border:1px solid var(--hs-line);border-radius:999px;background:var(--hs-card);color:var(--hs-ink);margin-bottom:10px}
+.dx nav a{color:var(--hs-ink);text-decoration:none;padding:6px 10px;border-radius:8px}
+.dx nav a:hover{background:var(--hs-card)}
+.dx nav a[aria-current="page"]{background:var(--hs-ink);color:var(--hs-card)}
+.dx nav a.dim{opacity:.35}
+.dx article{max-width:760px;line-height:1.6;font-size:15.5px}
+.dx article h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.7rem,4vw,2.2rem);margin:0 0 14px}
+.dx article h2{font-family:Georgia,"Times New Roman",serif;margin:30px 0 8px;font-size:1.3rem}
+.dx article h3{margin:18px 0 6px;font-size:15px}
+.dx article .lead,.dx article > p:first-of-type{font-size:17px}
+.dx table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0}
+.dx th,.dx td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--hs-line)}
+.dx th{font-size:12.5px;color:var(--hs-muted);font-weight:600}
+.dx .tbl{overflow-x:auto}
+.dx pre{background:var(--hs-card);border:1px solid var(--hs-line);border-radius:10px;padding:12px 14px;overflow-x:auto;font-size:13px}
+.dx code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+.dx .math{overflow-x:auto;margin:12px 0;padding:6px 0}
+.dx blockquote{margin:12px 0;padding:10px 16px;border-left:3px solid var(--hs-accent);background:var(--hs-card);border-radius:0 10px 10px 0}
+.dx dl.base{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:14px}
+.dx dl.base dt{color:var(--hs-muted);font:12px ui-monospace,Menlo,monospace;padding-top:3px}
+.dx dl.base dd{margin:0}
+.dx .tag{font:600 11px system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--hs-muted);margin-left:6px;vertical-align:middle}
+.dx .pn{display:flex;justify-content:space-between;gap:12px;margin-top:40px;padding-top:16px;border-top:1px solid var(--hs-line)}
+.dx .pn a{text-decoration:none}
+.dx mark{background:color-mix(in srgb,var(--hs-accent) 25%,transparent);color:inherit}
+.dtoc{display:none}
+@media (max-width:820px){.dx{grid-template-columns:1fr;gap:16px} .dx nav{position:static} .dx nav .ver{margin:0 0 6px}
+  .dtoc{display:block;font:inherit;text-align:left;padding:10px 14px;border:1px solid var(--hs-line);border-radius:12px;background:var(--hs-card);color:var(--hs-ink);margin-bottom:8px}
+  .dx nav:not(.open) a,.dx nav:not(.open) input{display:none}}
+</style>
+<script>window.MathJax = {tex: {inlineMath: [['\\(', '\\)']]}, svg: {fontCache: 'global'}};</script>
+<script src="vendor/mathjax/tex-svg.js" async></script>
+</head><body class="hs-hubpage">
+<header></header>
+<div class="dx">
+<nav aria-label="Documentation"><p class="ver">hippsim 0.11 · documentation</p><button type="button" id="dtoc" class="dtoc">Contents · <b id="dcur"></b> ▾</button><input type="search" id="dq" placeholder="Search the docs" aria-label="Search the docs"><a href="#overview" data-p="overview">What hippsim is</a><a href="#quick-start" data-p="quick-start">Quick start</a><a href="#simulate" data-p="simulate">The Simulate panel</a><a href="#models" data-p="models">Models</a><a href="#equations" data-p="equations">Equations and numerics</a><a href="#validation" data-p="validation">Validation</a><a href="#cells" data-p="cells">Cells and data</a><a href="#runs" data-p="runs">Saved runs and scripts</a><a href="#tools" data-p="tools">Tools (model library)</a><a href="#sharing" data-p="sharing">Sharing, hosting and accounts</a><a href="#developers" data-p="developers">For developers</a><a href="#citing" data-p="citing">How to cite</a><a href="#limitations" data-p="limitations">Limitations</a><a href="#release-notes" data-p="release-notes">Release notes</a></nav>
+<main id="dmain"><article id="doc-overview" data-p="overview" data-title="What hippsim is" hidden><h1>What hippsim is</h1><p>hippsim is a browser platform for simulating neurons, from one reconstructed cell to a network, with every baseline value, manipulation and source on record. It runs published models with its own in-browser solver and cross-checks that solver against NEURON and Brian2.</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>What it is</th>
+<th>New?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Equations</td>
+<td>Cable equation + published channel and network models (Hodgkin–Huxley 1952, Migliore 2005, Golomb 2006, Brunel 2000)</td>
+<td>No: all from the literature</td>
+</tr>
+<tr>
+<td>Solver</td>
+<td><code>hs-cable.js</code> and the NGC engine: implicit compartmental solvers that run in the browser</td>
+<td>New implementation of standard methods</td>
+</tr>
+<tr>
+<td>Platform</td>
+<td>87 real cells in 3D, any model on any cell, baselines with sources, drug manipulations, saved runs, NEURON / Brian2 scripts, cross-engine checks</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Research model</td>
+<td>Golomb I_M + I_NaP on Migliore 2005 dendrites, θ + γ drive</td>
+<td>Lab model built from published parts</td>
+</tr>
+</tbody>
+</table>
+<p><strong>In one sentence:</strong> a browser-based platform for simulating hippocampal neurons on reconstructed morphologies, with an in-browser compartmental solver checked against NEURON and Brian2. It is not a replacement for NEURON, which is far more general; it makes published models on real cells quick to run, compare and record.</p>
+<h2>Where things are</h2>
+<table>
+<thead>
+<tr>
+<th>Menu</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Neurons</strong> (home)</td>
+<td>Every cell by region; pick one for the 3D view and the Simulate panel</td>
+</tr>
+<tr>
+<td><strong>Runs</strong></td>
+<td>Your saved runs, in folders</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>The model library: 21 tools in five workspaces, 45 literature manipulations</td>
+</tr>
+<tr>
+<td><strong>Models</strong></td>
+<td>Every model with its validation and sources</td>
+</tr>
+<tr>
+<td><strong>Docs</strong></td>
+<td>This documentation</td>
+</tr>
+</tbody>
+</table></article><article id="doc-quick-start" data-p="quick-start" data-title="Quick start" hidden><h1>Quick start</h1><p>From opening hippsim to a saved, citable run: six steps, nothing to install.</p>
+<ol>
+<li><strong>Neurons</strong> (home page): pick a region or type a cell name (CA1, granule, n123).</li>
+<li>The cell opens in 3D. Drag to rotate, scroll or pinch to zoom, hover or tap a branch for its compartment and distance from the soma. <strong>Details</strong> shows lengths, diameters, branching and a Sholl profile.</li>
+<li>Press <strong>Simulate</strong>. Choose the scale (single cell, circuit, population), the model and where it runs (hippsim, NEURON, Brian2).</li>
+<li><strong>Run baseline</strong>. Read the trace, the result and the baseline values with their sources; the voltage plays across the cell.</li>
+<li><strong>Manipulate the baseline</strong>: a drug button (TTX, TEA, 4-AP, ZD7288, XE991, bicuculline, APV, NBQX), a slider, or tap a branch to move the electrode. <strong>Run</strong>: the new trace is drawn over the baseline.</li>
+<li><strong>Save run</strong>. It appears in <strong>Runs</strong> and reopens into the same cell, model and settings.</li>
+</ol>
+<p><strong>Keyboard</strong> in the 3D view: space = rotate, 0 = front view, Esc = back to all neurons.
+<strong>Display</strong> (top right): text size, colours (incl. high contrast, colour-blind safe), light or dark, web or phone view.</p></article><article id="doc-simulate" data-p="simulate" data-title="The Simulate panel" hidden><h1>The Simulate panel</h1><p>Simulate opens beside the 3D cell and runs in four steps: choose, baseline, manipulate, save. Nothing opens another page.</p>
+<h2>1. Choose</h2>
+<ul>
+<li><strong>Scale</strong>: <em>Single cell</em> (this reconstruction), <em>Circuit</em> (this cell receiving synaptic input), <em>Population</em> (a network of point neurons).</li>
+<li><strong>Model</strong>: the models available for this cell at that scale (<a href="#models">Models</a>). The research model is offered on CA1 pyramidal cells only.</li>
+<li><strong>Run in</strong>: for Hodgkin–Huxley, <em>hippsim</em>, <em>NEURON</em> or <em>Brian2</em>. Other models run in hippsim; the panel names the original simulator.</li>
+</ul>
+<h2>2. Baseline</h2>
+<p><strong>Run baseline</strong> runs the model with its published or documented values. You get:
+- the <strong>trace</strong> (soma voltage; the electrode site too, when moved; a raster and population rate for networks);
+- a <strong>result line</strong> (spikes, first-spike latency, rate; bursts for the research model; θ phase for the circuit; rate, ISI CV and synchrony for networks);
+- the <strong>baseline values and sources</strong>;
+- the <strong>voltage on the 3D cell</strong>, played back over the run. Click the trace to scrub; hover a branch for its voltage.</p>
+<p>Choosing NEURON or Brian2 shows that engine's baseline trace (computed with the same model, see <a href="#validation">Validation</a>) beside hippsim's.</p>
+<h2>3. Manipulate</h2>
+<p><strong>Manipulate the baseline</strong> opens the controls:
+- <strong>Drug buttons</strong> set a published manipulation (hover for the source); press again to undo.
+- <strong>Sliders</strong> for current, channel densities, synapses or network parameters.
+- <strong>Electrode</strong> (step models): tap <em>tap a branch to move it</em>, then a branch on the cell.
+- Changed values turn red in the baseline list; <em>back to baseline</em> resets them.</p>
+<p>Each <strong>Run</strong> is drawn over the baseline trace, with the baseline result beside the new one. With NEURON or Brian2 chosen, manipulations run in hippsim and a script with your settings reruns them in that simulator.</p>
+<h2>4. Save</h2>
+<p><strong>Save run</strong> stores the cell, model, simulator, every parameter, the changes from baseline, the result and the plot. See <a href="#runs">Saved runs and scripts</a>.</p>
+<h2>The 3D view while simulating</h2>
+<p>Compartment toggles, colour by compartment, distance or <strong>voltage</strong>, Details (beside the panel on large screens), screenshot and video all stay available. With voltage colouring on, <strong>Video</strong> records the run playing while the cell turns.</p></article><article id="doc-models" data-p="models" data-title="Models" hidden><h1>Models</h1><p class="lead">Five models run in the Simulate panel. This page is generated from the code that runs them (<code>site/hs-models.js</code>), so the values below are exactly what the panel uses.</p><div class="tbl"><table><thead><tr><th>Scale</th><th>Model</th><th>Cells</th><th>Runs in</th><th>Length</th></tr></thead><tbody><tr><td>Single cell</td><td><a href="#model-hh">Hodgkin–Huxley</a></td><td>any cell</td><td>hippsim, NEURON, Brian2</td><td>400 ms</td></tr><tr><td>Single cell</td><td><a href="#model-migliore">Migliore 2005 CA1 channels</a></td><td>any cell</td><td>hippsim (original: NEURON (ModelDB 55035))</td><td>400 ms</td></tr><tr><td>Single cell</td><td><a href="#model-research">Your research model</a></td><td>CA1 pyramidal cells</td><td>hippsim</td><td>1000 ms</td></tr><tr><td>Circuit</td><td><a href="#model-circuit">Excitatory input + feedforward inhibition</a></td><td>any cell</td><td>hippsim</td><td>1000 ms</td></tr><tr><td>Population</td><td><a href="#model-population">Brunel 2000 E–I network</a></td><td>any cell</td><td>hippsim (original: Brian2 (script, 10 000 neurons))</td><td>500 ms</td></tr></tbody></table></div><h2 id="model-hh">Hodgkin–Huxley <span class="tag">Single cell</span></h2><p>Classic Na⁺ and K⁺ channels on the reconstruction. Simple, fast, and the same model runs in NEURON and Brian2.</p><h3>Baseline</h3><dl class="base"><dt>Stimulus</dt><dd>0.5 nA step, 300 ms</dd><dt>Na⁺, K⁺</dt><dd>0.5, 0.1 S/cm² in soma and axon; 2 % of that in dendrites</dd><dt>Passive</dt><dd>R<sub>m</sub> 20 kΩ·cm², R<sub>a</sub> 150 Ω·cm, C<sub>m</sub> 1 µF/cm², rest −65 mV, 6.3 °C</dd><dt>Source</dt><dd><span title="Hodgkin AL, Huxley AF (1952) J Physiol 117:500–544">Hodgkin &amp; Huxley 1952</span></dd></dl><h3>Parameters you can change</h3><div class="tbl"><table><thead><tr><th>Parameter</th><th>Baseline</th><th>Range</th></tr></thead><tbody><tr><td>Current</td><td>0.5 nA</td><td>0 nA to 3 nA</td></tr><tr><td>Na⁺ (soma, axon)</td><td>×1</td><td>×0 to ×2</td></tr><tr><td>K⁺ (soma, axon)</td><td>×1</td><td>×0 to ×2</td></tr><tr><td>Dendrite channels</td><td>2 %</td><td>0 % to 20 %</td></tr><tr><td>Electrode site</td><td>soma</td><td>any branch (tap it on the cell)</td></tr></tbody></table></div><h3>Manipulations</h3><div class="tbl"><table><thead><tr><th>Button</th><th>Sets</th><th>Source</th></tr></thead><tbody><tr><td>TTX: block Na⁺</td><td>Na⁺ (soma, axon) → ×0</td><td>Tetrodotoxin blocks voltage-gated Na⁺ channels (Narahashi et al. 1964)</td></tr><tr><td>TEA: block K⁺ 90 %</td><td>K⁺ (soma, axon) → ×0.1</td><td>Tetraethylammonium blocks delayed-rectifier K⁺ channels; 90 % block (Armstrong 1971)</td></tr><tr><td>Passive dendrites</td><td>Dendrite channels → 0 %</td><td>Model choice: no voltage-gated channels in dendrites</td></tr><tr><td>Active dendrites</td><td>Dendrite channels → 20 %</td><td>Model choice: dendrites at 20 % of somatic density</td></tr></tbody></table></div><h2 id="model-migliore">Migliore 2005 CA1 channels <span class="tag">Single cell</span></h2><p>Na⁺, K_dr, A-type K⁺ rising with distance and Iₕ rising with distance, at 35 °C. The Neuron lab’s model.</p><h3>Baseline</h3><dl class="base"><dt>Stimulus</dt><dd>0.5 nA step, 300 ms</dd><dt>Channels</dt><dd>Na⁺ 25 mS/cm² (axon ×5) · K_dr 10 · A-type 30 × (1 + d/100 µm) · Iₕ 0.05 × (1 + 3d/100 µm)</dd><dt>Passive</dt><dd>R<sub>m</sub> 28 kΩ·cm², R<sub>a</sub> 150 Ω·cm (axon 50), C<sub>m</sub> 1 µF/cm², rest −65 mV, 35 °C</dd><dt>Source</dt><dd><span title="Migliore M, Ferrante M, Ascoli GA (2005) J Neurophysiol 94:4145–4155">Migliore, Ferrante &amp; Ascoli 2005</span>, ModelDB 55035</dd></dl><h3>Parameters you can change</h3><div class="tbl"><table><thead><tr><th>Parameter</th><th>Baseline</th><th>Range</th></tr></thead><tbody><tr><td>Current</td><td>0.5 nA</td><td>0 nA to 3 nA</td></tr><tr><td>Na⁺</td><td>×1</td><td>×0 to ×2</td></tr><tr><td>K⁺ delayed rectifier</td><td>×1</td><td>×0 to ×2</td></tr><tr><td>A-type K⁺</td><td>×1</td><td>×0 to ×2</td></tr><tr><td>Iₕ (HCN)</td><td>×1</td><td>×0 to ×3</td></tr><tr><td>Electrode site</td><td>soma</td><td>any branch (tap it on the cell)</td></tr></tbody></table></div><h3>Manipulations</h3><div class="tbl"><table><thead><tr><th>Button</th><th>Sets</th><th>Source</th></tr></thead><tbody><tr><td>TTX</td><td>Na⁺ → ×0</td><td>Blocks Na⁺ channels (Narahashi et al. 1964)</td></tr><tr><td>TEA: K_dr 90 %</td><td>K⁺ delayed rectifier → ×0.1</td><td>Blocks delayed-rectifier K⁺ channels (Armstrong 1971)</td></tr><tr><td>4-AP: block A-type</td><td>A-type K⁺ → ×0</td><td>4-aminopyridine blocks A-type K⁺ channels (Hoffman et al. 1997)</td></tr><tr><td>ZD7288: block Iₕ</td><td>Iₕ (HCN) → ×0</td><td>ZD7288 blocks HCN channels (Magee 1998)</td></tr></tbody></table></div><h2 id="model-research">Your research model <span class="tag">Single cell</span></h2><p>Golomb 2006 I_M and I_NaP at soma and axon on the Migliore 2005 dendrites, driven by θ + γ current: single spikes vs bursts.</p><h3>Baseline</h3><dl class="base"><dt>Input</dt><dd>DC 0.3 nA + θ 0.2 nA at 8 Hz + γ 0.15 nA at 40 Hz, at the soma, 1 s</dd><dt>Soma, axon</dt><dd>I_M 1 mS/cm², I_NaP 0.2 mS/cm² (θ<sub>p</sub> −47 mV)</dd><dt>Dendrites</dt><dd>Migliore 2005 Na⁺, K_dr, A-type ×1, Iₕ ×1 with distance gradients</dd><dt>Sources</dt><dd><span title="Golomb D, Yue C, Yaari Y (2006) J Neurophysiol 96:1912–1926">Golomb, Yue &amp; Yaari 2006</span>; Migliore et al. 2005; lab model (Rebecca)</dd></dl><h3>Parameters you can change</h3><div class="tbl"><table><thead><tr><th>Parameter</th><th>Baseline</th><th>Range</th></tr></thead><tbody><tr><td>DC current</td><td>0.3 nA</td><td>-0.4 nA to 1.2 nA</td></tr><tr><td>θ amplitude (8 Hz)</td><td>0.2 nA</td><td>0 nA to 1 nA</td></tr><tr><td>γ amplitude (40 Hz)</td><td>0.15 nA</td><td>0 nA to 1 nA</td></tr><tr><td>I_M (soma, axon)</td><td>1 mS/cm²</td><td>0 mS/cm² to 5 mS/cm²</td></tr><tr><td>I_NaP (soma, axon)</td><td>0.2 mS/cm²</td><td>0 mS/cm² to 0.6 mS/cm²</td></tr><tr><td>Iₕ</td><td>×1</td><td>×0 to ×3</td></tr><tr><td>A-type K⁺</td><td>×1</td><td>×0 to ×2</td></tr></tbody></table></div><h3>Manipulations</h3><div class="tbl"><table><thead><tr><th>Button</th><th>Sets</th><th>Source</th></tr></thead><tbody><tr><td>XE991: no I_M</td><td>I_M (soma, axon) → 0 mS/cm²</td><td>XE991 blocks Kv7 / M channels (Yue &amp; Yaari 2004)</td></tr><tr><td>ZD7288: no Iₕ</td><td>Iₕ → ×0</td><td>Blocks HCN channels</td></tr><tr><td>Migliore 2005 only</td><td>I_M (soma, axon) → 0 mS/cm²; I_NaP (soma, axon) → 0 mS/cm²</td><td>Remove the Golomb currents</td></tr></tbody></table></div><h2 id="model-circuit">Excitatory input + feedforward inhibition <span class="tag">Circuit</span></h2><p>This cell with Migliore 2005 channels, driven by θ-modulated excitatory synapses on its dendrites and inhibitory synapses near the soma (as CA3 → CA1 with basket cells).</p><h3>Baseline</h3><dl class="base"><dt>Excitation</dt><dd>200 synapses on dendrites 50–350 µm from the soma (apical if traced), 5 Hz Poisson each, AMPA 1 nS + NMDA 0.8 nS</dd><dt>Inhibition</dt><dd>30 GABA-A synapses within 50 µm of the soma, 15 Hz each, 1.5 nS, E<sub>GABA</sub> −75 mV</dd><dt>Rhythm</dt><dd>θ 8 Hz, 50 % rate modulation; inhibition half a cycle after excitation</dd><dt>Cell</dt><dd>Migliore 2005 channels (as the single-cell model), 35 °C</dd><dt>Sources</dt><dd>Synaptic kinetics and NMDA Mg²⁺ block <span title="Jahr CE, Stevens CF (1990) J Neurosci 10:3178">Jahr &amp; Stevens 1990</span>; input numbers and rates are model choices</dd></dl><h3>Parameters you can change</h3><div class="tbl"><table><thead><tr><th>Parameter</th><th>Baseline</th><th>Range</th></tr></thead><tbody><tr><td>Excitatory inputs</td><td>200</td><td>0 to 400</td></tr><tr><td>Excitatory rate</td><td>5 Hz</td><td>0 Hz to 30 Hz</td></tr><tr><td>AMPA per synapse</td><td>1 nS</td><td>0 nS to 3 nS</td></tr><tr><td>NMDA / AMPA</td><td>0.8</td><td>0 to 2</td></tr><tr><td>Inhibitory inputs</td><td>30</td><td>0 to 100</td></tr><tr><td>Inhibitory rate</td><td>15 Hz</td><td>0 Hz to 60 Hz</td></tr><tr><td>GABA-A per synapse</td><td>1.5 nS</td><td>0 nS to 5 nS</td></tr><tr><td>θ modulation</td><td>50 %</td><td>0 % to 100 %</td></tr></tbody></table></div><h3>Manipulations</h3><div class="tbl"><table><thead><tr><th>Button</th><th>Sets</th><th>Source</th></tr></thead><tbody><tr><td>Bicuculline: block GABA-A</td><td>GABA-A per synapse → 0 nS</td><td>Bicuculline blocks GABA-A receptors (Curtis et al. 1970)</td></tr><tr><td>APV: block NMDA</td><td>NMDA / AMPA → 0</td><td>D-APV blocks NMDA receptors (Davies &amp; Watkins 1982)</td></tr><tr><td>NBQX: block AMPA</td><td>AMPA per synapse → 0 nS</td><td>NBQX blocks AMPA receptors (Sheardown et al. 1990)</td></tr><tr><td>No θ</td><td>θ modulation → 0 %</td><td>Inputs at a constant rate</td></tr></tbody></table></div><h2 id="model-population">Brunel 2000 E–I network <span class="tag">Population</span></h2><p>5 000 leaky integrate-and-fire neurons (80 % excitatory), 10 % random connections, external Poisson drive. Point neurons: the reconstruction is not used.</p><h3>Baseline</h3><dl class="base"><dt>Network</dt><dd>4 000 excitatory + 1 000 inhibitory LIF neurons, connection probability 0.1</dd><dt>Neurons</dt><dd>τ 20 ms, threshold 20 mV, reset 10 mV, refractory 2 ms</dd><dt>Synapses</dt><dd>J 0.2 mV (inhibitory −g·J, g 5), delay 1.5 ms</dd><dt>Drive</dt><dd>external Poisson input at ν_ext = 2 × ν_thr</dd><dt>Source</dt><dd><span title="Brunel N (2000) J Comput Neurosci 8:183–208">Brunel 2000</span> (scaled to 5 000 neurons, C_E·J kept at 80 mV; regime boundaries shift with network size)</dd></dl><h3>Parameters you can change</h3><div class="tbl"><table><thead><tr><th>Parameter</th><th>Baseline</th><th>Range</th></tr></thead><tbody><tr><td>Inhibition / excitation (g)</td><td>5</td><td>2 to 8</td></tr><tr><td>External drive (ν_ext / ν_thr)</td><td>2</td><td>0.5 to 4</td></tr><tr><td>Synaptic weight J</td><td>0.2 mV</td><td>0.05 mV to 0.5 mV</td></tr><tr><td>Delay</td><td>1.5 ms</td><td>0.5 ms to 5 ms</td></tr></tbody></table></div><h3>Manipulations</h3><div class="tbl"><table><thead><tr><th>Button</th><th>Sets</th><th>Source</th></tr></thead><tbody><tr><td>SR (g 3, ν 2)</td><td>Inhibition / excitation (g) → 3; External drive (ν_ext / ν_thr) → 2</td><td>Synchronous regular (Brunel 2000, Fig. 8A)</td></tr><tr><td>SI fast (g 6, ν 4)</td><td>Inhibition / excitation (g) → 6; External drive (ν_ext / ν_thr) → 4</td><td>Synchronous irregular, fast oscillation (Fig. 8B)</td></tr><tr><td>AI (g 5, ν 2)</td><td>Inhibition / excitation (g) → 5; External drive (ν_ext / ν_thr) → 2</td><td>Asynchronous irregular (Fig. 8C)</td></tr><tr><td>SI slow (g 4.5, ν 0.9)</td><td>Inhibition / excitation (g) → 4.5; External drive (ν_ext / ν_thr) → 0.9</td><td>Synchronous irregular, slow oscillation (Fig. 8D)</td></tr></tbody></table></div></article><article id="doc-equations" data-p="equations" data-title="Equations and numerics" hidden><h1>Equations and numerics</h1><p>Every single-cell and circuit model solves the compartmental cable equation on the reconstruction. For compartment <em>i</em> with neighbours <em>j</em>:</p>
+<div class="math">\[C_i \frac{dV_i}{dt} = -\sum_{\mathrm{ion}} g_{\mathrm{ion},i}(V_i,t)\,(V_i - E_{\mathrm{ion}}) - g_{L,i}(V_i - E_L) + \sum_{j} g_{ij}\,(V_j - V_i) + I_{\mathrm{inj},i}(t) + I_{\mathrm{syn},i}(t)\]</div>
+<p>Channel conductances follow gating variables; for Hodgkin–Huxley Na⁺ and K⁺:</p>
+<div class="math">\[g_{\mathrm{Na}} = \bar g_{\mathrm{Na}}\, m^3 h, \qquad g_{\mathrm{K}} = \bar g_{\mathrm{K}}\, n^4, \qquad \frac{dx}{dt} = \frac{x_\infty(V) - x}{\tau_x(V)}, \quad x \in \{m, h, n\}\]</div>
+<p>The population model is a leaky integrate-and-fire network (Brunel 2000):</p>
+<div class="math">\[\tau \frac{dV_k}{dt} = -V_k + R I_k(t), \qquad V_k > \theta \Rightarrow \text{spike},\; V_k \leftarrow V_r \text{ for } \tau_{rp}\]</div>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Discretization</td>
+<td>Hodgkin–Huxley (<code>hs-cable.js</code>): compartments ≤ 20 µm along unbranched paths; soma = one compartment with sphere area. Migliore, research, circuit (NGC): 20–25 µm compartments; a 200 µm axon stub when no axon is traced</td>
+</tr>
+<tr>
+<td>Voltage</td>
+<td>Backward Euler, solved exactly on the tree by Hines elimination (O(N) per step), as NEURON's default</td>
+</tr>
+<tr>
+<td>Gates</td>
+<td>Exponential Euler with rate tables (−120 to +80 mV)</td>
+</tr>
+<tr>
+<td>Time step</td>
+<td>0.025 ms (HH, Migliore), 0.05 ms (research model, circuit), 0.1 ms (population, exact LIF decay)</td>
+</tr>
+<tr>
+<td>Spikes</td>
+<td>Soma crossing 0 mV, counted during the stimulus window</td>
+</tr>
+<tr>
+<td>Synapses</td>
+<td>Double-exponential conductances; NMDA with Mg²⁺ block (Jahr &amp; Stevens 1990)</td>
+</tr>
+<tr>
+<td>Units</td>
+<td>mV, ms, nA, µS, nF, µm</td>
+</tr>
+</tbody>
+</table>
+<p>The NGC engine (Migliore, research model, circuit) is copied unchanged from the lab's Little Neural Guide at build time (<code>site/hs-ngc.js</code>), so the Simulate panel and the Neuron lab run identical code.</p></article><article id="doc-validation" data-p="validation" data-title="Validation" hidden><h1>Validation</h1><p>hippsim's Hodgkin–Huxley solver gives NEURON's spike count exactly on 51 of 87 cells and within one spike on 74; Brian2 matches on 65 and 81. Every cell was run in all three engines with the same model (0.5 nA, 300 ms step at the soma) by <code>tools/engine_check.py</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Comparison (spike counts)</th>
+<th>Same count</th>
+<th>Within ±1 spike</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hippsim vs NEURON 9.0.2</td>
+<td>51 / 87</td>
+<td>74 / 87</td>
+</tr>
+<tr>
+<td>hippsim vs Brian2 2.11</td>
+<td>65 / 87</td>
+<td>81 / 87</td>
+</tr>
+</tbody>
+</table>
+<p>The gaps come from discretization: hippsim ≤ 20 µm compartments, NEURON d_lambda 0.1, Brian2 one compartment per traced segment. They are largest in cells near depolarization block, where a small difference in input resistance decides between repetitive firing and a single spike.</p>
+<table>
+<thead>
+<tr>
+<th>Other checks</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model checks (<code>tools/validate_models.py</code>)</td>
+<td>Passive and spiking checks against NEURON and the numpy reference engine; one known issue (NEURON's extended impedance with Iₕ)</td>
+</tr>
+<tr>
+<td>All SWC files build in NEURON (Import3d)</td>
+<td>87 / 87, each with a passive input-resistance check</td>
+</tr>
+<tr>
+<td>Browser tests</td>
+<td>Presets, saved runs, user flows, accounts and the Neurons viewer, at web and phone widths</td>
+</tr>
+<tr>
+<td>Page audit</td>
+<td>Links, layout and accessibility basics on every page</td>
+</tr>
+<tr>
+<td>Citations</td>
+<td>DOIs checked against Crossref / OpenAlex</td>
+</tr>
+</tbody>
+</table>
+<p>Full record, per-cell table and per-tool checks: <a href="validation.html">Validation &amp; provenance</a> and <code>VALIDATION.md</code>.</p></article><article id="doc-cells" data-p="cells" data-title="Cells and data" hidden><h1>Cells and data</h1><p>hippsim holds 87 published reconstructions, each with its source paper, archive record and a passive NEURON check.</p>
+<table>
+<thead>
+<tr>
+<th>Archive</th>
+<th>Cells</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ModelDB (traced model geometry)</td>
+<td>49</td>
+</tr>
+<tr>
+<td>NeuroMorpho.Org</td>
+<td>23</td>
+</tr>
+<tr>
+<td>Janelia MouseLight</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Allen Cell Types</td>
+<td>3</td>
+</tr>
+<tr>
+<td>FANC (fly nerve cord)</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Janelia hemibrain</td>
+<td>2</td>
+</tr>
+<tr>
+<td>MANC (fly nerve cord)</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Most are hippocampal (CA1 22, CA3 21, dentate gyrus 15, plus entorhinal cortex, subiculum and septum); the rest cover neocortex, cerebellum, spinal cord, thalamus, retina and the fly escape circuit.</li>
+<li>Every cell has a DOI or PubMed Central record: <code>morphologies/provenance.csv</code>, <code>morphologies/references.bib</code>.</li>
+<li>ModelDB geometry is parsed as text from hoc files; no downloaded code is run.</li>
+<li>Edits: six Amaral-archive CA3 cells re-imported without layer contour lines; n130 excluded (its file sets every diameter to 0.2 µm). Scripts drop zero-length points and raise radii below 0.05 µm before building.</li>
+<li><a href="library.html">Cells &amp; data</a> lists every cell with measurements, citation and SWC download.</li>
+</ul></article><article id="doc-runs" data-p="runs" data-title="Saved runs and scripts" hidden><h1>Saved runs and scripts</h1><p>A saved run stores everything needed to reproduce it: cell, model, simulator, every parameter, the changes from baseline, the result and the plot.</p>
+<table>
+<thead>
+<tr>
+<th>Where</th>
+<th>What you get</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="runs.html">Runs</a></td>
+<td>Every saved run, in folders. <strong>Open</strong> restores the cell, model, settings and electrode; move, rename, delete</td>
+</tr>
+<tr>
+<td>Download (.zip)</td>
+<td><code>run.json</code> (all values, baseline vs changed), plots, <code>references.bib</code> for the models and cells used</td>
+</tr>
+<tr>
+<td>NEURON script</td>
+<td>Python file + the cell's SWC: the same Hodgkin–Huxley model with your settings (current, Na⁺, K⁺, dendrite density, electrode site)</td>
+</tr>
+<tr>
+<td>Brian2 script</td>
+<td>The same model as a Brian2 SpatialNeuron; or the Brunel network with your g and ν</td>
+</tr>
+</tbody>
+</table>
+<p>Run a script next to its SWC:</p>
+<pre><code class="language-bash">pip install neuron matplotlib        # or: pip install brian2 matplotlib
+python ca1-n123_neuron_single.py
+</code></pre>
+<p>Each script prints its spike count, so you can compare it with the run in hippsim. Scripts are starting points to edit, not fitted models.</p></article><article id="doc-tools" data-p="tools" data-title="Tools (model library)" hidden><h1>Tools (model library)</h1><p><strong>Tools</strong> holds the lab's model library: 21 tools in five workspaces, each with a literature baseline and published manipulations (45 in total).</p>
+<p>Every tool follows the same four steps: <strong>Baseline</strong> (the starting values, the model they come from, references) → <strong>Run</strong> → <strong>Change</strong> (a control, or a published drug, disease model or genotype) → <strong>Save run</strong>. The bar shows how many values differ from baseline; <strong>Reset</strong> undoes them.</p>
+<p><a href="models.html">Models</a> lists every tool's model, validation and ModelDB / DOI sources. Baselines and manipulations are files in the repository (<code>models/literature/&lt;tool&gt;/</code>, <code>models/lab/&lt;author&gt;/&lt;tool&gt;/</code>).</p></article><article id="doc-sharing" data-p="sharing" data-title="Sharing, hosting and accounts" hidden><h1>Sharing, hosting and accounts</h1><p>Today hippsim runs as a private page on claude.ai, shared with chosen people; opening it to everyone takes a public host and, for personal accounts, a Firebase project.</p>
+<table>
+<thead>
+<tr>
+<th>Who</th>
+<th>How</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The lab</td>
+<td>claude.ai page, Share menu; any browser, nothing to install</td>
+<td>Live</td>
+</tr>
+<tr>
+<td>Anyone (public website)</td>
+<td>The built app (<code>app/</code>) on GitHub Pages: installs on phones, works offline</td>
+<td>Needs the GitHub repository</td>
+</tr>
+<tr>
+<td>Personal accounts</td>
+<td>Google sign-in through Firebase; each person's runs are their own (<code>docs/ACCOUNTS.md</code>)</td>
+<td>Needs a Firebase project</td>
+</tr>
+<tr>
+<td>A lab server</td>
+<td>Copy <code>app/</code> to any HTTPS host</td>
+<td>Ready</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Your data.</strong> Saved runs are stored with your account; only you can change or delete yours. Display settings stay on your device.</p></article><article id="doc-developers" data-p="developers" data-title="For developers" hidden><h1>For developers</h1><p>The site is generated: edit the sources, rebuild, run the tests, then publish.</p>
+<table>
+<thead>
+<tr>
+<th>Folder</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>site/</code></td>
+<td>The web app: <code>hs-cable.js</code> (HH solver), <code>hs-ngc.js</code> (NGC engine, generated), <code>hs-models.js</code> (Simulate-panel models), <code>hs-run.js</code> (saved runs), <code>hs-app.js</code> (menu, Display)</td>
+</tr>
+<tr>
+<td><code>docs/guide/</code></td>
+<td>This documentation (Markdown); the Models page is generated from <code>site/hs-models.js</code></td>
+</tr>
+<tr>
+<td><code>tools/</code></td>
+<td>Builders, importers, engine checks and browser tests; <code>atlas_template.html</code> = the Neurons page; <code>script_templates/</code> = NEURON / Brian2 scripts</td>
+</tr>
+<tr>
+<td><code>morphologies/</code></td>
+<td>SWC files, <code>catalog.yaml</code>, <code>provenance.csv</code>, <code>references.bib</code></td>
+</tr>
+<tr>
+<td><code>models/</code></td>
+<td><code>baseline.yaml</code> + <code>perturbations/*.yaml</code> per tool (generated)</td>
+</tr>
+<tr>
+<td><code>hippsim/</code>, <code>mechanisms/</code></td>
+<td>Python package (NEURON and numpy engines), NMODL channels</td>
+</tr>
+<tr>
+<td><code>app/</code></td>
+<td>Installable build for any static host</td>
+</tr>
+</tbody>
+</table>
+<p>Build and test, in order:</p>
+<pre><code class="language-bash">python tools/build_simulator.py      # tool pages, Tools hub, About, Validation
+python tools/build_library_page.py   # Neurons (home), Cells &amp; data, hs-ngc.js
+python tools/build_docs.py           # Docs (this page)
+python tools/build_app.py            # app/ (installable, offline)
+python tools/test_atlas.py mock.js &amp;&amp; python tools/test_site.py &amp;&amp; python tools/test_flows.py mock.js
+python tools/test_accounts.py &amp;&amp; python tools/audit_site.py
+python tools/engine_check.py         # NEURON + Brian2 baselines for every cell (~25 min)
+</code></pre>
+<p><strong>Add a model</strong> to the Simulate panel: an entry in <code>site/hs-models.js</code> with <code>scale</code>, <code>name</code>, <code>desc</code>, <code>params</code> (each with its baseline and range), <code>presets</code> (each with its source), <code>base(p)</code> (the baseline rows), <code>run()</code> and <code>summary()</code>. It appears in the panel and on the <a href="#models">Models</a> page after a rebuild.
+<strong>Add a cell</strong>: its SWC in <code>morphologies/</code> and an entry in <code>catalog.yaml</code>, then rebuild.</p></article><article id="doc-citing" data-p="citing" data-title="How to cite" hidden><h1>How to cite</h1><p>Cite hippsim and the models and cells you used; every saved run's zip carries the references for its model and cell.</p>
+<ul>
+<li><strong>hippsim</strong>: <a href="CITATION.cff">CITATION.cff</a> (version 0.11). A Zenodo release will add a DOI once the repository is public.</li>
+<li><strong>Models</strong>: Hodgkin &amp; Huxley 1952, J Physiol 117:500 · Migliore, Ferrante &amp; Ascoli 2005, J Neurophysiol 94:4145 (ModelDB 55035) · Golomb, Yue &amp; Yaari 2006, J Neurophysiol 96:1912 · Brunel 2000, J Comput Neurosci 8:183 · each tool's sources on <a href="models.html">Models</a>.</li>
+<li><strong>Cells</strong>: the paper on each cell's page (<code>morphologies/references.bib</code>); for NeuroMorpho.Org cells also Ascoli et al. 2007, J Neurosci 27:9247.</li>
+<li><strong>Simulators used for cross-checks</strong>: NEURON (Hines &amp; Carnevale 1997, Neural Comput 9:1179); Brian2 (Stimberg, Brette &amp; Goodman 2019, eLife 8:e47314).</li>
+</ul>
+<p><strong>Methods text you can adapt:</strong></p>
+<blockquote>
+<p>Simulations were run in hippsim (v0.11), a browser-based platform that solves the compartmental cable equation on reconstructed morphologies (backward Euler with Hines elimination, dt 0.025 ms). Its spike counts were cross-checked against NEURON 9.0.2 and Brian2 2.11 on 87 cells.</p>
+</blockquote></article><article id="doc-limitations" data-p="limitations" data-title="Limitations" hidden><h1>Limitations</h1><p>hippsim is for exploring, teaching and comparing published models on real cells; its results are model predictions, not fits to recordings.</p>
+<ul>
+<li>The Hodgkin–Huxley model uses one channel density for every cell, chosen so typical cells fire; it is not cell-type specific.</li>
+<li>NEURON and Brian2 results in the app are precomputed baselines; manipulations run in hippsim, with a script to rerun them elsewhere.</li>
+<li>The Migliore and research models were written for CA1 pyramidal cells; on other cell types they are a what-if.</li>
+<li>Circuit input numbers and rates are model choices. The population is a scaled Brunel network, so the boundaries between his regimes shift.</li>
+<li>NEURON's extended impedance with Iₕ disagrees with the reference engine (known issue, see Validation).</li>
+</ul></article><article id="doc-release-notes" data-p="release-notes" data-title="Release notes" hidden><h1>Release notes</h1><h3>0.11 · 5 Nov 2026</h3><ul><li><b>Docs</b> in the menu and the tab bar: overview, quick start, the Simulate panel, models, equations and numerics, validation, cells and data, saved runs and scripts, tools, sharing and accounts, developers, citing, limitations, release notes. Searchable; equations render offline in the installed app.</li><li>The Models page of the docs is generated from the code the Simulate panel runs (<code>site/hs-models.js</code>): every parameter&#x27;s baseline and range, every manipulation and its source.</li><li>Simulate panel: *How this model works* links to that model&#x27;s documentation.</li></ul><h3>0.10 · 5 Nov 2026</h3><ul><li><b>Simulate is one panel</b>, beside the 3D cell: choose the scale, the model and the simulator, run the baseline, then manipulate it. Nothing opens another page. - *Single cell*: Hodgkin–Huxley (runs in hippsim, NEURON or Brian2), Migliore 2005 CA1 channels (the Neuron lab&#x27;s model), and your research model (Golomb I_M + I_NaP on the Migliore dendrites, θ + γ input; CA1 pyramidal cells). - *Circuit*: this cell with θ-modulated excitatory synapses on its dendrites and feedforward inhibition at the soma. - *Population*: Brunel (2000) E–I network of 5 000 integrate-and-fire neurons, with its four parameter sets. - Every model shows its baseline values and sources, offers drug and model manipulations, and draws each run over its baseline. The 3D cell shows the voltage of every compartment.</li><li>NEURON and Brian2: every neuron&#x27;s HH baseline was run in both (<code>tools/engine_check.py</code>); choosing NEURON or Brian2 shows that trace next to hippsim&#x27;s. Scripts carry your settings (current, channels, electrode site; g and ν for the network). NEURON and Brian2 scripts drop zero-length points and 0-diameter radii, so every cell runs.</li><li>The Migliore and research models run on the Little Neural Guide engine (<code>site/hs-ngc.js</code>, copied at build time).</li></ul><h3>0.9.1 · 5 Nov 2026</h3><ul><li><b>Simulate starts with the baseline.</b> Simulate runs the cell&#x27;s baseline at once and lists its values and sources (stimulus, electrode, channel densities, passive properties, references). <b>Manipulate the baseline</b> opens the controls: TTX, TEA, passive or active dendrites, current, electrode site, channel sliders. Changed values turn red, and each run is drawn over the baseline trace with the baseline spike count beside it.</li><li>Everything from the 3D view still works while simulating: compartment toggles, colour by compartment, distance or <b>voltage</b> (with a scale), hover for the voltage at any branch, Details alongside on large screens, screenshot, and Video (it records the run playing while the cell turns).</li></ul><h3>0.9 · 5 Nov 2026</h3><ul><li><b>Neurons is the home page.</b> Pick a cell and it opens full screen in 3D.</li><li><b>Simulate in place</b>: press Simulate and a panel opens beside the cell. Set the current, press Run, and the voltage trace appears while the voltage plays across the dendrites. Tap a branch to move the electrode there. Channels, Save run and NEURON / Brian2 scripts are in the same panel. The in-browser engine is new (<code>hs-cable.js</code>); it gives the same spike counts as NEURON on the test cells.</li><li>Saved atlas runs reopen from Runs into the same cell, current and electrode.</li><li>Less on screen: the menu is now Neurons · Runs · Tools · Models; guided steps and step locks are removed; Web / Phone moved into Display.</li></ul><h3>0.8 · 5 Nov 2026</h3><ul><li><b>Guided steps</b> (on by default; Display → Guided steps). Every tool walks you through Baseline → Run → Change → Save with one specific instruction at a time, docked at the bottom of the screen. Later steps stay locked: the simulation is locked until you confirm the baseline, controls until you have run it once, Save until you have changed one thing and run again. The tool&#x27;s own run button is named and highlighted. After saving: open Runs, reset and try another change, or go to the next tool.</li><li><b>Atlas</b> follows the same pattern: 1 choose a neuron → 2 look at it (rotate, name a branch, open Details) → 3 what to simulate → 4 how to run it (browser, NEURON or Brian2). Each step unlocks the next.</li></ul><h3>0.7 · 5 Nov 2026</h3><ul><li><b>Neuron atlas</b> (<code>atlas.html</code>): only neurons, grouped by region, with type-ahead search. Pick one and it opens full screen in 3D: rotate, zoom, hover or tap a branch for its compartment, path distance, diameter and approximate layer; turn soma, basal, apical trunk, obliques, tuft and axon on and off; colour by distance.</li><li>Details sidebar: lengths and diameters per compartment, branch density, Sholl profile, passive NEURON check.</li><li>Screenshot (PNG, 1920×1080) and an 8-second rotation video, both labelled with the cell and its source.</li><li><b>Simulate my neuron</b>: single cell, dendritic signals, circuit or population, in the browser or as a ready NEURON / Brian2 script with the cell&#x27;s SWC (scripts tested: NEURON and Brian2 agree, 16–23 spikes per 0.5 nA step).</li></ul><h3>0.6 · 5 Nov 2026</h3><ul><li><b>Cells &amp; data</b> rebuilt as a cell explorer: tag filters with counts, a page per cell (measurements, passive NEURON check, citation, simulate / 3D / SWC), similar cells.</li><li>Colour palettes: Rose, Slate, Sage and High contrast (colour-blind-safe cell colours); each works light or dark.</li><li>Citations: all 80 DOIs checked against Crossref / OpenAlex. Fixed a wrong DOI (Eyal et al. 2016 cell) and three preprints now published (Winnubst 2019, Peng 2021, Takemura 2024); added DOIs for Hu 2002 and Wang 2020.</li><li>Six Amaral-archive CA3 cells re-imported without the layer contour lines drawn in their files.</li><li>About page (how to use, legend, citing, data sources); footer with version and how to cite on every page.</li><li>Storage adapter so the app can run with Google sign-in on its own host (<code>docs/ACCOUNTS.md</code>).</li></ul><h3>0.5 · 4 Nov 2026</h3><ul><li>27 published hippocampal reconstructions from ModelDB (4 CA1, 16 CA3, 7 dentate granule cells), each with a passive NEURON check.</li><li>Browser engine: distal apical K_dr now applied; spike counts match NEURON below depolarization block.</li><li>Tool tabs have real addresses; equations render offline; one full-screen button per cell.</li><li>New tests: end-to-end flows and a page audit at web and phone widths.</li></ul><h3>Earlier</h3><ul><li>Runs saved online with folders, move and delete; Web / Phone switch; installable phone app (offline); validation and provenance for every model and cell; RO-Crate run export; literature perturbation presets.</li></ul></article><div class="pn" id="dpn"></div></main>
+</div>
+<script>
+(() => {
+  const nav = document.querySelector('.dx nav'), arts = [...document.querySelectorAll('#dmain article')], links = [...document.querySelectorAll('.dx nav a')];
+  function show() {
+    const h = decodeURIComponent(location.hash.slice(1)) || arts[0].dataset.p;
+    let a = document.getElementById('doc-' + h) || document.getElementById(h); if (a && a.tagName !== 'ARTICLE') a = a.closest('article'); if (!a) a = arts[0];
+    arts.forEach(x => x.hidden = x !== a); links.forEach(l => { if (l.dataset.p === a.dataset.p) l.setAttribute('aria-current', 'page'); else l.removeAttribute('aria-current'); });
+    document.getElementById('dcur').textContent = a.dataset.title; nav.classList.remove('open');
+    const i = arts.indexOf(a), p = arts[i - 1], n = arts[i + 1];
+    document.getElementById('dpn').innerHTML = (p ? `<a href="#${p.dataset.p}">← ${p.dataset.title}</a>` : '<span></span>') + (n ? `<a href="#${n.dataset.p}">${n.dataset.title} →</a>` : '');
+    document.title = a.dataset.title + ' · hippsim Docs';
+    const t = document.getElementById(h); if (t && t !== a && a.contains(t)) t.scrollIntoView(); else window.scrollTo(0, 0);
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([a]).catch(() => {});
+  }
+  addEventListener('hashchange', show); show();
+  document.getElementById('dq').addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    links.forEach(l => { const a = document.getElementById('doc-' + l.dataset.p); l.classList.toggle('dim', !!q && !a.textContent.toLowerCase().includes(q)); });
+  });
+  document.getElementById('dq').addEventListener('keydown', e => { if (e.key !== 'Enter') return; const l = links.find(x => !x.classList.contains('dim')); if (l) location.hash = l.dataset.p; });
+  document.getElementById('dtoc').onclick = () => nav.classList.toggle('open');
+})();
+</script>
+<script src="hs-app-config.js"></script><script src="hs-backend-firebase.js"></script><script src="hs-app.js"></script></body></html>

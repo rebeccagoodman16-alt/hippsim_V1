@@ -1,0 +1,1568 @@
+{
+ "ca1-a": {
+  "js": {
+   "spikes": 18,
+   "first_ms": 2.95,
+   "s": 0.6
+  },
+  "neuron": {
+   "spikes": 18,
+   "first_ms": 2.98,
+   "s": 1.3
+  },
+  "brian2": {
+   "spikes": 18,
+   "first_ms": 2.98,
+   "s": 6.3
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-b": {
+  "js": {
+   "spikes": 18,
+   "first_ms": 2.55,
+   "s": 0.6
+  },
+  "neuron": {
+   "spikes": 18,
+   "first_ms": 2.53,
+   "s": 1.3
+  },
+  "brian2": {
+   "spikes": 18,
+   "first_ms": 2.6,
+   "s": 5.8
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-cell1zr": {
+  "js": {
+   "spikes": 15,
+   "first_ms": 5.08,
+   "s": 0.7
+  },
+  "neuron": {
+   "spikes": 15,
+   "first_ms": 4.75,
+   "s": 1.4
+  },
+  "brian2": {
+   "spikes": 15,
+   "first_ms": 5.0,
+   "s": 5.5
+  },
+  "date": "2026-11-05"
+ },
+ "gc-3319201": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 7.48,
+   "s": 0.3
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 7.23,
+   "s": 0.7
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 7.3,
+   "s": 4.2
+  },
+  "date": "2026-11-05"
+ },
+ "gc-0306": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 2.98,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 2.95,
+   "s": 0.7
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 2.92,
+   "s": 2.8
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-jarsky": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 2.83,
+   "s": 0.6
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 2.83,
+   "s": 1.2
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 2.9,
+   "s": 6.2
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-5038804": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 7.3,
+   "s": 0.7
+  },
+  "neuron": {
+   "spikes": 2,
+   "first_ms": 7.05,
+   "s": 1.2
+  },
+  "brian2": {
+   "spikes": 2,
+   "first_ms": 7.08,
+   "s": 5.7
+  },
+  "date": "2026-11-05"
+ },
+ "gc-sh1": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 1.93,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 1.88,
+   "s": 0.7
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 1.8,
+   "s": 3.1
+  },
+  "date": "2026-11-05"
+ },
+ "gc-sh6": {
+  "js": {
+   "spikes": 26,
+   "first_ms": 1.68,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 27,
+   "first_ms": 1.73,
+   "s": 0.6
+  },
+  "brian2": {
+   "spikes": 26,
+   "first_ms": 1.68,
+   "s": 3.2
+  },
+  "date": "2026-11-05"
+ },
+ "bcdg-1": {
+  "js": {
+   "spikes": 19,
+   "first_ms": 3.05,
+   "s": 1.8
+  },
+  "neuron": {
+   "spikes": 19,
+   "first_ms": 3.08,
+   "s": 3.7
+  },
+  "brian2": {
+   "spikes": 19,
+   "first_ms": 3.02,
+   "s": 22.6
+  },
+  "date": "2026-11-05"
+ },
+ "pvb-1": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 0.35,
+   "s": 1.9
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 3.48,
+   "s": 4.0
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 0.33,
+   "s": 15.5
+  },
+  "date": "2026-11-05"
+ },
+ "pvb-4": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 4.28,
+   "s": 1.8
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 3.28,
+   "s": 3.9
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 4.23,
+   "s": 13.8
+  },
+  "date": "2026-11-05"
+ },
+ "olm-starfish": {
+  "js": {
+   "spikes": 20,
+   "first_ms": 2.73,
+   "s": 0.6
+  },
+  "neuron": {
+   "spikes": 21,
+   "first_ms": 2.45,
+   "s": 1.5
+  },
+  "brian2": {
+   "spikes": 21,
+   "first_ms": 2.73,
+   "s": 5.2
+  },
+  "date": "2026-11-05"
+ },
+ "olm-richy": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 4.43,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 4.0,
+   "s": 0.6
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 4.4,
+   "s": 2.8
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-i1": {
+  "js": {
+   "spikes": 15,
+   "first_ms": 3.18,
+   "s": 1.5
+  },
+  "neuron": {
+   "spikes": 16,
+   "first_ms": 2.88,
+   "s": 2.9
+  },
+  "brian2": {
+   "spikes": 16,
+   "first_ms": 3.13,
+   "s": 13.7
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-i2": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 2.73,
+   "s": 1.9
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 2.63,
+   "s": 3.7
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 2.75,
+   "s": 15.9
+  },
+  "date": "2026-11-05"
+ },
+ "int-971114B": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 3.08,
+   "s": 2.2
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 2.88,
+   "s": 4.7
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 3.0,
+   "s": 17.0
+  },
+  "date": "2026-11-05"
+ },
+ "int-980120A": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 2.58,
+   "s": 2.7
+  },
+  "neuron": {
+   "spikes": 18,
+   "first_ms": 2.43,
+   "s": 6.2
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 2.55,
+   "s": 24.6
+  },
+  "date": "2026-11-05"
+ },
+ "int-980513B": {
+  "js": {
+   "spikes": 16,
+   "first_ms": 3.45,
+   "s": 3.3
+  },
+  "neuron": {
+   "spikes": 16,
+   "first_ms": 3.5,
+   "s": 6.8
+  },
+  "brian2": {
+   "spikes": 16,
+   "first_ms": 3.42,
+   "s": 26.5
+  },
+  "date": "2026-11-05"
+ },
+ "aac-nmo-35831": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 3.15,
+   "s": 1.4
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 3.23,
+   "s": 2.8
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 3.13,
+   "s": 13.7
+  },
+  "date": "2026-11-05"
+ },
+ "aac-nmo-49373": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 9.18,
+   "s": 2.1
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 8.83,
+   "s": 2.4
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 9.05,
+   "s": 10.6
+  },
+  "date": "2026-11-05"
+ },
+ "aac-nmo-49814": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 2.4,
+   "s": 0.5
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 2.48,
+   "s": 1.3
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 2.4,
+   "s": 5.3
+  },
+  "date": "2026-11-05"
+ },
+ "aac-nmo-252206": {
+  "js": {
+   "spikes": 3,
+   "first_ms": 0.33,
+   "s": 1.7
+  },
+  "neuron": {
+   "spikes": 4,
+   "first_ms": 0.33,
+   "s": 4.4
+  },
+  "brian2": {
+   "spikes": 4,
+   "first_ms": 0.33,
+   "s": 17.2
+  },
+  "date": "2026-11-05"
+ },
+ "int-nmo-125756": {
+  "js": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 1.6
+  },
+  "neuron": {
+   "spikes": 36,
+   "first_ms": 0.48,
+   "s": 3.9
+  },
+  "brian2": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 16.3
+  },
+  "date": "2026-11-05"
+ },
+ "int-nmo-10845": {
+  "js": {
+   "spikes": 29,
+   "first_ms": 1.03,
+   "s": 0.5
+  },
+  "neuron": {
+   "spikes": 29,
+   "first_ms": 1.08,
+   "s": 1.5
+  },
+  "brian2": {
+   "spikes": 29,
+   "first_ms": 0.98,
+   "s": 5.2
+  },
+  "date": "2026-11-05"
+ },
+ "pyr-nmo-112004": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 8.7,
+   "s": 0.4
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 8.2,
+   "s": 0.8
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 8.3,
+   "s": 4.2
+  },
+  "date": "2026-11-05"
+ },
+ "pyr-nmo-121507": {
+  "js": {
+   "spikes": 35,
+   "first_ms": 0.5,
+   "s": 0.4
+  },
+  "neuron": {
+   "spikes": 35,
+   "first_ms": 0.53,
+   "s": 2.1
+  },
+  "brian2": {
+   "spikes": 35,
+   "first_ms": 0.5,
+   "s": 2.5
+  },
+  "date": "2026-11-05"
+ },
+ "pyr-nmo-163712": {
+  "js": {
+   "spikes": 35,
+   "first_ms": 0.48,
+   "s": 1.5
+  },
+  "neuron": {
+   "spikes": 35,
+   "first_ms": 0.5,
+   "s": 4.8
+  },
+  "brian2": {
+   "spikes": 35,
+   "first_ms": 0.48,
+   "s": 5.5
+  },
+  "date": "2026-11-05"
+ },
+ "pyr-nmo-164632": {
+  "js": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 1.3
+  },
+  "neuron": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 4.6
+  },
+  "brian2": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 5.2
+  },
+  "date": "2026-11-05"
+ },
+ "int-nmo-164347": {
+  "js": {
+   "spikes": 36,
+   "first_ms": 0.48,
+   "s": 0.3
+  },
+  "neuron": {
+   "spikes": 36,
+   "first_ms": 0.48,
+   "s": 1.3
+  },
+  "brian2": {
+   "spikes": 36,
+   "first_ms": 0.48,
+   "s": 2.5
+  },
+  "date": "2026-11-05"
+ },
+ "gc-nmo-121654": {
+  "js": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 0.3
+  },
+  "neuron": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 1.2
+  },
+  "brian2": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 2.6
+  },
+  "date": "2026-11-05"
+ },
+ "pyr-nmo-121817": {
+  "js": {
+   "spikes": 35,
+   "first_ms": 0.5,
+   "s": 0.7
+  },
+  "neuron": {
+   "spikes": 33,
+   "first_ms": 0.53,
+   "s": 3.3
+  },
+  "brian2": {
+   "spikes": 35,
+   "first_ms": 0.48,
+   "s": 3.8
+  },
+  "date": "2026-11-05"
+ },
+ "pyr-nmo-121938": {
+  "js": {
+   "spikes": 33,
+   "first_ms": 0.55,
+   "s": 0.6
+  },
+  "neuron": {
+   "spikes": 32,
+   "first_ms": 0.58,
+   "s": 2.2
+  },
+  "brian2": {
+   "spikes": 34,
+   "first_ms": 0.55,
+   "s": 3.1
+  },
+  "date": "2026-11-05"
+ },
+ "pyr-nmo-158995": {
+  "js": {
+   "spikes": 34,
+   "first_ms": 0.7,
+   "s": 0.1
+  },
+  "neuron": {
+   "spikes": 34,
+   "first_ms": 0.7,
+   "s": 0.6
+  },
+  "brian2": {
+   "spikes": 34,
+   "first_ms": 0.7,
+   "s": 2.2
+  },
+  "date": "2026-11-05"
+ },
+ "pyr-nmo-158996": {
+  "js": {
+   "spikes": 32,
+   "first_ms": 1.05,
+   "s": 0.1
+  },
+  "neuron": {
+   "spikes": 32,
+   "first_ms": 1.03,
+   "s": 0.5
+  },
+  "brian2": {
+   "spikes": 32,
+   "first_ms": 1.05,
+   "s": 2.2
+  },
+  "date": "2026-11-05"
+ },
+ "int-nmo-176949": {
+  "js": {
+   "spikes": 37,
+   "first_ms": 0.45,
+   "s": 1.2
+  },
+  "neuron": {
+   "spikes": 37,
+   "first_ms": 0.45,
+   "s": 3.4
+  },
+  "brian2": {
+   "spikes": 37,
+   "first_ms": 0.45,
+   "s": 13.5
+  },
+  "date": "2026-11-05"
+ },
+ "int-nmo-104696": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 2.62,
+   "s": 1.0
+  },
+  "neuron": {
+   "spikes": 18,
+   "first_ms": 2.6,
+   "s": 1.6
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 2.65,
+   "s": 6.9
+  },
+  "date": "2026-11-05"
+ },
+ "tc-nmo-163604": {
+  "js": {
+   "spikes": 35,
+   "first_ms": 0.5,
+   "s": 0.5
+  },
+  "neuron": {
+   "spikes": 34,
+   "first_ms": 0.5,
+   "s": 1.3
+  },
+  "brian2": {
+   "spikes": 35,
+   "first_ms": 0.5,
+   "s": 2.8
+  },
+  "date": "2026-11-05"
+ },
+ "tc-nmo-121515": {
+  "js": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 0.5
+  },
+  "neuron": {
+   "spikes": 36,
+   "first_ms": 0.48,
+   "s": 2.0
+  },
+  "brian2": {
+   "spikes": 36,
+   "first_ms": 0.45,
+   "s": 3.0
+  },
+  "date": "2026-11-05"
+ },
+ "ctx-nmo-121510": {
+  "js": {
+   "spikes": 34,
+   "first_ms": 0.53,
+   "s": 0.5
+  },
+  "neuron": {
+   "spikes": 34,
+   "first_ms": 0.53,
+   "s": 2.2
+  },
+  "brian2": {
+   "spikes": 34,
+   "first_ms": 0.5,
+   "s": 2.7
+  },
+  "date": "2026-11-05"
+ },
+ "ctx-nmo-102401": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 2.85,
+   "s": 1.0
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 2.9,
+   "s": 2.6
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 2.73,
+   "s": 10.3
+  },
+  "date": "2026-11-05"
+ },
+ "ctx-nmo-102399": {
+  "js": {
+   "spikes": 31,
+   "first_ms": 0.98,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 31,
+   "first_ms": 0.93,
+   "s": 0.6
+  },
+  "brian2": {
+   "spikes": 31,
+   "first_ms": 0.95,
+   "s": 2.9
+  },
+  "date": "2026-11-05"
+ },
+ "ctx-nmo-102367": {
+  "js": {
+   "spikes": 30,
+   "first_ms": 0.85,
+   "s": 0.3
+  },
+  "neuron": {
+   "spikes": 30,
+   "first_ms": 0.83,
+   "s": 1.0
+  },
+  "brian2": {
+   "spikes": 30,
+   "first_ms": 0.85,
+   "s": 4.1
+  },
+  "date": "2026-11-05"
+ },
+ "pc-nmo-10069": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 1.33,
+   "s": 0.6
+  },
+  "neuron": {
+   "spikes": 16,
+   "first_ms": 1.93,
+   "s": 1.7
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 1.27,
+   "s": 5.9
+  },
+  "date": "2026-11-05"
+ },
+ "msn-nmo-10032": {
+  "js": {
+   "spikes": 30,
+   "first_ms": 1.15,
+   "s": 0.4
+  },
+  "neuron": {
+   "spikes": 30,
+   "first_ms": 1.13,
+   "s": 1.0
+  },
+  "brian2": {
+   "spikes": 30,
+   "first_ms": 1.2,
+   "s": 4.1
+  },
+  "date": "2026-11-05"
+ },
+ "mc-nmo-111356": {
+  "js": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 0.8
+  },
+  "neuron": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 1.1
+  },
+  "brian2": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 4.8
+  },
+  "date": "2026-11-05"
+ },
+ "mn-nmo-34000": {
+  "js": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 5.2
+  },
+  "neuron": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 6.8
+  },
+  "brian2": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 32.2
+  },
+  "date": "2026-11-05"
+ },
+ "rgc-nmo-102966": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 0.03,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 0.05,
+   "s": 0.8
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 0.02,
+   "s": 2.4
+  },
+  "date": "2026-11-05"
+ },
+ "fly-754534424": {
+  "js": {
+   "spikes": 35,
+   "first_ms": 0.68,
+   "s": 1.2
+  },
+  "neuron": {
+   "spikes": 35,
+   "first_ms": 0.65,
+   "s": 2.1
+  },
+  "brian2": {
+   "spikes": 35,
+   "first_ms": 0.68,
+   "s": 8.7
+  },
+  "date": "2026-11-05"
+ },
+ "fly-722817260": {
+  "js": {
+   "spikes": 34,
+   "first_ms": 0.62,
+   "s": 0.9
+  },
+  "neuron": {
+   "spikes": 34,
+   "first_ms": 0.63,
+   "s": 2.0
+  },
+  "brian2": {
+   "spikes": 34,
+   "first_ms": 0.62,
+   "s": 8.3
+  },
+  "date": "2026-11-05"
+ },
+ "mn-cat-vem1": {
+  "js": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 0.8
+  },
+  "neuron": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 3.6
+  },
+  "brian2": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 3.3
+  },
+  "date": "2026-11-05"
+ },
+ "mn-cat-vem3": {
+  "js": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 1.0
+  },
+  "neuron": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 6.0
+  },
+  "brian2": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 3.6
+  },
+  "date": "2026-11-05"
+ },
+ "mn-cat-amn1": {
+  "js": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 4.7
+  },
+  "neuron": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 3.5
+  },
+  "brian2": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 16.8
+  },
+  "date": "2026-11-05"
+ },
+ "pt-l5b-hay1": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 2.85,
+   "s": 0.7
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 2.95,
+   "s": 1.4
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 2.88,
+   "s": 6.9
+  },
+  "date": "2026-11-05"
+ },
+ "hum-l23-eyal1": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 5.65,
+   "s": 0.8
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 5.68,
+   "s": 1.3
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 5.5,
+   "s": 9.1
+  },
+  "date": "2026-11-05"
+ },
+ "fly-ttmn-l": {
+  "js": {
+   "spikes": 22,
+   "first_ms": 1.62,
+   "s": 0.1
+  },
+  "neuron": {
+   "spikes": 22,
+   "first_ms": 1.63,
+   "s": 0.5
+  },
+  "brian2": {
+   "spikes": 22,
+   "first_ms": 1.62,
+   "s": 2.1
+  },
+  "date": "2026-11-05"
+ },
+ "fly-psi-l": {
+  "js": {
+   "spikes": 27,
+   "first_ms": 1.1,
+   "s": 0.1
+  },
+  "neuron": {
+   "spikes": 27,
+   "first_ms": 1.1,
+   "s": 0.6
+  },
+  "brian2": {
+   "spikes": 27,
+   "first_ms": 1.1,
+   "s": 2.3
+  },
+  "date": "2026-11-05"
+ },
+ "fly-pdmn-l": {
+  "js": {
+   "spikes": 24,
+   "first_ms": 1.23,
+   "s": 0.1
+  },
+  "neuron": {
+   "spikes": 24,
+   "first_ms": 1.25,
+   "s": 0.5
+  },
+  "brian2": {
+   "spikes": 24,
+   "first_ms": 1.23,
+   "s": 2.3
+  },
+  "date": "2026-11-05"
+ },
+ "fly-gf-manc": {
+  "js": {
+   "spikes": 12,
+   "first_ms": 4.23,
+   "s": 0.1
+  },
+  "neuron": {
+   "spikes": 15,
+   "first_ms": 2.83,
+   "s": 0.5
+  },
+  "brian2": {
+   "spikes": 12,
+   "first_ms": 4.23,
+   "s": 2.0
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-jarsky-lab": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 2.83,
+   "s": 0.6
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 2.83,
+   "s": 1.3
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 2.88,
+   "s": 5.6
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-n123": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 2.12,
+   "s": 0.9
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 2.1,
+   "s": 1.5
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 2.1,
+   "s": 5.9
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-n125": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 4.2,
+   "s": 0.9
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 4.33,
+   "s": 1.2
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 4.28,
+   "s": 6.6
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-n128": {
+  "js": {
+   "spikes": 15,
+   "first_ms": 2.2,
+   "s": 1.0
+  },
+  "neuron": {
+   "spikes": 16,
+   "first_ms": 2.2,
+   "s": 1.7
+  },
+  "brian2": {
+   "spikes": 16,
+   "first_ms": 2.2,
+   "s": 6.1
+  },
+  "date": "2026-11-05"
+ },
+ "ca1-n129": {
+  "js": {
+   "spikes": 24,
+   "first_ms": 1.3,
+   "s": 0.7
+  },
+  "neuron": {
+   "spikes": 24,
+   "first_ms": 1.25,
+   "s": 1.4
+  },
+  "brian2": {
+   "spikes": 24,
+   "first_ms": 1.27,
+   "s": 4.4
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-cell2zr": {
+  "js": {
+   "spikes": 1,
+   "first_ms": 8.33,
+   "s": 0.9
+  },
+  "neuron": {
+   "spikes": 11,
+   "first_ms": 7.4,
+   "s": 1.5
+  },
+  "brian2": {
+   "spikes": 10,
+   "first_ms": 7.43,
+   "s": 6.2
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-cell3zr": {
+  "js": {
+   "spikes": 16,
+   "first_ms": 3.62,
+   "s": 0.7
+  },
+  "neuron": {
+   "spikes": 18,
+   "first_ms": 2.83,
+   "s": 1.4
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 3.08,
+   "s": 5.1
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-cell4zr": {
+  "js": {
+   "spikes": 17,
+   "first_ms": 3.38,
+   "s": 0.6
+  },
+  "neuron": {
+   "spikes": 20,
+   "first_ms": 2.05,
+   "s": 1.3
+  },
+  "brian2": {
+   "spikes": 19,
+   "first_ms": 2.3,
+   "s": 4.2
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-cell5zr": {
+  "js": {
+   "spikes": 16,
+   "first_ms": 4.0,
+   "s": 0.8
+  },
+  "neuron": {
+   "spikes": 18,
+   "first_ms": 2.78,
+   "s": 1.6
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 3.15,
+   "s": 4.9
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-cell6zr": {
+  "js": {
+   "spikes": 16,
+   "first_ms": 4.18,
+   "s": 0.7
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 3.18,
+   "s": 1.3
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 3.45,
+   "s": 4.8
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-cell7zr": {
+  "js": {
+   "spikes": 14,
+   "first_ms": 4.48,
+   "s": 1.2
+  },
+  "neuron": {
+   "spikes": 16,
+   "first_ms": 3.18,
+   "s": 2.2
+  },
+  "brian2": {
+   "spikes": 16,
+   "first_ms": 3.27,
+   "s": 6.8
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-cell8zr": {
+  "js": {
+   "spikes": 18,
+   "first_ms": 3.45,
+   "s": 0.6
+  },
+  "neuron": {
+   "spikes": 20,
+   "first_ms": 2.18,
+   "s": 1.4
+  },
+  "brian2": {
+   "spikes": 20,
+   "first_ms": 2.5,
+   "s": 4.3
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-l24b": {
+  "js": {
+   "spikes": 0,
+   "first_ms": null,
+   "s": 1.4
+  },
+  "neuron": {
+   "spikes": 1,
+   "first_ms": 10.6,
+   "s": 2.2
+  },
+  "brian2": {
+   "spikes": 1,
+   "first_ms": 12.38,
+   "s": 8.0
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-l51": {
+  "js": {
+   "spikes": 10,
+   "first_ms": 6.62,
+   "s": 1.0
+  },
+  "neuron": {
+   "spikes": 12,
+   "first_ms": 4.65,
+   "s": 1.7
+  },
+  "brian2": {
+   "spikes": 10,
+   "first_ms": 6.5,
+   "s": 6.1
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-l56a": {
+  "js": {
+   "spikes": 13,
+   "first_ms": 3.95,
+   "s": 0.8
+  },
+  "neuron": {
+   "spikes": 14,
+   "first_ms": 3.25,
+   "s": 1.4
+  },
+  "brian2": {
+   "spikes": 14,
+   "first_ms": 3.85,
+   "s": 5.0
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-c30573": {
+  "js": {
+   "spikes": 19,
+   "first_ms": 2.75,
+   "s": 0.8
+  },
+  "neuron": {
+   "spikes": 20,
+   "first_ms": 2.03,
+   "s": 1.7
+  },
+  "brian2": {
+   "spikes": 20,
+   "first_ms": 2.3,
+   "s": 4.8
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-c31162": {
+  "js": {
+   "spikes": 16,
+   "first_ms": 3.58,
+   "s": 1.4
+  },
+  "neuron": {
+   "spikes": 19,
+   "first_ms": 1.93,
+   "s": 2.8
+  },
+  "brian2": {
+   "spikes": 19,
+   "first_ms": 2.25,
+   "s": 7.7
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-c60361": {
+  "js": {
+   "spikes": 18,
+   "first_ms": 2.83,
+   "s": 0.8
+  },
+  "neuron": {
+   "spikes": 21,
+   "first_ms": 1.88,
+   "s": 1.7
+  },
+  "brian2": {
+   "spikes": 20,
+   "first_ms": 2.0,
+   "s": 5.2
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-c62563": {
+  "js": {
+   "spikes": 18,
+   "first_ms": 3.08,
+   "s": 1.1
+  },
+  "neuron": {
+   "spikes": 19,
+   "first_ms": 2.38,
+   "s": 2.0
+  },
+  "brian2": {
+   "spikes": 19,
+   "first_ms": 2.55,
+   "s": 6.2
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-c73164": {
+  "js": {
+   "spikes": 16,
+   "first_ms": 3.68,
+   "s": 1.0
+  },
+  "neuron": {
+   "spikes": 17,
+   "first_ms": 3.03,
+   "s": 1.9
+  },
+  "brian2": {
+   "spikes": 17,
+   "first_ms": 3.2,
+   "s": 5.7
+  },
+  "date": "2026-11-05"
+ },
+ "ca3-c81463": {
+  "js": {
+   "spikes": 13,
+   "first_ms": 5.33,
+   "s": 1.2
+  },
+  "neuron": {
+   "spikes": 14,
+   "first_ms": 4.43,
+   "s": 2.4
+  },
+  "brian2": {
+   "spikes": 14,
+   "first_ms": 4.67,
+   "s": 7.3
+  },
+  "date": "2026-11-05"
+ },
+ "gc-sh2": {
+  "js": {
+   "spikes": 22,
+   "first_ms": 2.12,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 23,
+   "first_ms": 1.98,
+   "s": 0.7
+  },
+  "brian2": {
+   "spikes": 23,
+   "first_ms": 2.1,
+   "s": 3.3
+  },
+  "date": "2026-11-05"
+ },
+ "gc-sh3": {
+  "js": {
+   "spikes": 25,
+   "first_ms": 1.38,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 26,
+   "first_ms": 1.23,
+   "s": 0.7
+  },
+  "brian2": {
+   "spikes": 25,
+   "first_ms": 1.33,
+   "s": 3.2
+  },
+  "date": "2026-11-05"
+ },
+ "gc-sh4": {
+  "js": {
+   "spikes": 24,
+   "first_ms": 1.65,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 25,
+   "first_ms": 1.5,
+   "s": 0.6
+  },
+  "brian2": {
+   "spikes": 24,
+   "first_ms": 1.62,
+   "s": 3.2
+  },
+  "date": "2026-11-05"
+ },
+ "gc-sh5": {
+  "js": {
+   "spikes": 24,
+   "first_ms": 1.83,
+   "s": 0.3
+  },
+  "neuron": {
+   "spikes": 25,
+   "first_ms": 1.7,
+   "s": 0.7
+  },
+  "brian2": {
+   "spikes": 24,
+   "first_ms": 1.8,
+   "s": 3.5
+  },
+  "date": "2026-11-05"
+ },
+ "gc-sh7": {
+  "js": {
+   "spikes": 18,
+   "first_ms": 2.6,
+   "s": 0.3
+  },
+  "neuron": {
+   "spikes": 19,
+   "first_ms": 2.28,
+   "s": 0.8
+  },
+  "brian2": {
+   "spikes": 18,
+   "first_ms": 2.52,
+   "s": 3.9
+  },
+  "date": "2026-11-05"
+ },
+ "gc-sh8": {
+  "js": {
+   "spikes": 27,
+   "first_ms": 1.5,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 27,
+   "first_ms": 1.43,
+   "s": 0.6
+  },
+  "brian2": {
+   "spikes": 27,
+   "first_ms": 1.48,
+   "s": 3.1
+  },
+  "date": "2026-11-05"
+ },
+ "gc-sh9": {
+  "js": {
+   "spikes": 13,
+   "first_ms": 4.08,
+   "s": 0.2
+  },
+  "neuron": {
+   "spikes": 24,
+   "first_ms": 1.8,
+   "s": 0.7
+  },
+  "brian2": {
+   "spikes": 13,
+   "first_ms": 4.05,
+   "s": 3.3
+  },
+  "date": "2026-11-05"
+ }
+}

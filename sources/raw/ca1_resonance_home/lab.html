@@ -1,0 +1,1578 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><title>CA1 Morphology Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: workbench — morphology canvas left, control tabs right, results strip, then a code/learn dock.
+   Palette follows the Little Neural Guide: warm paper, near-black ink, CA1 magenta (apical), slate blue (basal). */
+:root{
+  --bg:#fff9f2; --surface:#fffdfb; --ink:#171313; --muted:#7d6f6a; --rule:#e6d7cf; --line:#bfa9a0;
+  --apical:#a62961; --basal:#3d5a8a; --soma:#171313; --accent:#a62961; --accent-ink:#ffffff;
+  --theta:#c99400; --theta-bg:rgba(240,190,40,.14); --gamma-bg:rgba(61,90,138,.08);
+  --ok:#1f7a4d; --ok-bg:#e1f3ea; --warn:#9a6200; --warn-bg:#fdf0d5; --code:#f6ede6;
+  --f-ui:system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141012; --surface:#1d181a; --ink:#f6ecef; --muted:#a8999d; --rule:#33292d; --line:#4d4044;
+  --apical:#ff8dbd; --basal:#8fb3ff; --soma:#f6ecef; --accent:#ff8dbd; --accent-ink:#141012;
+  --theta:#f0c64a; --theta-bg:rgba(240,198,74,.12); --gamma-bg:rgba(143,179,255,.08);
+  --ok:#6fd3a0; --ok-bg:#16301f; --warn:#f2c065; --warn-bg:#3a2c10; --code:#211b1e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141012; --surface:#1d181a; --ink:#f6ecef; --muted:#a8999d; --rule:#33292d; --line:#4d4044;
+  --apical:#ff8dbd; --basal:#8fb3ff; --soma:#f6ecef; --accent:#ff8dbd; --accent-ink:#141012;
+  --theta:#f0c64a; --theta-bg:rgba(240,198,74,.12); --gamma-bg:rgba(143,179,255,.08);
+  --ok:#6fd3a0; --ok-bg:#16301f; --warn:#f2c065; --warn-bg:#3a2c10; --code:#211b1e; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-ui);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 60px}
+a{color:var(--accent)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1320px;margin:0 auto;display:grid;gap:28px;padding-top:28px}
+header{display:grid;gap:8px}
+.kicker{font:600 12px/1 var(--f-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font:800 clamp(1.9rem,4vw,2.8rem)/1.05 var(--f-ui);letter-spacing:-.025em;margin:0;text-wrap:balance}
+h2{font:750 1.45rem/1.2 var(--f-ui);letter-spacing:-.01em;margin:0;text-wrap:balance}
+h3{font:700 1.02rem/1.3 var(--f-ui);margin:0}
+p{margin:0;max-width:72ch}
+.lede{color:var(--muted);font-size:1.05rem}
+.cite{font-size:13px;color:var(--muted)}
+code{font-family:var(--f-mono);font-size:.9em}
+
+/* workbench */
+.bench{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:980px){.bench{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-width:0}
+.cellbox{display:grid;grid-template-rows:auto 1fr auto;overflow:hidden}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--rule)}
+.toolbar label{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);min-height:34px;max-width:100%}
+.canvaswrap{position:relative;height:min(78vh,720px);min-height:420px}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;display:block}
+.legend{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.cbar{height:10px;width:180px;border-radius:5px;border:1px solid var(--line)}
+.sitebadge{position:absolute;left:12px;top:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;display:grid;gap:2px;max-width:60%}
+.sitebadge b{font-size:13.5px}
+.zoomhint{position:absolute;right:12px;bottom:10px;font-size:11.5px;color:var(--muted);background:var(--surface);border-radius:8px;padding:4px 8px;border:1px solid var(--rule)}
+.playbar{display:flex;gap:10px;align-items:center;padding:8px 12px;border-top:1px solid var(--rule)}
+.playbar input[type=range]{flex:1}
+.playbar output{font:500 12.5px var(--f-mono);min-width:76px;text-align:right}
+
+.tabs{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.tab{border:0;background:transparent;padding:8px 12px;border-radius:999px;font-weight:600;font-size:13.5px;color:var(--muted);cursor:pointer}
+.tab[aria-selected=true]{background:var(--ink);color:var(--bg)}
+.tabpanel{padding:14px 16px;display:grid;gap:12px}
+.tabpanel[hidden]{display:none}
+.ctl{display:grid;grid-template-columns:118px minmax(0,1fr) 86px;gap:10px;align-items:center;font-size:13.5px}
+.ctl.two{grid-template-columns:118px minmax(0,1fr)}
+.ctl output{font:500 12.5px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.ctl small{grid-column:1/-1;color:var(--muted);font-size:12px;margin-top:-6px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+.group{display:grid;gap:10px;padding-top:10px;border-top:1px dashed var(--rule)}
+.group:first-child{border-top:0;padding-top:0}
+.group h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--ink);background:var(--surface);border-radius:9px;padding:9px 14px;font-weight:650;font-size:13.5px;cursor:pointer;min-height:38px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.prog{height:6px;border-radius:3px;background:var(--rule);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .1s}
+.note{font-size:12.5px;color:var(--muted)}
+.warnline{font-size:13px;color:var(--warn);background:var(--warn-bg);border-radius:8px;padding:8px 10px}
+
+/* results */
+.results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:1100px){.results{grid-template-columns:minmax(0,1fr)}}
+.plot{padding:10px 12px 12px;display:grid;gap:6px}
+.plot canvas{width:100%;height:240px;display:block}
+.plot .ph{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.plot .ph span{font-size:12px;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.tile{display:grid;gap:2px;padding:9px 0;border-top:2px solid var(--ink)}
+.tile b{font:750 1.2rem/1.15 var(--f-ui);font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;color:var(--muted)}
+
+/* code dock */
+.dock{display:grid;grid-template-rows:auto 1fr}
+.dock .tabpanel{padding:16px 18px}
+pre{margin:0;background:var(--code);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;overflow-x:auto;font:12.8px/1.55 var(--f-mono);tab-size:4;max-height:560px}
+.codehead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.codehead span{font-size:13px;color:var(--muted)}
+.copy{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;font-weight:600;font-size:12.5px;cursor:pointer}
+.c{color:var(--muted);font-style:italic}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--code)}
+tr:last-child td{border-bottom:0}
+.eq{font:13.5px/1.6 var(--f-mono);background:var(--code);border-radius:8px;padding:10px 12px;overflow-x:auto}
+ol.path{margin:0;padding-left:22px;display:grid;gap:10px;max-width:80ch}
+ol.path li b{display:block}
+ul.res{margin:0;padding-left:20px;display:grid;gap:6px}
+.mm{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}
+footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--rule);padding-top:16px;display:grid;gap:6px}
+
+
+/* flow layout */
+.flow{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;counter-reset:f}
+@media (max-width:820px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.flow li{counter-increment:f;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:10px 12px 10px 42px;position:relative;font-size:13.5px}
+.flow li::before{content:counter(f);position:absolute;left:12px;top:10px;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 12px/1 var(--f-ui)}
+.flow b{display:block}
+.step{display:grid;gap:12px}
+.stephead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.stephead .num{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:800 14px/1 var(--f-ui);align-self:center}
+.stephead .note{flex-basis:100%;margin-left:38px}
+.side{display:flex;flex-direction:column;max-height:calc(min(78vh,720px) + 112px);min-height:420px}
+.side .tabs{position:sticky;top:0;background:var(--surface);z-index:2;border-radius:14px 14px 0 0}
+.side .tabpanel{overflow-y:auto;flex:1}
+@media (max-width:980px){.side{max-height:none}}
+.lessonpanel .lcol{gap:8px}
+.lessonpanel h2{font-size:1.25rem}
+.lessonpanel .lsteps .btn{width:100%}
+.lessonpanel .lnav{position:sticky;bottom:-14px;background:var(--surface);padding:10px 0 4px;border-top:1px solid var(--rule)}
+#tab-lesson-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-left:6px;vertical-align:1px}
+
+/* lessons */
+#lessons{display:grid;gap:12px}
+.lbar{display:flex;gap:6px;flex-wrap:wrap}
+.lchip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px 7px 7px;font-weight:650;font-size:13.5px;cursor:pointer}
+.lchip span{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--code);font-size:12px}
+.lchip[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lchip[aria-selected=true] span{background:var(--accent);color:var(--accent-ink)}
+.lchip.free{padding-left:14px}
+.lchip em{font-style:normal}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+.lcard.free{display:block}
+@media (max-width:900px){.lcard{grid-template-columns:minmax(0,1fr)}}
+.lcol{display:grid;gap:9px;align-content:start;min-width:0}
+.lcol h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.lgoal{font-size:1.02rem;font-weight:550}
+.lsteps{margin:0;padding-left:22px;display:grid;gap:7px}
+.lsteps .btn{text-align:left}
+.llook{margin:0;padding-left:20px;display:grid;gap:5px;font-size:14px}
+.mcq{display:grid;gap:6px;background:var(--code);border-radius:10px;padding:12px}
+.mcq p{font-size:14px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 11px;font-size:13.5px;cursor:pointer}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.wrong{border-color:var(--warn);background:var(--warn-bg)}
+.why{font-size:13.5px;color:var(--ink)}
+.lnav{display:flex;gap:8px;justify-content:space-between;margin-top:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<style>
+:root{--pn-bg:#171313;--pn-ink:#fff9f2;--pn-mute:#cbbab3;--pn-on:#ff8dbd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn-bg:#2a2226;--pn-ink:#f6ecef;--pn-mute:#a8999d;--pn-on:#ff8dbd}}
+:root[data-theme="dark"]{--pn-bg:#2a2226;--pn-ink:#f6ecef;--pn-mute:#a8999d;--pn-on:#ff8dbd}
+.pnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--pn-bg);color:var(--pn-ink);margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+.pnav-in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;min-height:48px;padding-block:6px}
+.pnav b{font:800 14px/1 system-ui,sans-serif;letter-spacing:.02em;margin-right:6px}
+.pnav a{color:var(--pn-mute);text-decoration:none;font:600 13.5px/1 system-ui,sans-serif;padding:8px 2px;border-bottom:2px solid transparent}
+.pnav a:hover{color:var(--pn-ink)}
+.pnav a[aria-current=page]{color:var(--pn-ink);border-bottom-color:var(--pn-on)}
+.pnav .sp{flex:1}
+</style><nav class="pnav" aria-label="Compendium pages"><div class="pnav-in"><b>CA1 Resonance</b><a href="index.html">Home</a><a href="paper.html">Paper</a><a href="learn.html">Learn</a><a href="lab.html" aria-current=page>Lab</a><a href="reproduce.html">Reproduce</a><a href="log.html">Log</a><span class="sp"></span><a href="lab.html#lessons">Lessons</a><a href="https://claude.ai/artifact/GB4Sg32iBpjD4vcVtd15j6" target="_blank" rel="noopener">Little Neural Guide ↗</a></div></nav>
+<div class="wrap">
+<header>
+  <span class="kicker">Little Neural Guide · CA1 thread · live model</span>
+  <h1>CA1 Morphology Lab</h1>
+  <p class="lede">A real CA1 pyramidal cell, split into 571 electrical compartments, with HCN channels that grow denser toward the tuft. Click anywhere on the cell to stimulate it, colour the tree by voltage, channel density or resonance, and open the code panel to see the same experiment in Python.</p>
+  <p class="cite">Morphology: Jarsky, Roxin, Kath &amp; Spruston 2005, Nat Neurosci 8:1667 (<a href="https://modeldb.science/116084" target="_blank" rel="noopener">ModelDB 116084</a>). Engine: same equations as <code>ca1_morph.py</code>; compartment numbers match between this page and Python.</p>
+  <ol class="flow" aria-label="How to use this page">
+    <li><b>Choose</b> a lesson below, or Free explore</li>
+    <li><b>Click the cell</b> to pick where to stimulate</li>
+    <li><b>Run or analyse</b> from the panel beside the cell</li>
+    <li><b>Read the results</b> and copy the Python</li>
+  </ol>
+</header>
+
+<section class="step" id="lessons" aria-label="Guided lessons">
+  <div class="stephead"><span class="num">1</span><h2>Choose a lesson</h2><p class="note">Each lesson sets up the cell for you. Its instructions open in the panel beside the cell.</p></div>
+  <div id="lessonbar"></div>
+</section>
+<section class="step" aria-label="Cell and controls">
+  <div class="stephead"><span class="num">2</span><h2>Work with the cell</h2><p class="note">Click a branch to move the stimulation site. Drag to pan, scroll or pinch to zoom.</p></div>
+
+<div class="bench">
+  <div class="panel cellbox">
+    <div class="toolbar">
+      <label for="colorby">Colour by
+        <select id="colorby">
+          <option value="type">Cell region</option>
+          <option value="dist">Path distance from soma</option>
+          <option value="gh">I_h density</option>
+          <option value="rest">Resting voltage</option>
+          <option value="volt">Voltage during the run</option>
+          <option value="transfer">Transfer to soma |Z| at f</option>
+          <option value="atten">Attenuation to soma at f</option>
+          <option value="fres">Local resonance frequency</option>
+          <option value="Q">Local resonance strength Q</option>
+          <option value="rin">Local input resistance</option>
+        </select>
+      </label>
+      <label for="viewf">f <select id="viewf"><option>2</option><option>5</option><option selected>8</option><option>20</option><option>40</option></select> Hz</label>
+      <button type="button" class="btn" id="fit">Reset view</button>
+    </div>
+    <div class="canvaswrap">
+      <canvas id="cv" aria-label="CA1 pyramidal neuron morphology; click to choose the stimulation site"></canvas>
+      <div class="sitebadge" id="sitebadge" aria-live="polite"></div>
+      <div class="zoomhint">click: choose site · drag: pan · wheel / pinch: zoom</div>
+    </div>
+    <div class="playbar"><button type="button" class="btn" id="play" disabled>▶ Play</button><input type="range" id="scrub" min="0" max="0" value="0" disabled aria-label="Time"><output id="tnow">—</output></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="panel side">
+    <div class="tabs" role="tablist" aria-label="Controls">
+      <button type="button" class="tab" role="tab" aria-selected="false" data-tab="lesson" id="t-lesson" hidden>Lesson</button>
+      <button type="button" class="tab" role="tab" aria-selected="true" data-tab="stim" id="t-stim">Stimulus</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-tab="chan" id="t-chan">Channels</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-tab="pass" id="t-pass">Passive cell</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-tab="anal" id="t-anal">Analyse</button>
+    </div>
+    <div class="tabpanel lessonpanel" data-panel="lesson" id="lessonpanel" hidden></div>
+    <div class="tabpanel" data-panel="stim">
+      <div class="group">
+        <div class="ctl two"><span>Input</span><select id="stype"><option value="step">Current step</option><option value="sine">Sine wave</option><option value="zap">ZAP chirp 0.5→20 Hz</option><option value="epsp">EPSC train</option></select></div>
+        <div class="ctl"><span>Amplitude</span><input type="range" id="samp" min="-0.6" max="1.5" step="0.01"><output id="o-samp"></output></div>
+        <div class="ctl" id="row-freq"><span>Frequency</span><input type="range" id="sfreq" min="1" max="60" step="0.5"><output id="o-sfreq"></output></div>
+        <div class="ctl"><span>Duration</span><input type="range" id="sdur" min="100" max="2000" step="50"><output id="o-sdur"></output></div>
+        <div class="ctl"><span>Holding</span><input type="range" id="shold" min="-0.3" max="0.3" step="0.005"><output id="o-shold"></output><small>Constant current added at the soma, to move the cell toward or away from threshold.</small></div>
+      </div>
+      <div class="group">
+        <h3>Record</h3>
+        <p class="note">The soma is always recorded. The second trace is the stimulation site you click on the cell.</p>
+        <div class="btns"><button type="button" class="btn primary" id="run">Run simulation</button><button type="button" class="btn" id="stop" disabled>Stop</button></div>
+        <div class="prog"><i id="progbar"></i></div>
+        <p class="note" id="runnote">Runs in your browser: about 1.5 s of computing per 1 s of simulated time.</p>
+      </div>
+    </div>
+    <div class="tabpanel" data-panel="chan" hidden>
+      <div class="group">
+        <h3>I<sub>h</sub> (HCN) · dendritic gradient</h3>
+        <div class="ctl"><span>ḡ<sub>h</sub> at soma</span><input type="range" id="gh_soma" min="0" max="0.4" step="0.005"><output></output></div>
+        <div class="ctl"><span>Distal / soma</span><input type="range" id="gh_fold" min="1" max="12" step="0.5"><output></output><small>Magee 1998: more than 6-fold from soma to distal dendrite.</small></div>
+        <div class="ctl"><span>Reached at</span><input type="range" id="gh_dist" min="100" max="600" step="10"><output></output></div>
+        <div class="ctl"><span>V<sub>½</sub></span><input type="range" id="h_vhalf" min="-105" max="-70" step="0.5"><output></output></div>
+        <div class="ctl"><span>Slope k</span><input type="range" id="h_k" min="4" max="14" step="0.1"><output></output></div>
+        <div class="ctl two"><span>Kinetics</span><select id="h_kin"><option value="bell">Bell-shaped τ(V), fast HCN1</option><option value="lowet2023">Lowet 2023 HHca2 τ(V), slow</option></select></div>
+        <div class="ctl"><span>Peak τ<sub>h</sub></span><input type="range" id="h_tau_peak" min="5" max="300" step="1"><output></output></div>
+        <div class="ctl"><span>τ<sub>h</sub> × </span><input type="range" id="h_tau_scale" min="0.1" max="3" step="0.05"><output></output><small>Use ÷3 (0.33) as a rough room-to-body temperature speed-up.</small></div>
+      </div>
+      <div class="group">
+        <h3>Spikes · Traub Na<sup>+</sup>/K<sup>+</sup> (soma and first 50 µm)</h3>
+        <label class="ctl two"><span>Enable</span><input type="checkbox" id="spikes"></label>
+        <div class="ctl"><span>ḡ<sub>Na</sub></span><input type="range" id="g_na" min="0" max="150" step="1"><output></output></div>
+        <div class="ctl"><span>ḡ<sub>Kdr</sub></span><input type="range" id="g_kdr" min="0" max="40" step="0.5"><output></output></div>
+        <div class="ctl"><span>Dendritic ḡ<sub>Na</sub></span><input type="range" id="g_na_dend" min="0" max="20" step="0.5"><output></output><small>Above ~5 mS/cm², spikes back-propagate into the apical tree.</small></div>
+        <div class="ctl"><span>V<sub>T</sub></span><input type="range" id="VT" min="-70" max="-45" step="0.5"><output></output></div>
+      </div>
+      <div class="group">
+        <h3>M-current (Kv7) at the soma</h3>
+        <div class="ctl"><span>ḡ<sub>M</sub></span><input type="range" id="g_m_soma" min="0" max="2" step="0.01"><output></output><small>Try 0.5–1 with the holding current near threshold: Hu et al. 2002's depolarized theta resonance.</small></div>
+      </div>
+    </div>
+    <div class="tabpanel" data-panel="pass" hidden>
+      <div class="group">
+        <h3>Membrane</h3>
+        <div class="ctl"><span>R<sub>m</sub></span><input type="range" id="Rm" min="5000" max="80000" step="1000"><output></output></div>
+        <div class="ctl"><span>C<sub>m</sub></span><input type="range" id="Cm" min="0.5" max="2" step="0.05"><output></output></div>
+        <div class="ctl"><span>R<sub>a</sub></span><input type="range" id="Ra" min="50" max="400" step="5"><output></output></div>
+        <div class="ctl"><span>E<sub>L</sub></span><input type="range" id="E_L" min="-85" max="-55" step="0.5"><output></output></div>
+      </div>
+      <div class="group">
+        <h3>Geometry</h3>
+        <div class="ctl"><span>Spine factor</span><input type="range" id="spine_factor" min="1" max="3" step="0.1"><output></output><small>Multiplies membrane area beyond 100 µm to account for spines.</small></div>
+        <div class="ctl"><span>Soma diameter</span><input type="range" id="soma_diam" min="8" max="30" step="1"><output></output></div>
+        <div class="ctl"><span>Max segment</span><input type="range" id="max_seg" min="5" max="60" step="1"><output></output><small>Smaller = more compartments, slower and more accurate. Changing this renumbers compartments.</small></div>
+      </div>
+      <div class="btns"><button type="button" class="btn" id="resetp">Reset all parameters</button></div>
+    </div>
+    <div class="tabpanel" data-panel="anal" hidden>
+      <div class="group">
+        <h3>Frequency response at the selected site</h3>
+        <p class="note">Linearized around rest (quasi-active), the same as NEURON's <code>Impedance</code> class with <code>extended=1</code>.</p>
+        <div class="btns"><button type="button" class="btn primary" id="zbtn">Impedance at site</button></div>
+      </div>
+      <div class="group">
+        <h3>Whole-cell maps</h3>
+        <p class="note">Local input impedance at every compartment, 0.5–20 Hz (about 0.1–0.5 s).</p>
+        <div class="btns"><button type="button" class="btn primary" id="mapbtn">Resonance map</button></div>
+      </div>
+      <div class="group">
+        <h3>Profile vs distance</h3>
+        <div class="ctl two"><span>Y axis</span><select id="profy"><option value="fres">Local resonance frequency</option><option value="Q">Resonance strength Q</option><option value="rin">Input resistance</option><option value="atten">Attenuation to soma at f</option><option value="gh">I_h density</option><option value="rest">Resting voltage</option></select></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</section>
+<section class="step" id="results" aria-label="Results">
+  <div class="stephead"><span class="num">3</span><h2>Results</h2><p class="note">Readouts update after each run or analysis.</p></div>
+  <div class="tiles" id="tiles" aria-live="polite"></div>
+<div class="results">
+  <div class="panel plot"><div class="ph"><h3>Voltage</h3><span id="trlab">Run a simulation</span></div><canvas id="trc" aria-label="Voltage traces at soma and site"></canvas></div>
+  <div class="panel plot"><div class="ph"><h3>Impedance at site</h3><span id="zlab">Press “Impedance at site”</span></div><canvas id="zc" aria-label="Impedance magnitude versus frequency"></canvas></div>
+  <div class="panel plot"><div class="ph"><h3>Profile along the cell</h3><span id="plab">apical · basal</span></div><canvas id="pc" aria-label="Property versus path distance from soma"></canvas></div>
+</div>
+</section>
+<section class="step" aria-label="Code and learning">
+  <div class="stephead"><span class="num">4</span><h2>Code &amp; learning</h2><p class="note">The Python tab rewrites itself to match whatever you last ran.</p></div>
+<section class="panel dock" id="dock">
+  <div class="tabs" role="tablist" aria-label="Code and learning">
+    <button type="button" class="tab" role="tab" aria-selected="true" data-dtab="py" id="d-py">Python · NumPy</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-dtab="b2" id="d-b2">Brian2</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-dtab="nrn" id="d-nrn">NEURON</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-dtab="how" id="d-how">How it works</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-dtab="ana" id="d-ana">Analyse in Python</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-dtab="path" id="d-path">Build it yourself</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-dtab="eng" id="d-eng">This page's engine</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-dtab="refs" id="d-refs">Resources</button>
+  </div>
+  <div class="tabpanel" data-dpanel="py">
+    <div class="codehead"><span id="pyhead">Reproduces your current settings with <code>ca1_morph.py</code>. Updates as you change controls.</span><button type="button" class="copy" data-copy="pycode">Copy</button></div>
+    <pre id="pycode"></pre>
+  </div>
+  <div class="tabpanel" data-dpanel="b2" hidden>
+    <div class="codehead"><span>Brian2 <code>SpatialNeuron</code> on the same SWC file (<code>ca1_jarsky.swc</code>). Uses your current I<sub>h</sub> settings.</span><button type="button" class="copy" data-copy="b2code">Copy</button></div>
+    <pre id="b2code"></pre>
+  </div>
+  <div class="tabpanel" data-dpanel="nrn" hidden>
+    <div class="codehead"><span>NEURON (Python interface) with a small NMODL file for I<sub>h</sub>. Compile with <code>nrnivmodl</code> first.</span><button type="button" class="copy" data-copy="nrncode">Copy</button></div>
+    <pre id="nrncode"></pre>
+  </div>
+  <div class="tabpanel" data-dpanel="how" hidden>
+<h3>1 · The cable, cut into compartments</h3>
+<p>Each compartment <i>i</i> is a short cylinder (≤ 20 µm) with one voltage. Its charge balance is the cable equation in discrete form:</p>
+<div class="eq">C<sub>i</sub> dV<sub>i</sub>/dt = − I<sub>ion,i</sub>(V<sub>i</sub>, gates) + Σ<sub>j∈neighbours</sub> g<sub>ij</sub> (V<sub>j</sub> − V<sub>i</sub>) + I<sub>inj,i</sub>(t)</div>
+<p>C<sub>i</sub> = C<sub>m</sub>·area, every channel conductance = density·area, and the axial conductance between neighbours is 1 / (R<sub>a</sub>·L/(2πr²) for each half). Spines are folded in by multiplying the membrane area of dendrites beyond 100 µm.</p>
+<div class="tbl"><table>
+<thead><tr><th>Quantity</th><th>Formula</th><th>Unit trick</th></tr></thead>
+<tbody>
+<tr><td>Capacitance</td><td>C = C<sub>m</sub> × A</td><td>µF/cm² × µm² × 1e-5 = nF</td></tr>
+<tr><td>Channel conductance</td><td>g = ḡ × A</td><td>mS/cm² × µm² × 1e-5 = µS</td></tr>
+<tr><td>Axial conductance</td><td>g<sub>ax</sub> = 10⁶ / (R<sub>a</sub>·L<sub>i</sub>/2/(πr<sub>i</sub>²) + R<sub>a</sub>·L<sub>p</sub>/2/(πr<sub>p</sub>²))</td><td>lengths in cm → Ω → µS</td></tr>
+<tr><td>Current</td><td>µS × mV = nA; nA / nF = mV/ms</td><td></td></tr>
+</tbody></table></div>
+<h3>2 · Solving it fast: the Hines algorithm</h3>
+<p>Backward Euler turns each time step into one linear system. Because a neuron is a tree, that system can be solved exactly in O(N): eliminate from the leaves to the soma, then substitute back out (Hines 1984). This is what NEURON does internally. Gates use exponential Euler, which stays stable for any step size.</p>
+<div class="eq">(C<sub>i</sub>/Δt + G<sub>i</sub> + Σg<sub>ij</sub>) V<sub>i</sub><sup>n+1</sup> − Σ g<sub>ij</sub> V<sub>j</sub><sup>n+1</sup> = C<sub>i</sub>/Δt · V<sub>i</sub><sup>n</sup> + Σ g<sub>k</sub>E<sub>k</sub> + I<sub>inj</sub><br>gate: x<sup>n+1</sup> = x<sub>∞</sub> + (x<sup>n</sup> − x<sub>∞</sub>) e<sup>−Δt/τ<sub>x</sub></sup></div>
+<h3>3 · I<sub>h</sub> along the dendrite</h3>
+<div class="eq">I<sub>h</sub> = ḡ<sub>h</sub>(d) · h · (V − E<sub>h</sub>),   ḡ<sub>h</sub>(d) = ḡ<sub>soma</sub> · (1 + (fold − 1)·min(d / d<sub>max</sub>, 1)) on the apical tree<br>h<sub>∞</sub> = 1 / (1 + e<sup>(V − V½)/k</sup>),   τ<sub>h</sub>(V) = 2τ<sub>peak</sub> / (e<sup>(V − V<sub>τ</sub>)/15</sup> + e<sup>−(V − V<sub>τ</sub>)/15</sup>)   (or Lowet's HHca2 formula)</div>
+<h3>4 · Resting state</h3>
+<p>Slow I<sub>h</sub> (seconds, with Lowet's kinetics) makes "run until it settles" unreliable. The rest is solved directly: hold h = h<sub>∞</sub>(V), solve the linear tree, update V, repeat until it stops changing.</p>
+<h3>5 · Impedance, everywhere at once</h3>
+<p>For small inputs each channel behaves like a resistor plus a delayed extra term (the quasi-active approximation; Koch 1984). At frequency f the whole tree becomes one complex linear system, solved with the same Hines algorithm using complex numbers. Inject 1 nA at a site: the solution at that site is the input impedance Z<sub>in</sub>; the solution at the soma is the transfer impedance Z<sub>transfer</sub>.</p>
+<div class="eq">y<sub>i</sub>(ω) = g<sub>L</sub> + ḡ<sub>h</sub>h<sub>0</sub> + iωC + ḡ<sub>h</sub>(V<sub>0</sub> − E<sub>h</sub>) h′<sub>∞</sub>(V<sub>0</sub>) / (1 + iωτ<sub>h</sub>(V<sub>0</sub>))</div>
+<p>The last term is positive and only acts on inputs slower than τ<sub>h</sub>, so it suppresses slow inputs while the capacitance suppresses fast ones. What remains is a band, the resonance. Local resonance at every compartment needs one solve per site per frequency: 571 × 14 × O(571) ≈ 4.6 million operations, about 0.1 s here.</p>
+<div class="mm"><pre class="mermaid">
+flowchart LR
+  A["SWC / JSON morphology"] --> B["Split sections into compartments"]
+  B --> C["Areas, capacitances, axial conductances"]
+  C --> D["Channel densities by distance"]
+  D --> E["Exact resting state"]
+  E --> F["Time simulation: Hines + exponential Euler"]
+  E --> G["Impedance: complex Hines per frequency"]
+  F --> H["Traces, spikes, sag, phase"]
+  G --> I["Input and transfer Z, resonance maps"]
+</pre></div>
+</div>
+  <div class="tabpanel" data-dpanel="ana" hidden>
+<p>Seven analyses to run on any setting, with the reason behind each. Recipe A is how you would measure impedance in a slice or from your own data; recipe B is the shortcut the page uses. When they agree, you can trust the shortcut.</p>
+<div class="tbl"><table>
+<thead><tr><th>Recipe</th><th>Answers</th><th>Compare with</th></tr></thead>
+<tbody>
+<tr><td>A · ZAP + FFT</td><td>Impedance as an experimenter measures it</td><td>Hu et al. 2002; Narayanan &amp; Johnston 2007</td></tr>
+<tr><td>B · Quasi-active theory</td><td>The same curve, instantly; check it against A</td><td>Koch 1984; NEURON <code>Impedance</code></td></tr>
+<tr><td>C · f<sub>res</sub> vs distance</td><td>Does tuning change along the dendrite?</td><td>N&amp;J 2007: > 3× soma to distal</td></tr>
+<tr><td>D · Attenuation</td><td>How much of a distal signal reaches the soma, per frequency</td><td>Magee 1998 (I<sub>h</sub> normalizes temporal summation)</td></tr>
+<tr><td>E · Sag ratio</td><td>How much I<sub>h</sub> is active</td><td>Slice sag measurements</td></tr>
+<tr><td>F · Phase locking (PPC)</td><td>Does resonance survive into spike timing?</td><td>Lowet 2023; Ceballos 2025</td></tr>
+</tbody></table></div>
+<div class="codehead"><span></span><button type="button" class="copy" data-copy="anacode">Copy</button></div><pre id="anacode">import numpy as np, matplotlib.pyplot as plt
+from dataclasses import replace
+import ca1_morph as cm
+
+morph = cm.load_morphology(&quot;ca1-jarsky.json&quot;)
+p = cm.CellParams()
+cell = cm.build_cell(morph, p)
+apical = np.where(cell.kind == 4)[0]
+
+# ---------- A. Impedance from a ZAP current (what you would do with recordings) ----------
+site = apical[np.argmin(abs(cell.dist[apical] - 300))]          # ~300 µm apical
+T, f0, f1, A = 20000.0, 0.5, 20.0, 0.02                          # ms, Hz, Hz, nA
+zap = lambda t: A * np.sin(2*np.pi*(f0*t + (f1 - f0)*t**2/(2*T))/1000)
+r = cm.simulate(cell, replace(p, dt=0.1), T, stim_comp=site, I=zap, record=(0, site), every=0.1)
+I = zap(r[&quot;t&quot;]); V = r[&quot;V&quot;][:, 1] - r[&quot;V&quot;][:, 1].mean()
+f = np.fft.rfftfreq(len(I), d=0.1/1000)
+Z = np.fft.rfft(V) / np.fft.rfft(I)                              # MΩ
+band = (f &gt; f0) &amp; (f &lt; f1)
+k = np.argmax(np.abs(Z[band]))
+print(&quot;ZAP: f_res %.1f Hz, Q %.2f&quot; % (f[band][k], np.abs(Z[band])[k] / np.abs(Z[band])[0]))
+
+# ---------- B. The same from the linear theory (fast, exact for small inputs) ----------
+freqs = np.linspace(0.5, 20, 60)
+Zth = np.abs(cm.impedance_from(cell, p, site, freqs)[:, site])
+plt.plot(f[band], np.abs(Z[band]), alpha=.4, label=&quot;ZAP + FFT&quot;)
+plt.plot(freqs, Zth, lw=2, label=&quot;quasi-active theory&quot;)
+plt.xlabel(&quot;f (Hz)&quot;); plt.ylabel(&quot;|Z_in| (MΩ)&quot;); plt.legend(); plt.show()
+
+# ---------- C. Resonance frequency vs distance (Narayanan &amp; Johnston 2007 style) ----------
+fgrid = np.array([0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20])
+fres, Q, _ = cm.resonance_map(cell, p, fgrid)                  # ~10 s in pure Python
+plt.scatter(cell.dist[apical], fres[apical], s=8, c=&quot;#a62961&quot;, label=&quot;apical&quot;)
+b = cell.kind == 3
+plt.scatter(cell.dist[b], fres[b], s=8, c=&quot;#3d5a8a&quot;, label=&quot;basal&quot;)
+slope, icpt = np.polyfit(cell.dist[apical], fres[apical], 1)
+print(f&quot;f_res rises {slope*100:.2f} Hz per 100 µm&quot;)
+plt.xlabel(&quot;path distance (µm)&quot;); plt.ylabel(&quot;local f_res (Hz)&quot;); plt.legend(); plt.show()
+
+# ---------- D. Attenuation to the soma ----------
+Zs = cm.impedance_from(cell, p, 0, np.array([8.0]))[0]          # inject at soma
+Zloc = np.array([abs(cm.impedance_from(cell, p, s, np.array([8.0]))[0, s]) for s in apical[::10]])
+att = np.abs(Zs[apical[::10]]) / Zloc                            # |Z_transfer| / |Z_in|, by reciprocity
+plt.plot(cell.dist[apical[::10]], att, &quot;o&quot;); plt.ylabel(&quot;V_soma / V_site at 8 Hz&quot;); plt.xlabel(&quot;distance (µm)&quot;); plt.show()
+
+# ---------- E. Sag ratio from a hyperpolarising step ----------
+r = cm.simulate(cell, p, 1500, stim_comp=0, I=lambda t: -0.1 if 200 &lt;= t &lt; 1200 else 0.0, record=(0,))
+v = r[&quot;V&quot;][:, 0]; t = r[&quot;t&quot;]
+base = v[t &lt; 200].mean(); peak = v[(t &gt;= 200) &amp; (t &lt; 1200)].min(); ss = v[(t &gt; 1150) &amp; (t &lt; 1200)].mean()
+print(&quot;sag ratio&quot;, (ss - peak) / (base - peak))
+
+# ---------- F. Spike phase locking (reuse ca1_reduced.ppc) ----------
+from ca1_reduced import ppc
+ps = replace(p, spikes=True)
+cell_s = cm.build_cell(morph, ps)
+r = cm.simulate(cell_s, ps, 3000, stim_comp=0,
+                I=lambda t: 0.25 + 0.1*np.sin(2*np.pi*8*t/1000), record=(0,))
+print(&quot;PPC at 8 Hz:&quot;, ppc(r[&quot;spikes&quot;][r[&quot;spikes&quot;] &gt; 500], 8.0))</pre></div>
+  <div class="tabpanel" data-dpanel="path" hidden>
+<p>How to build this model yourself, in the order that keeps every step checkable. Each step has a test that tells you it is right before you move on.</p>
+<ol class="path">
+<li><b>Load the morphology.</b> Read <code>ca1_jarsky.swc</code> (or the JSON) and plot it in 2-D. Check total dendritic length (≈ 9.7 mm) and that the apical tree points up. <i>Tools:</i> NumPy, matplotlib; NeuroMorpho.Org for more cells.</li>
+<li><b>Discretize.</b> Split each section into pieces ≤ 20 µm (or use the d-λ rule at 100 Hz). Test: halving the segment length changes soma input resistance by under 1%.</li>
+<li><b>Passive cable only.</b> Set g<sub>h</sub> = 0. Check soma input resistance (tens of MΩ), membrane τ ≈ R<sub>m</sub>C<sub>m</sub> = 30 ms, and that a distal EPSP is much smaller at the soma. Test: impedance falls monotonically with frequency everywhere (no resonance without active currents).</li>
+<li><b>Write the Hines solver yourself.</b> Compare it against <code>numpy.linalg.solve</code> on the full matrix for a small tree. Same answer, far faster.</li>
+<li><b>Add I<sub>h</sub> with a distance gradient.</b> Check rest moves toward −65 mV, sag appears with a hyperpolarizing step, and EPSPs get shorter (Magee 1998).</li>
+<li><b>Measure impedance two ways.</b> ZAP + FFT (recipe A) and the quasi-active theory (recipe B) must overlap for small amplitudes.</li>
+<li><b>Map resonance along the dendrite.</b> Plot f<sub>res</sub> and Q against distance. Compare the trend with Narayanan &amp; Johnston 2007.</li>
+<li><b>Add spikes, then I<sub>M</sub>.</b> Drive near threshold with a sine; compute spike phase and PPC. Then add somatic I<sub>M</sub> and check the theta peak at −60 mV (Hu 2002).</li>
+<li><b>Reproduce in a standard simulator.</b> Rebuild in Brian2 or NEURON with the code tabs here. Same morphology and parameters should give the same input resistance and resonance within a few percent.</li>
+<li><b>Connect to your reduced model.</b> Fit the two-compartment model (<code>ca1_reduced.py</code>) so its Z<sub>ss</sub>(f) and Z<sub>sd</sub>(f) match this cell's soma and a 300 µm site. That fit is the bridge from morphology to your reduced CA1 model.</li>
+</ol>
+<div class="mm"><pre class="mermaid">
+flowchart TB
+  M["Morphology"] --> P["Passive cable: check Rin, tau, attenuation"]
+  P --> H["Add Ih gradient: check rest, sag, EPSP shape"]
+  H --> Z["Impedance: ZAP vs theory"]
+  Z --> R["Resonance vs distance"]
+  R --> S["Spikes and I_M: phase locking"]
+  S --> X["Rebuild in NEURON or Brian2"]
+  X --> F["Fit the reduced two-compartment model"]
+</pre></div>
+</div>
+  <div class="tabpanel" data-dpanel="eng" hidden>
+    <div class="codehead"><span>The JavaScript that runs this page. Python version: <code>ca1_morph.py</code>, same structure and same results.</span><button type="button" class="copy" data-copy="engcode">Copy</button></div>
+    <pre id="engcode">/* CA1 Morphology Lab · engine.js
+   The same model as ca1_morph.py, line for line, so the page and Python give the same numbers.
+   Units: t ms · V mV · µm · C nF · g µS · I nA.   g(µS) = gbar(mS/cm²) × area(µm²) × 1e-5. */
+var LAB = (function () {
+  &quot;use strict&quot;;
+
+  function defaults() {
+    return {
+      Cm: 1.0, Rm: 30000, Ra: 150, E_L: -70, soma_diam: 20, spine_factor: 2.0, spine_start: 100, max_seg: 20,
+      gh_soma: 0.05, gh_fold: 6, gh_dist: 350, E_h: -30, h_vhalf: -90, h_k: 8.5,
+      h_kin: &quot;bell&quot;, h_tau_peak: 40, h_vtau: -75, h_tau_scale: 1,
+      spikes: false, g_na: 50, g_kdr: 10, g_na_dend: 0, VT: -58, E_Na: 50, E_K: -90,
+      g_m_soma: 0, m_taumax: 1000, dt: 0.025
+    };
+  }
+
+  /* ---------- 1. morphology -&gt; compartments ---------- */
+  function build(morph, p) {
+    var soma = morph.soma, a2 = 0, ns = soma.length / 2;
+    for (var i = 0; i &lt; ns; i++) {          // shoelace area of the soma outline
+      var j = (i + ns - 1) % ns;
+      a2 += soma[2 * i] * soma[2 * j + 1] - soma[2 * i + 1] * soma[2 * j];
+    }
+    var rs = p.soma_diam &gt; 0 ? p.soma_diam / 2 : Math.sqrt(Math.abs(a2) / 2 / Math.PI);   // outline area -&gt; equivalent sphere
+    var C = { parent: [-1], length: [2 * rs], diam: [2 * rs], area: [4 * Math.PI * rs * rs], dist: [0], kind: [1],
+              x: [0], y: [0], draw: [], rs: rs };
+    var secLast = [], secEnd = [];
+    morph.sections.forEach(function (sec) {
+      var typ = sec[0], par = sec[1], P = sec[2], R = sec[3], np_ = R.length;
+      var s = [0];
+      for (var k = 1; k &lt; np_; k++) {
+        var dx = P[3 * k] - P[3 * k - 3], dy = P[3 * k + 1] - P[3 * k - 2], dz = P[3 * k + 2] - P[3 * k - 1];
+        s.push(s[k - 1] + Math.sqrt(dx * dx + dy * dy + dz * dz));
+      }
+      var Ls = s[np_ - 1] &gt; 0 ? s[np_ - 1] : 1e-3;
+      var nseg = Math.max(1, Math.ceil(Ls / p.max_seg));
+      var prev = par &lt; 0 ? 0 : secLast[par], d0 = par &lt; 0 ? 0 : secEnd[par], first = C.parent.length;
+      for (var q = 0; q &lt; nseg; q++) {
+        var a = Ls * q / nseg, b = Ls * (q + 1) / nseg, rr = 0;
+        for (var u = 0; u &lt; 5; u++) rr += interp(a + (b - a) * u / 4, s, R);
+        var dk = 2 * rr / 5, Lk = b - a, dd = d0 + (a + b) / 2, sf = dd &gt; p.spine_start ? p.spine_factor : 1;
+        C.parent.push(prev); C.length.push(Lk); C.diam.push(dk); C.area.push(Math.PI * dk * Lk * sf);
+        C.dist.push(dd); C.kind.push(typ);
+        C.x.push(interpXYZ((a + b) / 2, s, P, 0)); C.y.push(interpXYZ((a + b) / 2, s, P, 1));
+        prev = C.parent.length - 1;
+      }
+      secLast.push(prev); secEnd.push(d0 + Ls);
+      for (var k2 = 0; k2 &lt; np_ - 1; k2++) {
+        var sm = 0.5 * (s[k2] + s[k2 + 1]);
+        var ci = first + Math.min(nseg - 1, Math.floor(sm / Ls * nseg));
+        C.draw.push([P[3 * k2], P[3 * k2 + 1], P[3 * k2 + 3], P[3 * k2 + 4], ci, R[k2] + R[k2 + 1]]);
+      }
+    });
+    var n = C.parent.length;
+    C.n = n;
+    C.gax = new Float64Array(n);
+    function half(j) {
+      if (j === 0) return 0;
+      var Lcm = C.length[j] * 1e-4 / 2, rcm = C.diam[j] * 1e-4 / 2;
+      return p.Ra * Lcm / (Math.PI * rcm * rcm);          // Ω
+    }
+    for (var i2 = 1; i2 &lt; n; i2++) C.gax[i2] = 1e6 / (half(i2) + half(C.parent[i2]));   // µS
+    C.axsum = new Float64Array(n);
+    for (var i3 = 1; i3 &lt; n; i3++) { C.axsum[i3] += C.gax[i3]; C.axsum[C.parent[i3]] += C.gax[i3]; }
+    return C;
+  }
+  function interp(x, xs, ys) {
+    if (x &lt;= xs[0]) return ys[0];
+    for (var i = 1; i &lt; xs.length; i++) if (x &lt;= xs[i]) { var t = (x - xs[i - 1]) / ((xs[i] - xs[i - 1]) || 1); return ys[i - 1] + t * (ys[i] - ys[i - 1]); }
+    return ys[ys.length - 1];
+  }
+  function interpXYZ(x, xs, P, c) {
+    var ys = []; for (var i = 0; i &lt; xs.length; i++) ys.push(P[3 * i + c]);
+    return interp(x, xs, ys);
+  }
+
+  /* ---------- 2. channel densities (µS per compartment) ---------- */
+  function densities(C, p) {
+    var n = C.n, D = { C: new Float64Array(n), gL: new Float64Array(n), gh: new Float64Array(n), gna: new Float64Array(n),
+                        gk: new Float64Array(n), gm: new Float64Array(n), ghDensity: new Float64Array(n) };
+    for (var i = 0; i &lt; n; i++) {
+      var A = C.area[i] * 1e-5, k = C.kind[i], d = C.dist[i];
+      var frac = Math.min(Math.max(d / p.gh_dist, 0), 1);
+      var gh = k === 4 ? p.gh_soma * (1 + (p.gh_fold - 1) * frac) : p.gh_soma;
+      var near = k === 1 || (k === 4 &amp;&amp; d &lt; 50);
+      D.C[i] = p.Cm * A; D.gL[i] = A / p.Rm * 1e3; D.gh[i] = gh * A; D.ghDensity[i] = gh;
+      D.gna[i] = p.spikes ? (near ? p.g_na : k === 4 ? p.g_na_dend : 0) * A : 0;
+      D.gk[i] = p.spikes ? (near ? p.g_kdr : k === 4 ? 0.4 * p.g_kdr : 0) * A : 0;
+      D.gm[i] = k === 1 ? p.g_m_soma * A : 0;
+    }
+    return D;
+  }
+
+  /* ---------- 3. gates ---------- */
+  function hInf(V, p) { return 1 / (1 + Math.exp((V - p.h_vhalf) / p.h_k)); }
+  function tauH(V, p) {
+    var t = p.h_kin === &quot;lowet2023&quot;
+      ? 1 / (Math.exp(-17.9 - 0.116 * V) + Math.exp(-1.84 + 0.09 * V)) + 0.1
+      : 2 * p.h_tau_peak / (Math.exp((V - p.h_vtau) / 15) + Math.exp(-(V - p.h_vtau) / 15));
+    return p.h_tau_scale * t;
+  }
+  function vtrap(x, y) { return Math.abs(x / y) &lt; 1e-6 ? y * (1 - x / y / 2) : x / (Math.exp(x / y) - 1); }
+  function naRates(V, p) { var u = V - p.VT; return [0.32 * vtrap(13 - u, 4), 0.28 * vtrap(u - 40, 5), 0.128 * Math.exp((17 - u) / 18), 4 / (1 + Math.exp((40 - u) / 5))]; }
+  function kRates(V, p) { var u = V - p.VT; return [0.032 * vtrap(15 - u, 5), 0.5 * Math.exp((10 - u) / 40)]; }
+  function mInf(V) { return 1 / (1 + Math.exp(-(V + 35) / 10)); }
+  function tauM(V, p) { return p.m_taumax / (3.3 * Math.exp((V + 35) / 20) + Math.exp(-(V + 35) / 20)); }
+
+  /* ---------- 4. Hines solver (real) ----------
+     Each row: d[i]·V[i] − gax[i]·V[parent] − Σchildren gax[c]·V[c] = b[i].  Parent index &lt; child index. */
+  function hines(par, gax, d, b, V) {
+    var n = d.length;
+    for (var i = n - 1; i &gt; 0; i--) { var f = gax[i] / d[i], q = par[i]; d[q] -= f * gax[i]; b[q] += f * b[i]; }
+    V[0] = b[0] / d[0];
+    for (var i2 = 1; i2 &lt; n; i2++) V[i2] = (b[i2] + gax[i2] * V[par[i2]]) / d[i2];
+    return V;
+  }
+  /* complex version: separate real/imag arrays */
+  function hinesC(par, gax, dr, di, br, bi, Vr, Vi) {
+    var n = dr.length;
+    for (var i = n - 1; i &gt; 0; i--) {
+      var q = par[i], den = dr[i] * dr[i] + di[i] * di[i];
+      var fr = gax[i] * dr[i] / den, fi = -gax[i] * di[i] / den;          // f = gax / d
+      dr[q] -= fr * gax[i]; di[q] -= fi * gax[i];
+      br[q] += fr * br[i] - fi * bi[i]; bi[q] += fr * bi[i] + fi * br[i];
+    }
+    var d0 = dr[0] * dr[0] + di[0] * di[0];
+    Vr[0] = (br[0] * dr[0] + bi[0] * di[0]) / d0; Vi[0] = (bi[0] * dr[0] - br[0] * di[0]) / d0;
+    for (var j = 1; j &lt; n; j++) {
+      var nr = br[j] + gax[j] * Vr[par[j]], ni = bi[j] + gax[j] * Vi[par[j]], dd = dr[j] * dr[j] + di[j] * di[j];
+      Vr[j] = (nr * dr[j] + ni * di[j]) / dd; Vi[j] = (ni * dr[j] - nr * di[j]) / dd;
+    }
+  }
+
+  /* ---------- 5. exact resting state ---------- */
+  function rest(C, p, D) {
+    var n = C.n, V = new Float64Array(n).fill(p.E_L), Vn = new Float64Array(n), d = new Float64Array(n), b = new Float64Array(n);
+    for (var it = 0; it &lt; 80; it++) {
+      for (var i = 0; i &lt; n; i++) {
+        var h = hInf(V[i], p), gm = D.gm[i] * mInf(V[i]);
+        d[i] = D.gL[i] + D.gh[i] * h + gm + C.axsum[i];
+        b[i] = D.gL[i] * p.E_L + D.gh[i] * h * p.E_h + gm * p.E_K;
+      }
+      hines(C.parent, C.gax, d, b, Vn);
+      var err = 0;
+      for (var k = 0; k &lt; n; k++) { err = Math.max(err, Math.abs(Vn[k] - V[k])); V[k] = 0.5 * V[k] + 0.5 * Vn[k]; }
+      if (err &lt; 1e-7) break;
+    }
+    return V;
+  }
+
+  /* ---------- 6. time simulation (generator: runs in chunks so the page stays responsive) ---------- */
+  function Sim(C, p, opts) {
+    var D = densities(C, p), n = C.n, dt = p.dt;
+    var V = rest(C, p, D), h = new Float64Array(n), m = new Float64Array(n), hn = new Float64Array(n), nk = new Float64Array(n), z = new Float64Array(n);
+    for (var i = 0; i &lt; n; i++) {
+      h[i] = hInf(V[i], p); var r = naRates(V[i], p), kr = kRates(V[i], p);
+      m[i] = r[0] / (r[0] + r[1]); hn[i] = r[2] / (r[2] + r[3]); nk[i] = kr[0] / (kr[0] + kr[1]); z[i] = mInf(V[i]);
+    }
+    var d = new Float64Array(n), b = new Float64Array(n), Vn = new Float64Array(n);
+    var step = 0, nsteps = Math.round(opts.T / dt), save = Math.max(1, Math.round((opts.every || 0.5) / dt));
+    var out = { t: [], Vrec: opts.record.map(function () { return []; }), frames: [], spikes: [], V0: Float64Array.from(V) };
+    this.out = out; this.D = D;
+    this.run = function (budgetSteps) {
+      var end = Math.min(nsteps, step + budgetSteps);
+      for (; step &lt;= end; step++) {
+        var t = step * dt;
+        if (step % save === 0) {
+          out.t.push(t); opts.record.forEach(function (c, j) { out.Vrec[j].push(V[c]); });
+          if (opts.frames) out.frames.push(Float32Array.from(V));
+        }
+        var Iinj = opts.I(t);
+        for (var i = 0; i &lt; n; i++) {
+          var v = V[i];
+          var hi = hInf(v, p); h[i] = hi + (h[i] - hi) * Math.exp(-dt / tauH(v, p));
+          var G = D.gL[i] + D.gh[i] * h[i], E = D.gL[i] * p.E_L + D.gh[i] * h[i] * p.E_h;
+          if (D.gna[i] &gt; 0) {
+            var r = naRates(v, p), kr = kRates(v, p), tm = 1 / (r[0] + r[1]), th = 1 / (r[2] + r[3]), tk = 1 / (kr[0] + kr[1]);
+            m[i] = r[0] * tm + (m[i] - r[0] * tm) * Math.exp(-dt / tm);
+            hn[i] = r[2] * th + (hn[i] - r[2] * th) * Math.exp(-dt / th);
+            nk[i] = kr[0] * tk + (nk[i] - kr[0] * tk) * Math.exp(-dt / tk);
+            var gna = D.gna[i] * m[i] * m[i] * m[i] * hn[i], gk = D.gk[i] * nk[i] * nk[i] * nk[i] * nk[i];
+            G += gna + gk; E += gna * p.E_Na + gk * p.E_K;
+          }
+          if (D.gm[i] &gt; 0) { var zi = mInf(v); z[i] = zi + (z[i] - zi) * Math.exp(-dt / tauM(v, p)); var gmm = D.gm[i] * z[i]; G += gmm; E += gmm * p.E_K; }
+          d[i] = D.C[i] / dt + G + C.axsum[i];
+          b[i] = D.C[i] / dt * v + E + (i === opts.site ? Iinj : 0) + (i === 0 ? (opts.hold || 0) : 0);
+        }
+        var v0 = V[0];
+        hines(C.parent, C.gax, d, b, Vn);
+        V.set(Vn);
+        if (v0 &lt; 0 &amp;&amp; V[0] &gt;= 0) out.spikes.push(t);
+      }
+      return step &gt; nsteps;
+    };
+    this.progress = function () { return Math.min(1, step / nsteps); };
+  }
+
+  /* ---------- 7. impedance (quasi-active, complex Hines) ---------- */
+  function admittance(C, p, D, V0, f, yr, yi) {
+    var w = 2 * Math.PI * f / 1000;
+    for (var i = 0; i &lt; C.n; i++) {
+      var v = V0[i], hi = hInf(v, p), dhi = -hi * (1 - hi) / p.h_k, th = tauH(v, p);
+      var a = D.gh[i] * (v - p.E_h) * dhi, den = 1 + w * w * th * th;     // a / (1 + iωτ)
+      yr[i] = D.gL[i] + D.gh[i] * hi + a / den + C.axsum[i];
+      yi[i] = w * D.C[i] - a * w * th / den;
+      if (D.gm[i] &gt; 0) {
+        var zi = mInf(v), dzi = zi * (1 - zi) / 10, tm = tauM(v, p), am = D.gm[i] * (v - p.E_K) * dzi, dm = 1 + w * w * tm * tm;
+        yr[i] += D.gm[i] * zi + am / dm; yi[i] -= am * w * tm / dm;
+      }
+    }
+  }
+  /* Z from one site to every compartment, for each frequency: returns {abs:[f][n], phase:[f][n]} */
+  function impedanceFrom(C, p, site, freqs, V0) {
+    var D = densities(C, p); V0 = V0 || rest(C, p, D);
+    var n = C.n, yr = new Float64Array(n), yi = new Float64Array(n), br = new Float64Array(n), bi = new Float64Array(n),
+        Vr = new Float64Array(n), Vi = new Float64Array(n), abs = [], ph = [];
+    freqs.forEach(function (f) {
+      admittance(C, p, D, V0, f, yr, yi);
+      br.fill(0); bi.fill(0); br[site] = 1;
+      hinesC(C.parent, C.gax, Float64Array.from(yr), Float64Array.from(yi), br, bi, Vr, Vi);
+      var a = new Float64Array(n), q = new Float64Array(n);
+      for (var i = 0; i &lt; n; i++) { a[i] = Math.hypot(Vr[i], Vi[i]); q[i] = Math.atan2(Vi[i], Vr[i]); }
+      abs.push(a); ph.push(q);
+    });
+    return { abs: abs, phase: ph, V0: V0 };
+  }
+  /* local resonance at every compartment (N solves per frequency) */
+  function resonanceMap(C, p, freqs, onProgress) {
+    var D = densities(C, p), V0 = rest(C, p, D), n = C.n;
+    var Z = freqs.map(function () { return new Float64Array(n); });
+    var yr = new Float64Array(n), yi = new Float64Array(n), br = new Float64Array(n), bi = new Float64Array(n),
+        Vr = new Float64Array(n), Vi = new Float64Array(n), dr = new Float64Array(n), di = new Float64Array(n);
+    freqs.forEach(function (f, fi) {
+      admittance(C, p, D, V0, f, yr, yi);
+      for (var s = 0; s &lt; n; s++) {
+        dr.set(yr); di.set(yi); br.fill(0); bi.fill(0); br[s] = 1;
+        hinesC(C.parent, C.gax, dr, di, br, bi, Vr, Vi);
+        Z[fi][s] = Math.hypot(Vr[s], Vi[s]);
+      }
+    });
+    var fres = new Float64Array(n), Q = new Float64Array(n);
+    for (var s2 = 0; s2 &lt; n; s2++) {
+      var k = 0; for (var fi2 = 1; fi2 &lt; freqs.length; fi2++) if (Z[fi2][s2] &gt; Z[k][s2]) k = fi2;
+      fres[s2] = freqs[k]; Q[s2] = Z[k][s2] / Z[0][s2];
+    }
+    return { fres: fres, Q: Q, Z: Z, V0: V0 };
+  }
+
+  return { defaults: defaults, build: build, densities: densities, rest: rest, Sim: Sim,
+           impedanceFrom: impedanceFrom, resonanceMap: resonanceMap, hInf: hInf, tauH: tauH };
+})();
+if (typeof module !== &quot;undefined&quot;) module.exports = LAB;
+</pre>
+  </div>
+  <div class="tabpanel" data-dpanel="refs" hidden>
+<div class="tbl"><table>
+<thead><tr><th>Resource</th><th>Use it for</th></tr></thead>
+<tbody>
+<tr><td>Jarsky, Roxin, Kath &amp; Spruston 2005, <i>Nat Neurosci</i> 8:1667 · <a href="https://modeldb.science/116084" target="_blank" rel="noopener">ModelDB 116084</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/16299501/" target="_blank" rel="noopener">PubMed</a></td><td>The morphology and their full NEURON model (dendritic Na, K<sub>A</sub>, I<sub>h</sub>, synapses)</td></tr>
+<tr><td>Magee 1998, <i>J Neurosci</i> 18:7613</td><td>I<sub>h</sub> density gradient and its effect on EPSPs</td></tr>
+<tr><td>Narayanan &amp; Johnston 2007, <i>Neuron</i> 56:1061 · <a href="https://pubmed.ncbi.nlm.nih.gov/18093527/" target="_blank" rel="noopener">PubMed</a></td><td>Resonance frequency vs dendritic location; plasticity of h channels</td></tr>
+<tr><td>Hu, Vervaeke &amp; Storm 2002, <i>J Physiol</i> 545:783 · <a href="https://pubmed.ncbi.nlm.nih.gov/12482886/" target="_blank" rel="noopener">PubMed</a></td><td>H- and M-resonance in CA1, temperature dependence</td></tr>
+<tr><td>Golomb, Yue &amp; Yaari 2006 · <a href="https://modeldb.science/66268" target="_blank" rel="noopener">ModelDB 66268</a></td><td>Somatic I<sub>NaP</sub>/I<sub>M</sub> and bursting</td></tr>
+<tr><td>Lowet et al. 2023 · <a href="https://github.com/HanLabBU/Lowet-Cell-Reports-2023" target="_blank" rel="noopener">code</a>; Ceballos et al. 2025 · <a href="https://github.com/rodrigo-pena-lab/interleaved_resonance" target="_blank" rel="noopener">code</a></td><td>Your reference models and analysis (bursts, PPC)</td></tr>
+<tr><td><a href="https://brian2.readthedocs.io/en/stable/user/multicompartmental.html" target="_blank" rel="noopener">Brian2: multicompartment neurons</a></td><td><code>Morphology.from_file</code>, <code>SpatialNeuron</code>, distance-dependent densities</td></tr>
+<tr><td><a href="https://nrn.readthedocs.io/" target="_blank" rel="noopener">NEURON documentation</a> (Import3d, <code>Impedance</code>, NMODL)</td><td>The standard simulator for this kind of model</td></tr>
+<tr><td><a href="https://neuromorpho.org/" target="_blank" rel="noopener">NeuroMorpho.Org</a></td><td>Thousands of reconstructed CA1 cells as SWC files</td></tr>
+<tr><td>Hines 1984, <i>Int J Biomed Comput</i> 15:69</td><td>The tree solver used here</td></tr>
+<tr><td>Koch 1984, <i>Biol Cybern</i> 50:15; Hutcheon &amp; Yarom 2000, <i>Trends Neurosci</i> 23:216</td><td>Quasi-active impedance and resonance theory</td></tr>
+<tr><td>Dayan &amp; Abbott, <i>Theoretical Neuroscience</i>, ch. 6</td><td>Cable theory and multicompartment numerics</td></tr>
+<tr><td>Sterratt, Graham, Gillies &amp; Willshaw, <i>Principles of Computational Modelling in Neuroscience</i>, ch. 2–5</td><td>Building compartmental models step by step</td></tr>
+<tr><td>Carnevale &amp; Hines, <i>The NEURON Book</i></td><td>Discretization (d-λ rule), numerical methods</td></tr>
+</tbody></table></div>
+<p class="note">Files for this lab: <code>ca1_morph.py</code> (engine), <code>ca1-jarsky.json</code> and <code>ca1_jarsky.swc</code> (morphology), <code>hd.mod</code> (NEURON I<sub>h</sub>), <code>CA1_morphology_lab.ipynb</code> (walk-through). They were sent with this page in the chat.</p>
+</div>
+</section>
+
+</section>
+<footer>
+  <span>Model choices: R<sub>m</sub> 30 kΩ·cm², R<sub>a</sub> 150 Ω·cm, C<sub>m</sub> 1 µF/cm², spine factor 2 beyond 100 µm, soma 20 µm. These are typical CA1 modelling values, not fits to this cell; the default cell gives a somatic input resistance of 66 MΩ and rest of −63 mV. I<sub>h</sub>: V<sub>½</sub> −90 mV, k 8.5 mV, E<sub>h</sub> −30 mV; density 0.05 mS/cm² rising 6× by 350 µm on the apical tree.</span>
+  <span>Spikes use Traub–Miles kinetics (Pospischil et al. 2008) at the soma only; they give spike timing, not realistic spike shape or bursting.</span>
+</footer>
+</div>
+
+<script>window.CA1_MORPH={"id":"ca1-jarsky","soma":[6.0,0.0,5.2,3.0,3.0,5.2,0.0,6.0,-3.0,5.2,-5.2,3.0,-6.0,0.0,-5.2,-3.0,-3.0,-5.2,-0.0,-6.0,3.0,-5.2,5.2,-3.0],"sections":[[3,-1,[2.8,-13.3,0.0,4.2,-18.8,0.0,4.7,-20.7,0.0],[1.2,1.0,0.98]],[3,0,[4.7,-20.7,0.0,2.4,-23.1,0.0,2.2,-26.3,0.0,3.0,-30.2,-2.0,3.0,-34.8,-2.0,2.4,-40.4,-2.0,5.8,-42.8,-2.0,6.1,-46.6,-2.0,5.1,-50.5,-2.6,6.3,-55.0,-2.6,6.4,-59.1,-2.6,7.8,-63.4,4.6,9.7,-66.0,4.6,10.3,-69.4,5.2,12.5,-74.7,5.2,13.2,-79.4,5.2,13.5,-83.2,5.1,11.0,-92.6,-8.9,11.3,-97.7,-8.9,10.5,-101.3,-8.9,10.4,-104.6,-8.9,12.6,-109.0,-8.9,13.6,-112.8,-8.9,15.7,-117.1,-8.9,20.0,-119.1,-8.9,20.9,-122.5,-8.9,21.8,-125.8,-8.9,22.1,-129.9,-8.9,21.2,-133.2,-8.9,20.0,-136.1,-8.9,19.7,-138.7,-11.7,22.7,-142.6,-11.7,26.8,-150.5,-12.7,24.3,-154.2,-12.7,21.0,-155.9,-12.7,17.9,-152.8,-12.7,13.7,-152.1,-12.7,7.9,-151.9,-12.7,5.3,-148.7,-12.7,3.5,-147.4,-12.7],[0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,0,[4.7,-20.7,0.0,7.3,-22.1,-11.0,7.4,-22.3,3.5],[0.85,0.85,0.85]],[3,2,[7.4,-22.3,3.5,7.9,-24.2,-11.0,8.4,-25.9,-11.0],[0.85,0.85,0.97]],[3,3,[8.4,-25.9,-11.0,11.6,-30.5,-10.8,13.7,-32.8,-10.8,16.8,-34.2,-10.8,21.5,-37.1,-10.8,24.9,-40.3,-10.8],[0.36,0.36,0.36,0.36,0.36,0.36]],[3,4,[24.9,-40.3,-10.8,24.4,-42.3,-5.0,24.5,-48.4,-5.0,25.2,-51.8,-5.0,25.6,-55.3,-5.0,25.4,-58.5,-5.0,24.9,-62.2,-5.0,27.9,-64.0,-3.7,28.5,-67.2,-3.7,28.3,-70.3,-3.7,29.5,-75.7,-3.7,29.6,-79.8,-3.7,29.2,-83.2,-3.7,28.6,-87.5,-3.7,27.1,-90.2,-3.7,26.8,-92.1,-0.8,28.5,-96.5,-0.8,27.6,-99.8,4.4,25.2,-103.8,4.4,28.0,-105.9,4.4,25.7,-109.3,11.5,21.3,-110.8,11.5,17.4,-112.1,11.4,13.7,-110.4,11.2,13.4,-110.3,7.3,8.4,-109.3,7.3,3.2,-108.4,7.3],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,4,[24.9,-40.3,-10.8,27.6,-42.2,2.2,28.1,-45.7,2.2,29.2,-49.2,2.2,29.4,-52.5,2.2,28.8,-56.0,2.2,30.4,-59.2,2.2,33.4,-60.2,2.2,35.2,-63.1,2.2,35.8,-66.5,2.2,37.7,-70.7,2.2,42.4,-72.5,6.7,45.6,-76.0,10.0,49.8,-78.0,10.0,53.1,-78.9,10.0,57.3,-82.5,10.0,62.2,-83.2,10.0,65.5,-85.2,10.4,69.0,-83.2,10.4,69.4,-82.1,10.4],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,3,[8.4,-25.9,-11.0,7.5,-28.5,-14.3,4.9,-30.9,-14.3,5.3,-35.0,-14.3,6.5,-37.7,-14.3,8.1,-40.9,-14.3,7.8,-47.4,-15.7,7.1,-50.4,-15.7,8.3,-55.0,-15.7,8.2,-58.4,-15.7,9.0,-61.5,-15.7,7.5,-66.3,-15.7,7.6,-69.6,-15.7,4.4,-70.7,-15.7,1.4,-72.5,-15.7,-1.1,-78.1,-14.5,-4.3,-79.2,-14.5,-7.2,-81.5,-14.5,-9.6,-83.7,-14.5,-8.1,-87.6,-13.6,-8.2,-90.8,-13.6,-9.7,-93.7,-13.6,-6.9,-96.6,-13.6,-9.2,-99.3,-13.6,-12.4,-101.4,-13.6,-15.2,-102.4,-13.6],[0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31]],[3,7,[-15.2,-102.4,-13.6,-16.6,-105.3,-13.6,-18.8,-108.5,-13.6,-18.5,-113.3,-13.6,-22.9,-117.6,-13.6,-25.7,-120.1,-10.2,-30.2,-121.3,-10.2,-34.1,-123.3,-10.2,-35.9,-125.9,-10.2,-36.3,-129.1,-10.2,-37.2,-133.4,-15.9,-41.9,-134.4,-16.0,-46.0,-132.2,-16.7,-48.6,-130.0,-19.0,-53.1,-129.9,-19.0,-53.6,-133.7,-19.0,-53.4,-137.2,-19.0,-51.0,-139.7,-19.0,-52.1,-143.3,-19.0,-53.1,-147.1,-19.0,-51.8,-151.7,-19.9,-54.1,-154.6,-19.9,-53.6,-158.3,-19.9,-52.3,-165.2,-16.4,-50.0,-169.2,-16.4,-46.4,-169.3,-16.4,-43.4,-170.6,-16.4,-41.6,-171.4,-16.4],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,7,[-15.2,-102.4,-13.6,-19.0,-102.1,-13.6,-21.8,-103.6,-13.6,-23.6,-107.4,-13.6,-28.9,-108.1,-16.8,-31.7,-109.8,-16.8,-34.2,-111.5,-16.8,-38.1,-112.8,-16.8,-39.8,-116.1,-16.8,-43.7,-118.4,-16.8,-45.4,-122.2,-16.8,-47.5,-124.8,-16.8,-48.8,-131.1,-20.0,-49.9,-134.5,-20.0,-48.8,-137.5,-20.0,-49.3,-138.7,-20.0],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,2,[7.4,-22.3,3.5,13.2,-26.2,1.8,17.6,-27.9,1.8,22.4,-28.9,1.8,25.6,-29.6,1.8,32.5,-31.1,2.5,34.7,-33.9,2.5,40.1,-36.3,-2.7,41.4,-37.5,-2.7],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[3,10,[41.4,-37.5,-2.7,49.0,-39.9,-2.7,50.8,-42.8,-2.7,54.5,-45.4,-2.7,60.2,-48.2,-8.1,64.3,-50.3,-8.1,69.6,-52.5,-8.4,71.4,-55.6,-8.4,74.1,-57.4,-8.4,78.5,-61.7,-8.4],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[3,11,[78.5,-61.7,-8.4,80.3,-62.0,-15.2,84.9,-59.2,-15.2,89.8,-62.8,-15.2,97.0,-59.9,-15.2,100.5,-58.9,-21.0,103.7,-57.6,-21.0,104.8,-60.9,-21.0,108.7,-61.4,-21.0,110.7,-59.6,-21.0],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,11,[78.5,-61.7,-8.4,79.2,-65.1,-8.4,82.2,-65.3,-8.4,86.0,-65.4,-8.4,90.6,-65.9,-8.4,95.9,-68.9,-8.4,101.4,-71.8,-8.4,106.2,-74.7,-8.4,110.3,-79.8,-8.4,114.3,-82.6,-8.4,115.4,-85.9,-8.4,117.7,-92.7,-13.9,121.4,-93.3,-12.9,125.9,-92.6,-12.9,131.0,-91.0,-12.9,132.6,-89.6,-12.9],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,10,[41.4,-37.5,-2.7,41.0,-39.9,-11.8,42.2,-43.5,-11.8,45.7,-47.2,-11.8,49.2,-53.0,-15.6,53.4,-52.6,-15.6,56.9,-57.4,-15.6,61.2,-57.8,-15.6,63.8,-59.1,-15.6],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,-1,[-4.8,-4.7,-0.0,-8.7,-6.8,-0.0],[0.6,0.6]],[3,15,[-8.7,-6.8,-0.0,-14.1,-6.1,4.6,-13.1,-10.8,4.5,-12.8,-14.0,4.5,-15.8,-15.1,8.8,-22.9,-21.1,14.9,-26.6,-24.1,14.9,-27.4,-27.7,14.9,-26.1,-30.9,14.9,-25.2,-34.0,14.9,-23.9,-35.5,14.9],[0.48,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36]],[3,15,[-8.7,-6.8,-0.0,-7.6,-9.8,0.2,-5.8,-10.1,0.2],[0.6,0.6,0.6]],[3,17,[-5.8,-10.1,0.2,-5.9,-14.5,-2.2,-6.8,-18.6,-2.2,-7.2,-19.0,-2.2],[0.38,0.38,0.38,0.38]],[3,18,[-7.2,-19.0,-2.2,-10.4,-20.1,-2.2,-16.1,-20.5,-4.8,-18.9,-22.9,-4.8,-21.4,-25.0,-4.8,-22.5,-25.3,-4.8],[0.27,0.27,0.27,0.27,0.27,0.27]],[3,19,[-22.5,-25.3,-4.8,-26.6,-25.1,-8.1,-30.2,-24.6,-8.1,-33.8,-23.4,-8.1,-36.8,-23.2,-8.1,-40.1,-23.1,-8.1,-43.2,-23.6,-5.2,-46.4,-25.0,-5.2,-49.6,-25.8,-5.2,-52.5,-27.1,-5.2,-56.4,-30.4,-5.2,-58.4,-33.5,-5.2,-59.0,-37.6,-5.2,-59.2,-40.7,-5.2,-61.6,-44.9,-5.2,-61.9,-49.4,-5.9,-61.7,-52.9,-5.9,-64.2,-61.3,-9.1,-66.2,-64.2,-9.1,-68.0,-67.0,-9.1,-70.4,-70.9,-9.1,-69.5,-74.3,-9.1,-68.9,-77.7,-9.1,-68.6,-81.5,-9.1,-71.1,-84.5,-9.1,-71.3,-84.8,-9.1],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,19,[-22.5,-25.3,-4.8,-27.2,-30.4,-4.8,-29.8,-32.7,-4.8,-32.1,-35.3,-4.8,-36.5,-36.8,-4.8,-39.4,-38.0,-4.8,-43.2,-41.6,-4.8,-46.5,-43.3,-4.8,-51.2,-46.3,-4.8,-51.6,-49.5,-4.8,-54.3,-53.6,-4.8,-57.0,-55.6,-4.8,-56.9,-58.9,-4.8,-60.5,-61.4,-4.8,-62.2,-64.4,-4.8,-61.8,-68.7,-4.8,-61.7,-72.0,-1.1,-64.8,-72.5,-1.1,-68.1,-72.4,-1.1,-71.5,-74.3,-1.1,-78.0,-73.5,-1.1,-78.2,-75.6,1.4,-78.9,-78.8,1.4,-81.0,-80.9,1.4,-84.0,-82.0,1.4,-87.1,-84.6,1.4,-89.3,-87.5,1.4,-93.2,-90.8,1.4,-95.9,-92.8,1.4,-99.4,-96.4,1.4,-105.4,-98.4,1.4,-109.6,-96.7,1.4,-110.9,-90.7,4.0,-114.6,-88.0,4.3,-118.0,-87.6,4.8,-119.1,-88.2,4.8],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,18,[-7.2,-19.0,-2.2,-9.4,-22.9,2.2,-11.4,-27.8,2.2,-12.1,-29.0,2.2],[0.27,0.27,0.27,0.27]],[3,22,[-12.1,-29.0,2.2,-16.0,-36.0,2.2,-16.2,-40.9,2.2,-16.2,-41.7,2.2],[0.24,0.24,0.24,0.24]],[3,23,[-16.2,-41.7,2.2,-19.1,-43.0,-16.0,-21.7,-45.5,-16.0,-23.2,-48.4,-16.0,-27.8,-50.9,-16.0,-26.8,-54.8,-16.0,-32.1,-58.0,-16.0,-36.5,-60.4,-16.0,-43.6,-59.2,-16.0,-49.8,-60.1,-16.0,-55.1,-60.2,-22.7,-61.8,-62.2,-23.0,-64.1,-63.6,-24.2,-67.2,-65.2,-24.5,-71.2,-66.3,-24.5,-74.8,-67.7,-24.5,-77.5,-66.9,-27.0,-82.6,-66.7,-27.0,-86.6,-68.5,-27.7,-90.7,-68.1,-27.7,-92.8,-72.2,-30.5,-97.2,-74.7,-30.6,-101.1,-76.7,-30.8,-102.9,-77.5,-30.9],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,23,[-16.2,-41.7,2.2,-18.3,-47.1,2.2,-20.4,-51.5,2.2,-21.4,-54.4,2.2,-21.1,-58.2,2.2,-22.5,-62.4,1.5,-24.9,-64.6,1.5,-26.0,-65.1,-0.0],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[3,25,[-26.0,-65.1,-0.0,-29.3,-68.8,1.5,-30.7,-73.0,1.5,-30.9,-73.1,1.5],[0.24,0.24,0.24,0.24]],[3,26,[-30.9,-73.1,1.5,-33.8,-77.2,-1.4,-34.2,-80.4,-1.4,-35.5,-84.1,-1.4,-39.2,-87.1,4.6,-42.6,-88.3,4.6,-44.2,-91.0,4.6,-45.9,-93.8,4.6,-45.6,-97.0,4.6,-43.0,-99.2,5.2,-44.5,-105.0,7.8,-44.0,-108.5,7.8,-44.7,-111.7,7.8,-46.0,-115.2,7.8,-50.6,-118.5,7.8,-49.7,-123.1,9.8,-52.7,-123.9,9.8,-53.6,-128.0,9.8,-49.3,-132.0,10.3,-45.5,-136.9,10.3,-45.3,-136.8,10.3],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,26,[-30.9,-73.1,1.5,-34.9,-76.7,1.5,-37.9,-78.8,1.5,-40.4,-82.3,4.1,-43.7,-85.2,4.1,-45.8,-88.6,4.1,-48.1,-93.1,4.1,-50.5,-95.5,4.1,-49.0,-100.3,-1.8,-48.7,-104.0,-1.8,-49.7,-106.9,-1.8,-53.3,-108.4,-1.8,-55.8,-106.4,-8.3,-60.3,-109.4,-8.3,-63.2,-111.7,-8.3,-66.9,-113.5,-8.3,-68.8,-116.0,-8.3,-73.0,-116.9,-8.3,-77.6,-114.0,-8.3,-79.0,-110.3,-11.7,-80.1,-107.2,-13.6,-83.2,-104.9,-13.7],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,25,[-26.0,-65.1,-0.0,-25.5,-67.8,-3.0,-27.0,-70.8,-3.0,-28.0,-73.6,-3.0,-28.2,-76.8,-3.0,-31.6,-80.0,-9.0,-32.6,-82.8,-9.0,-35.2,-86.1,-9.0,-38.3,-87.7,-9.0,-39.8,-90.4,-9.0,-41.4,-94.9,-9.0,-42.0,-98.2,-10.8,-43.5,-100.9,-10.8,-46.8,-101.7,-10.8,-49.9,-103.3,-10.8,-53.3,-105.5,-10.8,-55.8,-109.3,-10.8,-60.0,-112.4,-10.8,-60.9,-115.7,-10.8,-66.1,-119.5,-9.0,-66.7,-123.0,-9.0,-68.8,-126.3,-9.0,-69.4,-129.6,-9.0,-71.5,-132.2,-9.0,-74.1,-135.7,-6.3,-77.1,-138.6,-6.3,-76.7,-141.8,-6.3,-75.5,-144.6,-6.3,-78.4,-146.6,-6.3,-79.5,-150.3,-6.3,-80.0,-155.0,-6.3],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,22,[-12.1,-29.0,2.2,-10.4,-31.7,-3.1,-11.4,-36.1,-3.1,-9.9,-38.2,4.3,-7.4,-40.1,4.3,-8.6,-42.2,4.3],[0.38,0.38,0.38,0.38,0.38,0.38]],[3,30,[-8.6,-42.2,4.3,-8.8,-45.9,2.7,-9.4,-49.4,2.7,-9.3,-57.6,9.4,-10.8,-62.9,9.4,-10.8,-63.2,9.4],[0.22,0.22,0.22,0.22,0.22,0.22]],[3,30,[-8.6,-42.2,4.3,-11.8,-43.1,4.8,-15.3,-47.1,4.8,-14.9,-50.6,4.8,-14.2,-54.0,5.4,-16.5,-57.7,5.4,-17.9,-60.7,5.4,-18.1,-65.6,5.4,-18.8,-68.6,5.4,-18.7,-71.9,5.4,-19.6,-75.3,5.4,-21.6,-79.9,-3.1,-20.3,-85.0,-0.6,-22.7,-90.0,-0.6,-24.5,-94.3,-0.6,-24.3,-97.9,-0.6,-24.5,-101.0,-0.6,-25.2,-103.2,-0.6],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,32,[-25.2,-103.2,-0.6,-25.4,-106.1,-2.0,-26.0,-110.4,-2.0,-26.7,-113.4,-2.0,-22.1,-119.4,-3.0,-22.0,-122.7,-3.0,-22.7,-126.0,-3.0,-26.4,-129.0,-3.0,-27.8,-132.0,-3.0,-28.5,-137.1,-3.0,-30.5,-139.7,-3.0,-31.7,-142.8,-3.0,-34.8,-144.4,-3.0,-37.0,-148.3,-2.5,-37.6,-151.6,-2.5,-36.8,-154.7,-2.5,-39.9,-157.3,-2.5,-40.3,-157.7,-2.5],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,32,[-25.2,-103.2,-0.6,-26.5,-107.7,-17.3,-27.8,-111.1,-17.3,-27.6,-114.7,-17.3,-29.0,-119.2,-17.3,-29.8,-124.5,-17.3,-29.6,-128.1,-16.5,-32.2,-131.4,-16.5,-31.9,-134.6,-16.5,-30.8,-137.9,-16.5,-28.3,-140.6,-16.5,-28.7,-143.8,-16.5,-30.3,-147.3,-16.5,-33.2,-151.4,-26.1,-33.3,-155.6,-26.1,-33.2,-157.1,-26.2],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,17,[-5.8,-10.1,0.2,-2.5,-14.1,-1.1,-0.2,-19.2,-1.8,-0.6,-22.4,-1.8,-2.4,-25.9,-1.8,-1.5,-34.2,-2.5,-0.6,-37.5,-2.5,-1.6,-41.2,-2.5,-2.5,-42.7,-2.5],[0.48,0.48,0.31,0.31,0.31,0.31,0.31,0.31,0.31]],[3,35,[-2.5,-42.7,-2.5,-0.3,-46.2,-3.3,-1.5,-50.9,-3.3,-0.4,-54.2,-3.3,1.4,-61.2,4.5,-0.1,-63.9,4.5,0.8,-67.3,4.5,3.2,-70.8,4.5,5.0,-73.6,4.5,6.3,-79.5,0.6,4.8,-83.2,0.6,7.8,-86.0,0.6,12.0,-90.6,1.6],[0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27]],[3,36,[12.0,-90.6,1.6,15.4,-94.3,1.6,18.4,-97.1,-1.5,18.9,-101.6,-1.5,22.4,-103.5,-1.5,24.1,-109.0,-1.5,25.7,-112.2,-1.5,26.6,-115.8,-1.5,26.1,-119.5,-1.5,27.1,-123.4,-1.5,28.3,-126.1,-1.5,27.1,-130.1,-1.5,26.3,-133.4,-1.5,24.6,-136.4,-1.5,25.4,-140.5,0.6,27.0,-143.7,0.6,30.5,-143.8,0.6,33.9,-147.3,0.6,34.9,-151.7,-2.3,38.6,-156.6,-2.3,40.9,-159.4,-2.3,43.0,-161.9,-2.3,43.5,-165.6,-2.3,43.9,-168.9,-2.3,43.9,-168.9,-2.3],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,36,[12.0,-90.6,1.6,14.1,-95.9,-4.7,14.9,-99.1,-4.7,16.1,-102.6,-4.7,14.6,-105.3,-4.7,11.3,-107.0,-4.7,9.1,-109.1,-4.7,8.8,-113.6,-4.7,9.5,-117.2,-4.7,9.2,-120.7,-4.7,10.0,-123.8,-4.7,9.9,-127.2,-4.7,8.5,-130.4,-4.7,5.5,-132.4,-4.7,-1.9,-131.8,-4.7,-5.5,-134.1,-4.7,-10.8,-134.2,-4.7,-11.9,-137.3,-4.7,-13.4,-138.2,-4.7],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,35,[-2.5,-42.7,-2.5,-4.0,-48.2,-1.0,-4.3,-51.7,-1.0,-4.5,-52.0,-1.0],[0.27,0.27,0.27,0.27]],[3,39,[-4.5,-52.0,-1.0,-4.8,-58.5,0.1,-5.8,-62.3,0.1,-6.5,-66.1,0.1,-7.4,-71.3,0.1,-8.5,-76.4,-10.3,-2.8,-85.0,-19.0,-2.5,-91.8,-19.0,-1.4,-96.7,-19.0,-1.1,-99.7,-19.0,-0.5,-103.1,-19.0,2.0,-109.7,-23.4,3.5,-114.4,-23.4,3.8,-117.4,-23.4,5.6,-122.4,-23.4,15.5,-121.8,-23.4,24.5,-122.8,-30.3,32.9,-118.8,-31.5,35.7,-121.1,-31.7,40.4,-122.7,-33.2,43.6,-121.6,-33.2,45.2,-120.1,-33.2],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19]],[3,39,[-4.5,-52.0,-1.0,-6.7,-55.1,-1.0,-11.6,-57.2,-9.7,-12.7,-60.8,-9.7,-14.1,-63.8,-9.7],[0.27,0.27,0.27,0.27,0.27]],[3,41,[-14.1,-63.8,-9.7,-13.4,-71.1,-13.5,-13.0,-75.6,-13.5,-13.5,-79.3,-13.5,-14.5,-83.2,-13.5,-16.6,-85.8,-13.5,-18.2,-89.0,-17.7,-19.7,-91.8,-17.8,-20.9,-94.6,-17.8,-22.9,-98.5,-17.8,-26.2,-104.0,-17.8,-28.6,-106.4,-17.8],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,41,[-14.1,-63.8,-9.7,-15.3,-65.9,-5.9,-17.9,-69.4,-5.9,-22.5,-69.9,-5.9,-23.5,-73.7,-5.9,-25.4,-76.8,-5.9,-25.7,-79.7,-5.9],[0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[3,43,[-25.7,-79.7,-5.9,-18.0,-84.9,4.1,-17.0,-89.0,4.1,-14.4,-94.7,4.1,-9.7,-100.2,7.4,-9.0,-103.9,7.5,-7.1,-107.2,7.5,-4.5,-108.8,7.5,-1.3,-112.1,7.5,-2.9,-115.9,7.5,-4.6,-118.9,7.5,-4.9,-119.5,7.5],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,43,[-25.7,-79.7,-5.9,-26.1,-86.5,-5.9,-28.7,-89.8,-5.9,-30.5,-93.3,-5.9,-33.5,-95.4,-10.7,-32.2,-100.4,-10.7,-34.0,-104.8,-10.7,-35.2,-107.7,-10.7,-38.8,-110.2,-11.7,-40.9,-112.8,-11.7,-44.8,-116.9,-11.7,-48.4,-119.4,-11.7,-52.8,-121.6,-17.4,-55.6,-123.4,-17.2,-56.4,-125.1,-17.1],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,-1,[7.5,3.9,-8.2,11.4,4.0,-8.2,12.2,3.9,-8.2],[0.97,0.97,0.97]],[3,46,[12.2,3.9,-8.2,14.7,0.2,-4.8,18.5,-1.1,-4.8,19.5,-0.9,-4.8],[0.38,0.38,0.38,0.38]],[3,47,[19.5,-0.9,-4.8,20.6,-4.2,4.2,19.3,-7.6,4.2,21.0,-10.5,4.2,23.2,-13.0,4.2,25.9,-18.7,-5.0,28.9,-20.5,-5.0,31.7,-22.6,-5.0,33.7,-27.5,-5.0,37.7,-31.3,-5.0,40.1,-33.5,-5.0,45.8,-43.8,7.3,50.6,-50.8,7.3,56.1,-58.1,13.5,59.4,-59.5,13.5,61.2,-62.1,13.5,62.9,-66.8,13.5,64.6,-69.5,13.5],[0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,47,[19.5,-0.9,-4.8,21.5,-1.1,-12.3,24.7,-0.8,-12.3,28.8,-3.3,-12.3,28.9,-3.5,-12.3],[0.27,0.27,0.27,0.27,0.27]],[3,49,[28.9,-3.5,-12.3,31.9,-7.3,-19.4,34.9,-9.1,-19.4,39.5,-12.5,-19.4,45.7,-15.0,-19.6,51.0,-15.4,-19.6,53.4,-19.4,-19.6,55.9,-22.6,-23.2,59.0,-23.6,-23.2,62.7,-28.3,-23.2,64.5,-31.2,-23.2,67.0,-34.1,-23.2,68.4,-37.6,-23.2,74.0,-41.8,-23.2,78.6,-43.1,-23.2,86.9,-47.9,-23.2,90.0,-49.4,-23.2,92.8,-53.5,-23.2,100.7,-62.3,-23.8,104.4,-65.9,-23.8,109.5,-68.2,-23.8,110.4,-71.5,-26.0,110.3,-76.9,-26.1,111.1,-80.1,-26.1,109.0,-83.5,-26.1,108.3,-84.7,-26.1],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,49,[28.9,-3.5,-12.3,32.4,-4.1,-14.1,35.7,-5.8,-14.1,39.9,-4.7,-14.1],[0.27,0.27,0.27,0.27]],[3,51,[39.9,-4.7,-14.1,47.8,-7.5,-17.5,50.6,-10.3,-17.5,56.8,-15.1,-17.5,59.9,-16.1,-17.5,67.7,-20.2,-14.6,71.4,-20.0,-14.6,78.4,-21.0,-12.7,81.7,-25.0,-12.7,85.0,-27.0,-12.7,88.2,-28.9,-12.7,92.0,-33.9,-12.7,95.2,-35.6,-12.7,102.9,-41.8,-12.6,104.6,-45.5,-12.6],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19]],[3,51,[39.9,-4.7,-14.1,44.6,-2.7,-13.1,51.5,0.2,-13.1,57.8,4.2,-13.1,63.3,5.9,-13.1,66.8,8.6,-13.1,70.8,9.7,-13.1,74.6,10.4,-13.1,77.8,12.3,-13.1,82.7,13.6,-13.1,88.3,16.1,-14.4,92.4,18.5,-14.4,98.6,19.8,-14.4,102.5,18.1,-14.4,105.8,18.9,-14.4,112.2,21.1,-14.4,115.9,22.4,-14.4,118.8,23.7,-14.4,122.4,25.4,-14.4,126.5,27.5,-14.4],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,46,[12.2,3.9,-8.2,17.3,3.0,-9.0,23.1,2.0,-9.0,26.2,4.6,-9.0,27.3,4.9,-9.0],[0.38,0.38,0.38,0.38,0.38]],[3,54,[27.3,4.9,-9.0,30.9,3.5,-8.2,33.4,4.4,-8.2],[0.27,0.27,0.27]],[3,55,[33.4,4.4,-8.2,33.6,0.1,2.4,36.7,-0.4,2.4,44.1,-2.8,-30.2,51.6,-5.7,-30.2,54.9,-4.8,-30.2,58.4,-5.7,-30.2,62.9,-7.6,-30.3,67.1,-7.5,-30.5,84.9,-13.6,-21.1,93.0,-18.4,-21.1,100.1,-18.1,-21.1,104.4,-17.2,-21.1,108.6,-16.3,-21.1,111.4,-15.6,-21.1],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[3,55,[33.4,4.4,-8.2,38.2,5.4,-8.2,40.3,3.2,-8.2,40.6,-0.1,-8.2,45.2,-1.4,-8.2,49.3,-2.4,-8.2,56.4,-2.1,-8.2,59.6,-2.0,-8.2,63.2,-2.4,-8.2,65.6,-5.8,-8.2,66.2,-9.0,-8.2,66.8,-12.2,-8.2,70.7,-14.5,-8.2,73.0,-16.8,-8.2,77.7,-23.2,-14.2,81.2,-28.0,-14.2,84.7,-29.9,-14.2,88.7,-33.7,-14.2,91.1,-36.2,-14.2,93.1,-38.7,-14.2,96.0,-40.3,-14.2,98.7,-41.9,-14.2,100.6,-44.5,-14.2,104.7,-48.8,-14.2,105.1,-51.2,-16.2,105.8,-54.9,-16.2,112.5,-56.5,-8.8,118.0,-57.6,-8.8,123.5,-56.4,-8.8,125.5,-56.4,-8.8],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,54,[27.3,4.9,-9.0,34.1,7.7,-4.3,37.6,11.4,-4.3],[0.27,0.27,0.27]],[3,58,[37.6,11.4,-4.3,43.6,9.7,0.9,47.5,9.7,0.9,50.7,8.2,1.0,53.7,8.0,1.0,59.1,8.6,1.0,63.2,10.8,1.0,66.4,10.3,1.0,74.0,3.3,5.8,77.0,0.3,7.2,80.2,-2.3,7.7,84.2,-5.1,8.2,84.4,-8.6,9.7,86.8,-11.1,9.8,88.1,-17.1,16.5,90.9,-20.3,16.7,95.0,-20.5,16.7,99.4,-20.1,16.7,102.8,-19.7,16.7,106.0,-21.4,16.8,103.8,-24.6,16.8,105.7,-27.1,16.8,108.7,-29.7,16.8,108.7,-29.7,16.8],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,58,[37.6,11.4,-4.3,41.7,15.6,-2.3,46.2,19.6,-2.3,50.2,22.5,-2.3,50.4,26.2,-2.3,52.5,28.8,-2.3,54.8,32.5,-2.3,55.4,36.7,8.0,54.2,40.3,8.0,54.8,43.5,8.1,56.6,46.3,8.1,57.2,49.6,8.2,57.3,53.2,8.2,59.7,55.4,8.2,59.1,58.8,8.2,58.4,64.3,8.2,60.6,66.9,8.2,60.7,68.5,8.3],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,-1,[5.1,-11.0,10.1,8.2,-11.5,10.1,11.8,-12.1,10.1,16.3,-13.7,2.3],[0.97,0.97,0.6,0.6]],[3,61,[16.3,-13.7,2.3,18.9,-16.1,9.0,21.3,-13.9,9.0,24.6,-14.1,9.6,28.7,-13.5,11.4,31.5,-12.0,11.5,31.8,-12.0,11.5],[0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[3,61,[16.3,-13.7,2.3,19.8,-21.3,-3.9,24.4,-22.7,-3.9,27.1,-24.5,-3.9,28.9,-29.4,-3.9,29.4,-32.4,-3.9,30.3,-35.5,-3.9,30.3,-38.6,-3.9,30.9,-42.8,-1.5,30.9,-47.2,-1.5,33.5,-48.6,-1.5],[0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31]],[3,63,[33.5,-48.6,-1.5,39.4,-49.3,-3.7,43.4,-46.5,-3.7,47.1,-44.4,-3.7,50.3,-43.3,-3.7,54.9,-41.6,-3.7,58.7,-40.9,-3.7,63.4,-39.9,-3.7,71.9,-39.9,2.0,75.3,-40.6,2.5,74.5,-46.0,2.9,77.5,-47.0,6.8,81.5,-45.1,7.1,84.6,-43.5,7.2,87.7,-43.8,7.5,93.9,-43.9,7.8,97.7,-43.9,16.0,100.5,-45.2,16.8,104.5,-45.0,17.7,108.6,-50.1,17.7],[0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19]],[3,63,[33.5,-48.6,-1.5,37.8,-51.8,-5.3,41.4,-52.1,-5.3,42.9,-53.0,-10.6],[0.27,0.27,0.27,0.27]],[3,65,[42.9,-53.0,-10.6,52.3,-56.5,-11.2,54.9,-59.9,-11.2,64.3,-65.9,-9.0,66.7,-70.2,-9.0,69.6,-71.7,-9.0,74.0,-74.4,-9.0,77.3,-75.6,-9.0,80.6,-76.5,-9.0,83.2,-79.9,-9.0,94.4,-85.2,-8.0,97.1,-88.1,-8.0,102.5,-91.5,-8.0,103.8,-94.5,-3.5,104.9,-96.6,-3.5],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[3,66,[104.9,-96.6,-3.5,107.5,-100.8,-3.5,110.3,-105.7,-3.5,110.7,-110.0,-4.6,112.8,-114.3,-4.6,112.6,-118.2,-4.6,109.2,-120.7,-4.6,107.8,-123.6,-4.6,108.5,-126.3,-4.6],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,66,[104.9,-96.6,-3.5,110.9,-100.6,0.5,116.2,-104.7,0.5,120.4,-106.4,0.5,124.1,-109.8,0.5,127.5,-111.4,0.5,130.0,-113.4,0.5,132.7,-116.0,0.5,133.3,-116.3,0.5],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,65,[42.9,-53.0,-10.6,43.9,-56.1,-15.3,46.0,-60.2,-15.3,48.7,-66.4,-20.2,49.9,-70.0,-20.2],[0.24,0.24,0.24,0.24,0.24]],[3,69,[49.9,-70.0,-20.2,55.1,-68.8,-20.2,57.0,-72.4,-20.2,59.4,-75.7,-20.2],[0.22,0.22,0.22,0.22]],[3,70,[59.4,-75.7,-20.2,58.7,-79.7,-29.0,59.1,-84.0,-29.0,59.5,-88.3,-29.0,59.7,-92.8,-29.0,61.2,-95.8,-29.0,61.0,-97.1,-34.7,59.5,-99.8,-34.7,61.8,-101.8,-34.7,65.6,-104.9,-34.7,69.2,-105.2,-34.7,70.2,-108.3,-34.7,71.1,-111.7,-34.7,71.6,-115.4,-34.7,67.6,-118.3,-34.7,67.9,-119.2,-34.7],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,70,[59.4,-75.7,-20.2,63.3,-77.2,-20.2,67.4,-79.5,-22.3,71.8,-79.1,-22.3,75.1,-79.3,-22.3,78.4,-81.5,-22.3,81.2,-83.5,-22.3,82.5,-86.8,-22.3,85.4,-92.0,-22.3,87.9,-93.9,-22.3,91.0,-96.1,-22.3,97.1,-96.3,-22.3,100.3,-101.9,-22.3,103.3,-106.5,-27.0,103.6,-109.8,-27.0,107.4,-110.8,-27.0,110.3,-113.2,-27.0,113.0,-115.0,-27.0,116.0,-115.2,-27.0,122.7,-115.8,-30.9,126.2,-115.9,-30.9,129.3,-116.4,-30.9,135.0,-119.8,-30.9,138.8,-116.2,-30.9,140.9,-113.0,-30.9,140.8,-109.5,-30.9,141.8,-107.9,-30.9],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[3,69,[49.9,-70.0,-20.2,51.4,-73.9,-20.2,50.5,-77.2,-16.1,49.8,-80.3,-16.1,50.6,-83.9,-16.1,51.4,-87.3,-16.1,52.7,-91.1,-16.1,54.5,-97.0,-16.0,55.4,-100.4,-16.0,59.0,-102.8,-16.0,62.1,-104.8,-16.0,65.4,-109.9,-13.0,69.5,-111.3,-13.0,71.4,-121.1,-18.4,74.2,-123.5,-18.4,75.5,-126.5,-18.4,75.5,-130.9,-18.4,76.5,-134.7,-18.4,76.3,-137.9,-18.4,72.1,-140.0,-18.4,69.1,-140.0,-20.4,66.6,-141.7,-20.4,63.9,-145.0,-20.4,62.0,-148.8,-20.4,61.9,-152.4,-20.4,60.8,-156.6,-20.4,59.7,-160.0,-20.4,59.9,-159.9,-20.4],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,-1,[-3.3,12.7,0.0,-4.2,15.8,0.0,-6.3,21.9,0.2,-6.9,26.1,0.2,-7.7,29.3,0.2,-8.8,33.3,0.2,-9.6,36.5,0.7,-10.6,39.1,0.7],[2.0,2.0,1.9,1.9,1.9,1.9,1.9,1.9]],[4,74,[-10.6,39.1,0.7,-7.4,40.2,0.0,-7.6,45.0,0.0,-7.2,48.2,0.0,-5.8,51.1,0.0,-0.8,56.0,-5.4,2.8,58.5,-5.4,6.1,58.4,-5.4,11.0,59.7,-5.4,16.6,58.1,-2.8,21.2,60.6,-2.8,25.6,63.0,-2.8,28.7,63.6,-2.8,29.8,66.7,-2.8,33.0,66.0,-2.8,36.1,66.6,-2.8,39.9,69.1,2.3,41.1,73.3,2.3,44.4,73.1,2.4,47.2,72.1,2.8,50.8,74.6,5.0,55.1,75.2,5.4,59.0,71.8,7.6,66.2,71.9,11.6,72.7,70.1,12.6,80.0,68.9,15.9,83.2,71.0,16.1,82.7,66.3,16.1,81.2,65.1,18.6,81.5,62.4,20.8,84.8,60.9,20.9],[0.48,0.48,0.48,0.48,0.48,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19]],[4,74,[-10.6,39.1,0.7,-11.9,42.1,0.5,-14.0,48.2,0.5,-14.8,51.3,0.5,-15.9,54.4,0.5,-16.5,57.8,0.5,-16.8,61.8,1.9,-16.8,66.2,1.9,-17.6,70.4,1.9,-19.3,76.9,1.9,-19.9,83.7,1.9,-20.9,87.5,1.9,-21.2,90.8,1.9,-21.5,94.6,1.9],[1.9,1.9,1.9,1.9,1.9,1.9,1.9,1.9,1.9,1.9,1.9,1.9,1.9,2.0]],[4,76,[-21.5,94.6,1.9,-25.1,97.0,1.9,-28.1,99.8,1.9,-28.3,105.1,5.6,-27.9,108.6,6.8,-26.4,110.3,6.8],[0.55,0.55,0.48,0.48,0.31,0.31]],[4,77,[-26.4,110.3,6.8,-25.3,112.6,2.2,-22.9,115.8,2.2,-22.2,119.1,2.2,-24.8,121.2,2.2,-27.6,123.3,2.2,-29.3,127.8,2.2,-29.2,133.2,2.2,-30.5,137.0,2.2],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[4,77,[-26.4,110.3,6.8,-26.9,111.2,2.2,-27.5,112.5,-2.8,-29.1,117.5,-2.8,-32.3,118.5,-0.2,-36.6,120.4,1.6,-38.6,123.3,3.3,-41.0,125.7,9.2,-44.4,129.2,11.4,-47.3,131.5,12.2,-49.1,134.9,12.2,-49.4,134.8,12.2],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[4,76,[-21.5,94.6,1.9,-21.3,98.5,6.4,-21.9,101.7,6.4,-22.0,106.8,6.4,-19.9,111.2,6.4,-19.4,112.9,6.4],[1.81,1.81,1.81,1.81,1.81,1.81]],[4,80,[-19.4,112.9,6.4,-22.5,113.6,11.7,-26.2,114.4,11.7,-28.8,114.5,11.7],[0.6,0.6,0.6,0.6]],[4,81,[-28.8,114.5,11.7,-31.0,116.5,11.7,-30.7,120.7,11.7,-29.4,124.6,11.7,-28.0,127.8,11.7,-23.7,133.1,11.7,-24.4,136.8,9.8,-21.9,138.7,9.8,-22.2,142.5,9.8,-21.8,145.7,9.8,-21.3,149.7,9.8,-19.9,152.6,9.8,-16.0,153.9,9.8,-13.5,155.9,9.8,-13.5,158.9,9.8,-14.1,162.1,9.8,-9.1,167.6,8.0,-7.7,170.8,8.0,-4.7,172.6,8.0,-1.2,174.6,8.0,0.9,177.2,8.0,1.6,181.0,8.0,1.8,184.1,8.0,1.7,186.4,16.6,0.3,191.7,16.7,2.3,194.5,16.7,3.6,198.0,16.7,4.2,201.7,16.7,1.5,206.9,16.7,-0.0,209.1,10.8,-0.5,212.6,7.3,4.2,220.5,8.8,6.7,223.2,8.8,7.7,228.9,8.6,3.8,229.6,12.0,1.9,233.0,12.0,2.0,236.1,12.0,3.0,239.0,12.0,2.8,244.6,12.0,3.4,248.1,12.1,7.3,251.2,12.1,10.0,254.4,16.2,11.2,258.4,16.8,12.3,261.5,17.7,12.8,265.5,17.9,14.0,268.4,17.9,15.5,272.4,18.0,16.7,275.0,18.0],[0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[4,81,[-28.8,114.5,11.7,-30.1,113.1,8.3,-33.8,110.9,8.3,-35.1,110.3,8.3],[0.38,0.38,0.38,0.38]],[4,83,[-35.1,110.3,8.3,-36.8,113.7,11.6,-38.6,116.6,11.6,-41.3,121.3,11.9,-44.6,123.5,12.4,-48.0,124.9,12.4,-52.8,128.8,12.1,-56.9,128.4,12.1],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,83,[-35.1,110.3,8.3,-35.2,105.6,8.3,-36.0,104.1,8.3],[0.31,0.31,0.31]],[4,85,[-36.0,104.1,8.3,-36.7,100.1,6.1,-43.5,98.3,6.1,-45.7,95.4,6.1,-46.1,92.2,6.1,-45.8,89.2,9.2,-48.2,87.0,9.2,-52.6,88.4,9.2,-55.7,88.6,9.2,-59.2,86.1,9.2,-64.0,82.6,13.4,-66.8,80.6,13.8,-68.9,77.2,15.4,-71.0,74.8,15.6],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,85,[-36.0,104.1,8.3,-39.0,104.9,-1.1,-42.7,105.9,-1.1,-45.9,106.6,-1.1,-50.2,106.8,-1.1,-53.5,107.7,-1.1,-56.4,111.1,-1.1,-59.6,114.1,-1.1,-66.2,115.4,-1.1,-72.7,114.5,-1.1,-76.3,113.8,-1.1,-78.9,115.9,-0.2,-84.5,114.5,-0.3,-89.9,111.2,-0.3,-93.1,110.1,-0.3,-97.0,112.7,-0.3,-101.3,114.7,-0.3,-104.6,116.1,-0.3,-106.1,118.8,-0.3,-106.6,122.5,-0.3,-106.8,123.5,-0.3],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,80,[-19.4,112.9,6.4,-18.6,114.7,11.6,-18.1,116.6,11.6],[1.74,1.74,1.74]],[4,88,[-18.1,116.6,11.6,-19.8,118.4,20.7,-21.0,122.0,20.7,-19.4,125.5,20.7,-20.4,129.1,20.7,-21.8,130.5,20.7],[0.24,0.24,0.24,0.24,0.24,0.24]],[4,88,[-18.1,116.6,11.6,-16.4,119.6,4.6,-14.0,126.7,4.6,-14.0,129.7,4.6,-13.5,133.5,4.6,-13.1,137.4,9.0,-13.2,140.5,9.0],[1.45,1.45,1.45,1.45,1.45,1.4,1.4]],[4,90,[-13.2,140.5,9.0,-15.4,138.6,5.6,-18.4,140.4,5.6,-17.8,143.9,5.6,-13.5,146.6,-6.8,-15.4,152.0,-8.1,-12.6,153.5,-6.8,-9.4,153.9,-6.8,-7.3,152.4,-6.8],[0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36]],[4,91,[-7.3,152.4,-6.8,-6.5,149.5,-9.9,-2.3,149.6,-9.9,0.7,152.2,-10.0,5.3,152.1,-10.0,8.8,150.2,-10.0,10.8,149.9,-13.2,11.8,153.0,-13.2,14.6,154.6,-13.2,16.4,154.5,-18.2,17.1,150.8,-18.6,18.8,147.4,-18.7,18.2,143.7,-22.5,21.1,142.1,-22.5,24.2,143.7,-22.5,23.8,147.2,-22.5,26.6,148.7,-22.5,31.9,147.0,-22.5,36.3,145.4,-31.0,38.9,146.8,-31.4,40.6,143.4,-32.7,40.0,139.9,-34.4,38.6,136.7,-34.5,37.3,133.0,-34.5,36.4,129.9,-34.4,32.9,128.0,-36.8,30.2,126.0,-37.0,27.4,126.0,-37.0],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,91,[-7.3,152.4,-6.8,-7.8,149.4,-11.0,-7.0,144.7,-11.0,-3.4,141.5,-11.0,-4.9,137.8,-11.0,-4.4,133.8,-11.0,-3.5,130.5,-11.0,-3.8,127.0,-11.0,-5.4,124.6,-11.7,-5.2,120.8,-15.6,-3.9,117.0,-15.7,-4.0,113.4,-18.4,-4.2,110.2,-18.0,-4.0,106.7,-17.9,-2.1,103.3,-17.9,-2.0,99.2,-17.9,-2.7,97.2,-17.9],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,90,[-13.2,140.5,9.0,-15.5,144.5,6.8,-17.3,147.7,6.8,-18.3,149.5,6.8],[1.57,1.57,1.57,1.57]],[4,94,[-18.3,149.5,6.8,-22.5,149.4,6.7,-26.2,153.0,1.9,-30.2,153.8,1.1,-34.3,154.2,0.9,-35.1,155.3,0.9],[0.36,0.36,0.36,0.36,0.36,0.36]],[4,95,[-35.1,155.3,0.9,-37.6,152.6,0.3,-38.1,147.8,0.3,-39.7,149.4,-7.0,-43.1,148.8,-10.7,-44.5,152.3,-10.7,-41.1,151.7,-10.7,-41.2,147.3,-11.6,-42.0,146.8,-14.6,-46.3,146.7,-15.2,-46.6,143.3,-15.2,-44.9,143.4,-20.6,-48.2,142.6,-20.6,-50.3,139.4,-20.6,-52.7,135.2,-27.3,-58.1,136.6,-27.1,-63.6,134.9,-27.1,-67.3,134.7,-32.8,-70.7,131.5,-33.7,-71.6,128.2,-33.9,-74.6,126.1,-38.0,-76.4,124.6,-39.9,-80.5,123.2,-40.0,-82.7,121.1,-40.0,-85.8,121.6,-40.0,-89.4,121.7,-40.0,-91.0,122.0,-40.0],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,95,[-35.1,155.3,0.9,-35.3,157.3,-3.2,-37.2,160.7,-3.2,-40.8,162.0,-3.2,-42.1,162.2,-3.2],[0.27,0.27,0.27,0.27,0.27]],[4,97,[-42.1,162.2,-3.2,-44.6,162.1,-5.5,-47.7,162.5,-5.5,-50.0,166.3,-5.5,-52.5,168.2,-5.5,-56.0,169.3,-5.5,-59.5,175.9,-5.5,-66.0,180.8,-5.3,-69.1,182.9,-5.3,-73.8,187.5,-5.3,-76.7,189.1,-5.3,-80.3,191.5,-4.1,-81.2,195.6,-4.1,-79.9,200.1,-4.1,-79.7,205.0,-4.1,-81.6,207.6,-4.1,-82.1,209.3,3.1,-84.9,210.6,3.1,-85.0,213.7,3.1,-86.3,217.7,3.1,-87.8,221.4,3.1,-88.6,225.6,3.1,-90.3,226.4,5.5,-92.7,228.6,5.5,-93.5,231.7,5.5,-96.0,233.6,5.5,-97.9,237.0,5.5,-98.0,240.3,5.5],[0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27]],[4,97,[-42.1,162.2,-3.2,-43.1,167.6,-3.2,-45.6,170.5,-8.3,-46.8,173.3,-8.3,-48.3,177.0,-8.3,-46.9,181.3,-8.3,-47.1,183.8,-8.3],[0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[4,99,[-47.1,183.8,-8.3,-52.2,187.8,-8.0,-54.1,190.4,-8.0,-55.9,193.5,-8.0,-57.9,198.2,-8.0,-59.1,202.0,-8.0,-61.3,204.5,-8.0,-61.4,208.6,-10.1,-60.1,211.5,-10.1,-59.2,214.5,-10.1,-60.3,218.6,-10.1,-65.1,220.7,-10.1,-69.6,221.6,-10.1,-74.7,220.2,-10.1,-77.8,218.9,-10.1,-80.7,217.6,-10.1,-82.9,215.2,-10.1,-88.9,215.2,-8.5,-91.8,216.0,-8.5,-95.7,217.3,-8.5,-97.5,216.8,-8.5],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,99,[-47.1,183.8,-8.3,-46.8,186.4,-9.8,-49.4,188.8,-9.8,-47.7,192.6,-9.8,-45.2,194.8,-9.8,-46.1,197.9,-9.8,-46.0,202.6,-9.8,-45.4,204.0,-5.2,-45.0,207.2,-5.2,-44.4,210.5,-5.2,-42.6,214.3,-3.1,-40.6,216.9,-3.1,-36.9,216.1,-3.1,-32.9,216.3,-3.1,-33.0,221.2,-3.1,-31.0,223.3,-3.1],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,94,[-18.3,149.5,6.8,-20.9,153.0,6.8,-21.6,155.6,1.3,-22.5,159.3,1.3,-22.3,163.9,1.3,-21.5,167.5,1.3,-20.2,171.2,1.3,-19.1,173.5,7.6],[1.35,1.35,1.35,1.35,1.35,1.35,1.35,1.35]],[4,102,[-19.1,173.5,7.6,-21.8,176.2,7.6,-22.2,177.9,-5.1,-23.3,182.0,-5.1,-22.4,186.1,-11.5,-21.1,188.7,-17.4,-22.2,192.0,-17.5,-22.5,194.0,-26.2,-21.4,197.6,-26.6,-20.3,200.8,-30.0],[0.36,0.36,0.36,0.36,0.27,0.27,0.27,0.27,0.27,0.27]],[4,102,[-19.1,173.5,7.6,-18.1,176.4,4.2,-16.5,179.1,4.3],[1.57,1.57,1.75]],[4,104,[-16.5,179.1,4.3,-15.3,175.3,12.2,-14.0,171.3,12.2,-13.6,168.0,12.2,-16.6,166.0,12.2,-17.4,162.4,12.2,-17.1,158.6,12.2,-17.4,157.8,12.2],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[4,104,[-16.5,179.1,4.3,-15.4,182.5,4.2,-15.1,184.1,4.2],[1.75,1.75,1.75]],[4,106,[-15.1,184.1,4.2,-11.5,177.9,3.4,-7.2,179.5,3.4,-3.9,183.2,2.0,-1.6,186.7,2.0,-1.3,186.7,2.0],[0.55,0.55,0.55,0.55,0.55,0.55]],[4,107,[-1.3,186.7,2.0,3.0,187.4,2.0,5.7,189.4,2.0,7.3,192.1,2.0,12.0,191.3,-1.2,15.8,191.8,-1.2,19.1,189.8,-1.2,22.0,187.5,-1.2,24.8,185.2,-1.2,28.9,184.9,-1.2,32.6,186.2,-1.2,35.5,185.4,-1.2,37.6,183.1,-1.2,37.9,180.1,-1.2,39.2,178.1,4.8,42.7,177.3,-1.8,45.7,176.0,-1.8,49.1,176.4,-1.8,52.9,171.7,-1.8,54.3,169.0,-1.8,57.1,167.2,-1.8,61.0,161.5,-1.8,64.2,160.0,-1.8,68.7,156.3,-1.8,72.6,154.8,-1.8,76.1,153.7,-1.8,78.4,151.7,-4.4,81.0,149.3,-4.4,83.3,146.3,-4.4,85.0,143.7,-4.4,90.0,142.9,-4.4,93.5,142.8,-4.4,97.0,139.9,-4.3,99.7,138.3,-4.3,103.0,136.1,-4.3,107.6,136.5,-4.3,110.0,137.9,-4.3],[0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,107,[-1.3,186.7,2.0,-0.7,189.0,7.3,0.4,193.6,7.3,0.9,198.1,7.3,0.9,202.8,7.3,3.6,206.8,2.8,4.4,211.4,2.8,3.7,214.8,2.8,3.0,218.5,5.8,2.7,222.5,5.8,5.6,225.9,5.8,5.4,231.2,3.3,7.1,234.2,3.3,7.1,238.9,3.3,10.0,241.4,3.3,11.2,244.3,3.3,11.0,248.7,3.3,10.2,251.8,3.3,8.5,254.4,6.7,8.4,257.7,6.7,10.4,261.6,6.7,11.5,266.0,6.7,12.3,269.3,6.7,11.7,272.8,6.7,12.4,275.5,2.9,14.3,278.9,2.9,13.4,282.5,8.9,15.1,285.2,8.9,16.8,290.1,11.9,15.7,294.4,11.9,14.6,297.5,11.9,16.2,301.0,11.9,17.7,303.9,11.9,18.3,307.2,11.9,16.8,310.9,9.7,16.7,314.2,9.7,15.7,320.9,9.7,17.1,324.1,9.7,17.6,328.9,8.1,16.5,331.9,8.1,15.7,336.1,8.1,18.4,340.7,8.1,17.5,345.1,1.0,19.4,349.4,1.0,19.9,353.1,1.0,20.0,357.5,1.0,19.3,363.0,-2.7,20.3,365.9,-2.7,22.8,367.6,-2.7,25.7,369.1,-2.7,27.1,372.3,-2.7,26.3,375.4,-2.7,26.0,376.4,-2.7],[0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,106,[-15.1,184.1,4.2,-14.7,188.1,0.8,-14.9,191.6,0.8,-15.0,195.2,0.8,-15.8,199.1,0.9,-16.9,203.2,0.9],[1.75,1.75,1.75,1.75,1.75,1.75]],[4,110,[-16.9,203.2,0.9,-19.5,205.3,4.3,-21.4,208.7,4.3,-22.4,214.4,4.3,-24.6,219.9,4.3,-25.9,222.9,4.3,-27.0,229.9,-6.3,-28.0,236.6,-6.3,-30.6,240.0,-2.4,-31.7,245.1,-2.4,-34.1,248.6,-2.4,-38.0,252.7,-4.7,-39.2,255.4,-4.7,-41.5,261.3,2.7,-43.7,266.9,2.7,-46.1,273.9,2.7,-49.5,278.2,6.8,-49.6,281.3,6.8,-51.6,286.4,6.9,-51.4,290.3,8.0,-54.5,293.4,8.0,-56.2,297.0,8.0,-55.9,300.4,8.0,-59.4,305.2,8.0,-61.6,309.7,8.0,-64.1,311.7,8.0,-65.4,314.9,8.0,-67.2,318.8,8.0,-66.7,321.8,11.6,-69.1,325.0,11.6,-70.6,327.7,11.6,-70.5,332.1,11.6,-70.3,335.2,14.7,-71.1,338.4,14.7,-72.7,341.3,14.7,-76.0,342.5,14.7,-79.8,344.6,14.7,-83.1,348.8,14.6,-84.2,352.9,14.6],[0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.48,0.48,0.48,0.48,0.48,0.38,0.38,0.38,0.38,0.38,0.38,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,110,[-16.9,203.2,0.9,-17.3,206.4,1.3,-18.0,210.1,1.3,-18.4,211.6,1.3],[1.6,1.6,1.6,1.6]],[4,112,[-18.4,211.6,1.3,-19.0,214.7,-5.3,-19.3,217.8,-5.3,-18.9,222.0,-5.7,-17.5,228.2,-6.4,-17.3,232.9,-1.4,-18.3,237.6,-1.4,-20.2,242.0,-1.4,-23.6,244.4,-1.4,-25.8,245.4,0.9,-29.7,250.5,0.9,-32.7,253.3,0.9,-35.2,257.0,-1.6,-38.7,260.2,-1.6,-41.1,264.5,-1.6,-41.0,269.6,-1.6,-41.9,273.0,-4.8,-44.4,277.0,-5.5,-46.6,281.5,-5.5,-46.2,285.8,-5.5,-47.9,291.0,-5.5,-49.6,293.6,-4.3,-50.8,296.4,-4.3,-52.8,302.0,-4.3,-51.8,304.9,-4.3,-52.7,308.5,-1.0,-52.8,313.4,-1.0,-52.8,318.0,-1.0,-54.6,320.1,-2.3,-56.3,322.7,-2.3,-57.5,325.5,-2.3,-58.5,328.6,-2.3,-57.3,332.5,-2.3,-59.4,336.6,-2.3,-62.6,336.5,-2.3,-63.1,336.4,-6.8,-67.8,342.6,-6.8,-68.6,345.7,-6.8,-69.3,349.4,-6.8,-69.6,352.4,-6.8,-74.6,352.6,-6.8,-79.9,353.5,-6.8,-83.5,356.7,-6.8,-84.9,358.1,-7.1],[0.5,0.5,0.5,0.5,0.5,0.5,0.48,0.48,0.48,0.48,0.48,0.48,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,112,[-18.4,211.6,1.3,-17.3,216.0,3.0,-16.0,221.4,3.0,-14.5,226.2,3.0],[1.57,1.57,1.57,1.57]],[4,114,[-14.5,226.2,3.0,-19.8,228.2,3.0,-24.7,228.7,3.0,-28.7,230.7,8.9,-31.1,233.4,8.9,-33.3,237.7,8.9,-34.3,242.6,8.9,-36.4,243.8,-1.3,-39.4,245.9,-1.3,-41.3,250.0,-1.3,-41.5,255.4,-1.3,-43.6,261.5,-1.3,-46.1,266.2,-1.3,-46.8,269.9,-3.5,-49.4,273.1,-3.5,-53.7,274.3,-3.5,-56.1,276.7,-3.5,-57.1,280.6,-3.5,-57.6,281.5,-3.5],[0.6,0.6,0.6,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.31,0.31,0.31,0.31,0.31]],[4,115,[-57.6,281.5,-3.5,-58.9,287.5,-4.4,-61.6,291.7,-4.4,-65.8,294.7,-4.4,-66.7,297.9,-4.4,-70.3,300.2,-4.4,-73.4,304.3,-4.4,-74.0,307.5,-4.4,-75.6,310.9,-4.4,-74.8,315.3,-3.6,-75.0,317.0,2.8,-77.8,321.9,2.8,-80.6,325.0,2.8,-83.7,330.1,2.8,-85.1,333.6,2.8,-87.0,338.8,2.8,-88.7,341.4,2.9,-89.5,344.6,2.9,-87.1,347.8,2.9,-87.0,351.1,2.9,-87.7,355.8,2.9,-89.7,360.5,-3.2],[0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,115,[-57.6,281.5,-3.5,-61.6,286.1,-3.5,-61.7,289.4,-3.5,-62.0,293.4,-3.5,-64.6,296.6,-3.5,-67.7,300.9,-3.5,-69.4,304.3,-3.5,-70.3,307.9,-3.5,-71.9,311.9,-3.5,-73.6,314.8,-3.5,-76.7,315.8,-3.5,-77.9,318.6,-3.5,-80.3,320.2,0.6,-82.9,323.4,0.6,-84.4,326.1,0.6,-85.3,329.5,0.6,-87.0,333.4,0.6,-89.4,335.8,0.6,-94.2,340.7,0.6,-97.2,343.3,0.6,-99.4,345.3,1.8,-101.3,348.4,1.8,-102.2,351.8,1.8,-101.3,355.1,1.8,-102.1,358.2,1.8,-105.2,362.3,1.9,-106.3,363.8,1.9],[0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,114,[-14.5,226.2,3.0,-12.9,230.5,5.2,-12.1,234.3,5.2,-11.2,237.4,5.2,-10.3,242.5,5.2,-10.3,245.3,9.8,-11.6,249.1,9.8,-13.8,253.7,9.7,-14.2,255.4,9.7],[1.57,1.57,1.57,1.57,1.57,1.57,1.35,1.35,1.35]],[4,118,[-14.2,255.4,9.7,-16.2,256.4,6.2,-18.7,258.3,5.8,-18.0,261.3,4.8,-17.6,261.7,-0.2,-14.8,263.2,-0.4,-11.4,264.6,-0.4,-8.9,267.6,-0.4,-9.1,268.0,-0.4],[0.31,0.31,0.31,0.31,0.27,0.27,0.27,0.27,0.27]],[4,119,[-9.1,268.0,-0.4,-7.8,269.9,-3.8,-8.6,273.0,-3.8,-6.3,275.5,-3.8,-5.1,279.4,-3.8,-3.3,281.9,-3.8,-0.8,283.9,-3.8,2.8,284.6,-3.8,5.1,287.2,-3.8,6.1,290.9,-3.8,9.3,292.0,-3.8,12.5,293.3,-3.8,18.0,299.9,-9.0,19.6,305.0,-9.0,22.4,308.5,-9.0,23.7,311.4,-9.0,26.5,316.0,-9.0,28.2,319.8,-9.0,28.4,323.8,-9.0,29.7,326.7,-9.0,28.5,331.0,-9.0,27.9,337.2,-11.6,28.1,341.2,-11.6,27.0,344.2,-11.6,28.2,348.1,-11.6,28.3,351.5,-10.5,27.0,355.5,-7.8,27.9,358.9,-7.8,27.2,362.3,-7.8,27.6,365.5,-7.8,29.5,368.0,-7.8,28.8,370.7,-13.0,27.7,374.5,-13.0,27.6,375.2,-13.0],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,119,[-9.1,268.0,-0.4,-11.2,270.6,0.5,-10.9,274.0,0.5,-10.5,277.2,0.5,-10.2,278.8,0.5],[0.27,0.27,0.27,0.27,0.27]],[4,121,[-10.2,278.8,0.5,-13.2,280.8,-4.9,-14.5,285.7,-4.9,-17.2,287.3,-4.9,-17.3,290.6,-4.9,-15.6,293.8,-4.9,-18.9,296.8,-4.9,-21.2,299.6,-4.9,-20.4,304.4,-9.4,-21.0,307.6,-9.4,-20.5,311.3,-9.4],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[4,122,[-20.5,311.3,-9.4,-22.9,314.8,-9.4,-23.5,317.8,-15.5,-24.2,324.3,-15.5,-21.3,322.7,-15.5],[0.19,0.19,0.19,0.19,0.19]],[4,122,[-20.5,311.3,-9.4,-20.0,316.1,-9.4,-19.6,320.1,-9.3,-17.9,323.1,-9.3,-19.8,325.7,-9.3,-23.2,327.1,-9.3,-25.2,329.9,-16.6,-26.0,333.0,-19.7,-29.4,333.4,-19.7,-29.6,336.2,-22.0,-28.8,340.0,-23.3,-33.4,342.2,-23.3,-34.2,344.0,-26.9,-31.2,348.1,-27.1,-34.8,349.2,-27.1,-37.8,351.3,-28.1,-39.4,355.5,-28.2,-37.9,360.0,-28.8,-38.8,363.4,-29.7,-39.1,366.6,-30.2,-40.8,369.0,-31.0,-44.6,372.4,-31.4,-44.8,373.1,-31.4],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,121,[-10.2,278.8,0.5,-9.7,280.7,-3.3,-9.5,283.9,-3.4,-11.5,287.5,-3.4,-9.8,291.5,-3.4,-8.1,295.6,-3.4,-8.9,298.7,-3.4,-12.0,301.8,-3.4,-13.5,306.5,-3.4,-14.9,311.0,-7.8,-13.1,315.4,-8.1,-15.3,317.1,-13.1,-16.5,318.1,-13.1],[0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,118,[-14.2,255.4,9.7,-14.4,258.4,12.6,-14.9,261.9,12.6,-15.6,265.6,12.6,-14.6,272.3,12.6,-14.0,275.5,12.6,-11.2,280.1,12.6,-9.2,282.9,12.6,-7.0,285.1,12.6,-3.7,288.8,13.1,-3.6,292.1,13.1,-3.5,298.1,13.1],[1.35,1.35,1.35,1.35,1.35,1.35,1.35,1.35,1.4,1.55,1.55,1.55]],[4,126,[-3.5,298.1,13.1,-1.5,300.9,3.9,-0.6,304.3,3.9,1.9,306.2,3.9,2.2,311.7,3.9,4.7,314.7,3.9,6.1,317.9,3.9,6.8,320.9,9.1,7.8,325.5,9.2,10.6,328.1,6.1,13.0,330.5,6.1,17.2,332.4,6.1,19.7,334.3,6.1,22.9,337.2,6.1,25.3,340.7,6.1,26.3,341.5,2.1,31.4,343.1,2.1,33.2,346.4,2.1,36.2,348.5,2.1,38.9,350.5,2.1,40.4,352.4,0.1,42.7,355.1,0.1,45.7,355.9,0.1,46.1,359.1,0.1,48.6,361.3,-0.8,52.6,363.1,-0.8,54.4,365.6,-0.8,56.2,368.2,0.6,60.7,370.9,0.6,63.8,371.5,0.6,65.8,371.7,-2.7,67.7,375.0,-3.5,69.7,376.9,-5.6,73.7,379.5,-5.7,77.2,382.2,-5.7,81.3,382.8,-5.7,84.2,385.3,-5.7,87.3,386.7,-9.2,89.8,388.6,-9.2,91.9,391.2,-9.1,92.2,395.4,-9.1,92.2,395.4,-9.1],[0.43,0.43,0.43,0.43,0.43,0.43,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.28,0.28,0.28,0.28,0.28,0.28,0.28,0.28,0.28,0.28,0.28,0.28,0.28,0.28,0.28,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[4,126,[-3.5,298.1,13.1,-4.5,301.9,13.8,-5.5,305.8,13.8,-5.8,307.0,13.8],[1.35,1.35,1.35,1.35]],[4,128,[-5.8,307.0,13.8,-3.8,308.0,7.6,-1.0,311.4,7.6,-0.8,315.5,7.6,2.2,318.4,7.6,4.5,320.8,7.6,8.0,318.9,4.8,11.4,321.3,4.8,14.5,323.9,4.8,18.9,326.1,4.0,20.9,328.7,4.1,22.8,331.3,4.1,26.8,331.3,4.1,29.1,335.5,4.1,34.7,338.0,-1.6,37.7,341.9,-1.6,39.7,344.5,-1.6,43.8,343.5,-1.6,46.6,345.8,-1.6,50.3,347.3,-1.6,55.2,348.3,-3.6,56.7,351.1,-3.6,57.4,356.1,-5.5,59.2,358.9,-6.0,62.2,357.9,-6.2,65.7,359.6,-6.2,69.1,362.8,-9.6,71.6,364.8,-9.6,74.0,368.0,-9.6,77.2,368.1,-9.6,79.8,370.5,-9.6,82.2,373.0,-10.7,82.8,376.5,-10.7,86.7,376.7,-10.7,90.9,377.1,-13.3,92.7,379.6,-13.4,93.1,383.8,-14.0,94.9,386.4,-14.0,96.9,389.2,-14.0,99.1,391.1,-14.0],[0.43,0.43,0.43,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,128,[-5.8,307.0,13.8,-7.3,309.9,15.2,-8.5,314.3,15.2,-9.1,319.5,15.2,-8.9,324.4,9.4,-9.6,328.1,9.4,-9.1,332.9,9.4,-8.0,336.3,9.4,-6.1,340.4,9.4,-4.0,344.8,9.5,-4.9,348.1,9.5,-6.8,352.5,9.5,-8.5,358.0,9.5,-9.4,361.1,9.5,-8.6,364.7,9.5,-7.3,368.4,9.5,-6.5,371.9,9.5,-3.5,376.8,9.5],[1.09,1.09,1.09,1.09,1.35,1.35,1.35,1.35,1.35,1.35,1.35,1.35,1.35,1.3,1.3,1.3,1.3,1.3]],[4,130,[-3.5,376.8,9.5,-4.8,379.6,15.3,-5.2,383.1,15.3,-7.8,384.7,15.3,-8.7,387.8,15.3,-11.7,389.8,15.4,-14.9,390.5,15.5,-18.2,392.7,15.5,-19.8,394.9,19.4,-22.8,395.9,18.2,-26.6,398.8,18.0,-26.6,398.8,18.0],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[4,130,[-3.5,376.8,9.5,-1.7,380.4,9.5,0.7,384.6,9.5],[1.75,1.75,1.75]],[4,132,[0.7,384.6,9.5,3.9,386.5,9.5,7.3,390.5,8.4,9.5,392.6,8.4,13.5,395.5,8.4,18.7,395.8,8.4,22.4,396.0,8.4,25.2,394.7,8.4,28.5,394.5,8.4,31.8,396.2,8.4,35.3,398.1,8.4,39.5,399.5,8.4,43.7,400.6,8.4,44.0,405.8,8.4,47.2,407.2,8.4,50.1,408.5,8.4,53.3,410.6,8.4,55.9,411.8,6.1,59.2,414.7,6.1,64.0,416.3,6.1,67.1,416.8,6.1,71.0,417.3,6.1,74.2,419.2,6.1,76.5,422.7,6.1,79.7,425.0,6.1,81.4,428.1,6.1,80.2,429.6,6.1],[0.7,0.7,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.55,0.55,0.55,0.55,0.55,0.55,0.55,0.55,0.55,0.55,0.55,0.55,0.55,0.55]],[4,133,[80.2,429.6,6.1,81.7,431.5,1.1,85.5,434.3,1.1,85.7,438.2,1.1,88.7,441.8,-0.9,91.3,443.5,-1.0,94.2,448.4,-1.0,92.2,451.3,-1.0,93.1,454.6,-1.0,94.6,457.3,-1.1,96.4,460.9,-1.1,99.4,461.1,-4.8,101.9,463.1,-4.8,101.0,466.2,-5.9,102.2,469.3,-5.9,105.0,471.1,-5.9,106.7,473.9,-8.4,108.8,477.3,-8.4,109.8,480.1,-8.5,109.2,483.5,-8.7,110.9,486.6,-8.7,114.2,490.0,-11.2,117.4,492.1,-11.2,115.5,495.5,-13.0,118.2,499.6,-17.6,117.9,503.3,-17.6,117.8,506.7,-17.6,117.1,511.4,-17.6,119.3,514.3,-17.6,122.6,515.1,-17.6,121.9,520.4,-17.6,122.6,523.4,-17.6,126.1,525.3,-17.6,127.5,527.7,-22.2,128.0,531.5,-22.3,128.3,534.9,-22.3,134.2,536.2,-22.3,134.6,539.4,-22.3,135.9,542.3,-22.3,140.2,545.0,-22.3,138.9,548.0,-27.6,139.4,551.7,-27.6,139.7,557.0,-32.0,138.0,560.6,-32.0,142.3,561.5,-35.3,140.7,565.7,-35.5,143.1,567.9,-35.7,142.3,572.8,-36.7,142.1,576.4,-37.3,144.6,578.3,-38.1,147.8,580.4,-42.6,147.6,584.0,-44.0,149.0,588.0,-44.8,149.8,590.8,-45.7,151.0,593.7,-45.7],[0.43,0.43,0.43,0.43,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19]],[4,133,[80.2,429.6,6.1,79.2,435.2,7.8,77.8,437.9,7.8,75.9,441.3,7.8,73.8,444.3,7.8,70.7,447.6,7.8,65.5,448.3,7.8,64.1,450.8,4.3,62.3,454.9,4.3,59.1,458.5,4.3,59.0,461.8,4.3,60.5,465.3,4.3,63.3,468.1,4.3,65.7,470.2,4.3,70.1,474.5,-0.5,69.0,476.8,-2.5,68.4,480.0,-3.5,70.2,485.3,-5.1,72.3,488.7,-6.6,73.1,492.3,-6.7,73.5,493.7,-8.2],[0.48,0.48,0.48,0.48,0.48,0.48,0.48,0.48,0.48,0.48,0.48,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.6,0.6]],[4,135,[73.5,493.7,-8.2,75.8,496.3,-6.3,74.4,500.6,-6.3,77.6,503.0,-6.3,80.2,504.2,-2.7,84.1,505.7,-2.7,84.3,510.4,-2.7,84.2,513.7,-1.4,83.4,517.6,-1.2,83.1,520.6,-1.2,85.8,522.9,-1.2,88.2,525.1,-0.6,90.4,528.2,-0.6,91.9,532.0,-0.6,91.2,535.4,-0.6,90.2,538.5,-0.6,90.2,540.3,3.2,91.4,543.4,3.3,90.2,547.7,3.6,89.9,551.8,4.3,88.6,554.8,3.0,87.3,557.8,3.0,87.5,560.9,3.0,86.7,564.0,3.0,83.8,567.2,3.0,80.9,568.9,9.6,78.3,572.9,11.1,75.6,575.5,11.3,73.7,578.1,11.3,73.3,581.6,11.3,70.7,585.8,11.3,69.5,586.5,7.7,67.2,590.3,7.7,65.2,593.1,7.7,64.3,596.5,7.7,58.5,601.6,6.1,53.8,606.0,10.3,51.4,610.5,10.3,49.6,613.7,10.3,47.4,617.0,10.3,47.2,620.8,10.3,44.0,621.5,10.3,41.2,618.9,10.3,37.4,617.9,10.3,35.3,615.6,13.6,30.5,615.6,13.7,28.0,618.8,23.2,24.7,618.9,23.2,21.2,616.2,23.0,18.4,616.2,20.8,15.4,615.4,20.8,12.5,613.9,20.8],[0.36,0.36,0.36,0.36,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19]],[4,135,[73.5,493.7,-8.2,72.9,497.9,-6.4,71.0,501.5,-6.4,70.0,505.1,-6.4,71.6,510.4,-6.0,72.8,513.3,-6.0,75.9,515.7,-6.1,77.5,519.2,-6.2,77.6,522.8,-6.2,76.3,525.5,-6.2,74.4,528.9,-6.2,72.1,533.2,-6.2,69.4,536.8,-6.2,69.1,540.6,-6.2,70.5,543.8,-6.2,71.9,547.0,-6.2,72.5,551.3,0.3,73.8,556.0,0.3],[0.43,0.43,0.43,0.43,0.43,0.43,0.43,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36]],[4,137,[73.8,556.0,0.3,75.3,555.9,-7.6,74.5,560.8,-7.7,71.2,562.0,-8.4,69.4,564.9,-8.7,67.9,567.8,-8.8,64.6,568.0,-8.8,60.1,569.9,-8.8,58.5,573.1,-8.8,56.2,577.3,-15.0,55.6,580.5,-15.0,52.0,580.9,-15.0,50.5,583.8,-15.0,49.1,587.8,-16.8,46.9,589.8,-16.8,44.3,594.0,-16.8,41.1,597.3,-16.8,38.4,600.2,-16.8,34.9,599.2,-16.8,32.0,600.5,-16.8,29.3,597.8,-18.7,26.1,598.5,-18.7,26.1,600.3,-24.0,22.8,599.6,-24.0,21.6,599.3,-24.0],[0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19]],[4,137,[73.8,556.0,0.3,72.5,557.0,-7.5,74.5,560.8,-7.5,76.3,563.6,-7.5,79.8,564.5,-7.5,82.0,566.4,-3.6,78.8,569.2,-2.2,77.7,572.5,-2.1,81.7,575.3,-2.1,82.7,577.9,1.6,80.9,580.0,2.9,79.7,582.8,3.2,81.9,586.7,3.4,81.5,590.2,3.4,77.9,590.5,3.5,77.1,593.7,6.2,79.2,596.0,7.2,80.0,597.8,9.9,79.3,600.2,11.8,82.3,601.2,13.2,80.2,603.5,13.4,80.0,606.3,14.6,81.8,608.0,19.2,81.7,611.1,20.1,78.4,612.3,21.8,77.0,611.9,21.9],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,132,[0.7,384.6,9.5,1.8,386.7,11.4,3.9,390.4,11.4,7.2,394.1,11.4,10.1,397.1,11.4,12.3,401.1,7.9,10.6,406.5,7.9,10.4,407.5,7.9],[1.35,1.35,1.35,1.35,1.35,1.22,1.22,1.22]],[4,140,[10.4,407.5,7.9,12.9,408.2,13.0,14.4,412.2,13.0,17.7,414.6,13.0,20.0,420.1,13.0,22.6,421.5,13.8,27.0,423.7,15.1,31.3,425.6,16.4,33.1,426.4,16.7],[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]],[4,140,[10.4,407.5,7.9,8.9,408.2,15.8,5.0,411.5,15.8,1.5,412.6,15.8,-1.4,414.2,15.8,-3.8,416.6,15.8,-6.6,420.5,15.8,-9.7,421.0,15.8,-14.6,422.5,15.8,-16.9,424.5,15.8,-20.7,428.6,15.8,-23.6,435.6,15.8,-23.4,440.8,7.2,-22.2,446.5,7.2,-23.5,449.7,7.2,-27.5,455.1,7.5,-30.8,459.4,7.5,-32.6,462.3,7.5,-34.7,464.5,7.5,-36.9,467.1,7.5,-40.8,469.6,7.5,-41.3,471.5,7.5],[1.1,1.1,1.1,1.1,0.95,0.95,0.95,0.95,0.95,0.85,0.85,0.85,0.85,0.85,0.85,0.85,0.85,0.85,1.1,1.1,1.1,1.1]],[4,142,[-41.3,471.5,7.5,-41.1,474.7,8.2,-39.3,478.0,8.2,-35.7,479.7,4.3,-35.7,483.3,4.3,-34.1,486.8,4.3,-32.3,489.4,4.3,-31.0,492.3,4.9,-30.0,495.9,5.2,-33.0,498.7,5.2,-35.2,501.5,5.2,-35.8,504.7,5.2,-35.9,507.7,5.2,-34.5,511.2,5.2,-34.6,514.2,1.7,-33.6,517.9,1.7,-33.4,523.0,0.4,-32.2,525.9,0.4],[0.7,0.7,0.7,0.7,0.7,0.7,0.55,0.55,0.55,0.55,0.55,0.55,0.55,0.55,0.38,0.38,0.38,0.38]],[4,143,[-32.2,525.9,0.4,-31.9,527.8,-9.6,-33.2,530.6,-9.6,-31.3,533.1,-9.6,-31.4,537.0,-12.5,-33.5,539.5,-13.0,-32.6,542.6,-13.1,-31.6,545.4,-13.1,-33.1,549.1,-18.6,-29.3,551.9,-19.2,-31.2,554.5,-19.2,-31.3,555.7,-25.3,-30.0,559.2,-25.3,-27.4,561.7,-27.4,-25.3,563.0,-29.2,-26.0,566.7,-30.2,-28.3,568.9,-30.2,-26.2,573.1,-30.9,-26.4,574.0,-35.3,-29.4,576.8,-35.4,-30.1,580.3,-35.4,-28.7,583.7,-35.4,-26.3,587.7,-33.5,-26.1,590.8,-33.5,-29.7,594.0,-33.8,-31.1,595.7,-40.6,-33.1,597.2,-43.4,-35.0,598.8,-45.7,-39.4,599.4,-46.4,-39.0,602.6,-47.1,-44.4,601.4,-53.8,-47.2,605.3,-53.9,-50.2,607.4,-54.5,-50.5,607.5,-54.5],[0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,143,[-32.2,525.9,0.4,-33.1,529.3,4.0,-34.0,532.9,4.0,-35.9,537.1,0.6,-36.8,540.4,0.3,-36.7,544.0,0.2,-36.9,546.6,0.2],[0.31,0.31,0.31,0.31,0.31,0.31,0.31]],[4,145,[-36.9,546.6,0.2,-37.2,550.6,0.1,-35.3,553.9,0.1,-33.2,556.3,0.1,-32.5,560.1,0.1,-33.4,563.4,0.1,-34.6,568.0,0.1,-32.8,571.6,0.1,-29.3,572.7,0.1,-25.7,574.0,0.1,-23.0,577.0,0.1,-22.3,580.0,3.2,-23.9,584.5,3.2,-23.1,588.0,3.2,-21.2,592.1,3.3,-20.6,595.4,10.7,-17.6,599.3,10.7,-18.0,603.5,10.7,-18.4,608.8,10.7,-15.5,610.4,10.7,-12.5,609.4,10.7,-7.0,608.5,10.7,-2.5,608.2,6.1,0.7,607.5,6.1,3.9,607.0,6.1,8.7,609.6,6.1,12.8,611.7,6.1,17.4,612.4,6.1,19.6,615.3,6.1,20.9,619.0,6.1,23.9,620.0,6.1],[0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19]],[4,145,[-36.9,546.6,0.2,-38.0,552.5,-6.7,-37.7,557.2,-6.7,-38.9,560.7,-6.7,-38.4,564.4,-6.7,-39.5,567.7,-9.4,-42.1,569.9,-9.4,-44.2,574.2,-9.4,-41.2,574.0,-9.4,-38.2,575.0,-9.4,-38.0,578.2,-13.6,-35.9,580.8,-13.6,-37.2,582.5,-17.8,-34.5,584.8,-17.8,-31.4,587.1,-24.9,-30.7,590.4,-24.9,-28.7,593.0,-24.9,-27.7,596.1,-24.9,-28.7,600.5,-24.9,-26.2,602.6,-24.9,-23.8,603.8,-28.8,-25.3,606.7,-28.8,-24.6,610.8,-28.8],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,142,[-41.3,471.5,7.5,-43.2,472.1,13.3,-45.8,475.5,13.3,-48.7,477.8,13.3,-50.4,480.5,13.3,-51.8,484.7,13.3,-52.2,485.4,13.3],[0.36,0.36,0.36,0.36,0.36,0.36,0.36]],[4,148,[-52.2,485.4,13.3,-54.8,488.6,12.1,-54.8,492.4,12.1,-58.3,493.3,12.1,-58.7,496.6,15.3,-61.6,498.1,15.3,-60.8,501.7,15.3,-62.4,504.3,17.0,-64.8,506.5,20.1,-66.9,509.0,20.1,-68.9,510.6,20.1],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22]],[4,148,[-52.2,485.4,13.3,-51.6,491.7,10.2,-49.9,495.5,10.2,-48.7,498.4,10.2,-46.2,500.4,10.2,-47.1,506.6,10.2,-48.9,509.7,9.9,-52.9,512.5,6.4,-55.8,516.1,6.4,-56.4,519.3,6.4,-56.8,522.5,6.4,-57.6,524.9,1.1,-59.9,526.8,1.1,-61.8,531.0,1.1,-61.8,534.1,1.1,-64.8,535.8,1.1,-68.1,537.0,3.4,-68.4,540.0,3.4,-70.0,545.0,3.4,-72.8,547.3,3.4,-74.9,550.4,3.4,-78.5,551.0,3.4],[0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.36,0.31,0.31,0.31,0.31,0.31,0.31,0.31,0.31]],[4,150,[-78.5,551.0,3.4,-80.2,550.8,-4.2,-80.7,554.5,-4.2,-78.4,557.0,-4.2,-76.7,561.0,-4.2,-73.8,562.3,-4.2,-71.0,565.1,-4.2,-71.9,568.4,-4.2,-70.9,571.3,-7.9,-72.7,574.2,-7.9,-72.5,577.3,-7.9,-70.4,579.9,-11.2,-71.2,583.6,-11.2,-72.0,586.7,-11.2,-72.6,589.9,-11.2,-71.1,592.8,-11.2,-70.7,596.0,-11.2,-70.1,601.3,-14.9,-70.2,604.4,-14.9,-68.3,607.7,-14.9,-65.9,610.2,-14.9,-65.4,613.6,-14.9,-67.5,615.9,-14.9],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19,0.19,0.19]],[4,150,[-78.5,551.0,3.4,-76.1,552.9,3.4,-74.3,556.5,-13.6,-74.8,559.7,-14.4,-75.2,563.7,-15.5,-75.6,567.4,-15.6,-74.8,571.0,-15.6,-75.6,573.9,-16.6,-74.6,576.7,-17.5,-76.8,579.2,-17.5,-76.4,582.4,-17.5,-75.6,586.0,-17.5,-74.9,589.0,-20.2,-74.1,592.0,-20.2,-76.9,593.9,-20.2,-76.1,597.4,-20.3,-75.5,599.1,-23.5,-77.0,602.9,-23.5,-76.7,607.3,-23.5,-77.5,610.4,-23.5,-77.0,612.4,-23.5],[0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.22,0.19,0.19,0.19,0.19,0.19]]]};</script>
+<script>
+/* CA1 Morphology Lab · engine.js
+   The same model as ca1_morph.py, line for line, so the page and Python give the same numbers.
+   Units: t ms · V mV · µm · C nF · g µS · I nA.   g(µS) = gbar(mS/cm²) × area(µm²) × 1e-5. */
+var LAB = (function () {
+  "use strict";
+
+  function defaults() {
+    return {
+      Cm: 1.0, Rm: 30000, Ra: 150, E_L: -70, soma_diam: 20, spine_factor: 2.0, spine_start: 100, max_seg: 20,
+      gh_soma: 0.05, gh_fold: 6, gh_dist: 350, E_h: -30, h_vhalf: -90, h_k: 8.5,
+      h_kin: "bell", h_tau_peak: 40, h_vtau: -75, h_tau_scale: 1,
+      spikes: false, g_na: 50, g_kdr: 10, g_na_dend: 0, VT: -58, E_Na: 50, E_K: -90,
+      g_m_soma: 0, m_taumax: 1000, dt: 0.025
+    };
+  }
+
+  /* ---------- 1. morphology -> compartments ---------- */
+  function build(morph, p) {
+    var soma = morph.soma, a2 = 0, ns = soma.length / 2;
+    for (var i = 0; i < ns; i++) {          // shoelace area of the soma outline
+      var j = (i + ns - 1) % ns;
+      a2 += soma[2 * i] * soma[2 * j + 1] - soma[2 * i + 1] * soma[2 * j];
+    }
+    var rs = p.soma_diam > 0 ? p.soma_diam / 2 : Math.sqrt(Math.abs(a2) / 2 / Math.PI);   // outline area -> equivalent sphere
+    var C = { parent: [-1], length: [2 * rs], diam: [2 * rs], area: [4 * Math.PI * rs * rs], dist: [0], kind: [1],
+              x: [0], y: [0], draw: [], rs: rs };
+    var secLast = [], secEnd = [];
+    morph.sections.forEach(function (sec) {
+      var typ = sec[0], par = sec[1], P = sec[2], R = sec[3], np_ = R.length;
+      var s = [0];
+      for (var k = 1; k < np_; k++) {
+        var dx = P[3 * k] - P[3 * k - 3], dy = P[3 * k + 1] - P[3 * k - 2], dz = P[3 * k + 2] - P[3 * k - 1];
+        s.push(s[k - 1] + Math.sqrt(dx * dx + dy * dy + dz * dz));
+      }
+      var Ls = s[np_ - 1] > 0 ? s[np_ - 1] : 1e-3;
+      var nseg = Math.max(1, Math.ceil(Ls / p.max_seg));
+      var prev = par < 0 ? 0 : secLast[par], d0 = par < 0 ? 0 : secEnd[par], first = C.parent.length;
+      for (var q = 0; q < nseg; q++) {
+        var a = Ls * q / nseg, b = Ls * (q + 1) / nseg, rr = 0;
+        for (var u = 0; u < 5; u++) rr += interp(a + (b - a) * u / 4, s, R);
+        var dk = 2 * rr / 5, Lk = b - a, dd = d0 + (a + b) / 2, sf = dd > p.spine_start ? p.spine_factor : 1;
+        C.parent.push(prev); C.length.push(Lk); C.diam.push(dk); C.area.push(Math.PI * dk * Lk * sf);
+        C.dist.push(dd); C.kind.push(typ);
+        C.x.push(interpXYZ((a + b) / 2, s, P, 0)); C.y.push(interpXYZ((a + b) / 2, s, P, 1));
+        prev = C.parent.length - 1;
+      }
+      secLast.push(prev); secEnd.push(d0 + Ls);
+      for (var k2 = 0; k2 < np_ - 1; k2++) {
+        var sm = 0.5 * (s[k2] + s[k2 + 1]);
+        var ci = first + Math.min(nseg - 1, Math.floor(sm / Ls * nseg));
+        C.draw.push([P[3 * k2], P[3 * k2 + 1], P[3 * k2 + 3], P[3 * k2 + 4], ci, R[k2] + R[k2 + 1]]);
+      }
+    });
+    var n = C.parent.length;
+    C.n = n;
+    C.gax = new Float64Array(n);
+    function half(j) {
+      if (j === 0) return 0;
+      var Lcm = C.length[j] * 1e-4 / 2, rcm = C.diam[j] * 1e-4 / 2;
+      return p.Ra * Lcm / (Math.PI * rcm * rcm);          // Ω
+    }
+    for (var i2 = 1; i2 < n; i2++) C.gax[i2] = 1e6 / (half(i2) + half(C.parent[i2]));   // µS
+    C.axsum = new Float64Array(n);
+    for (var i3 = 1; i3 < n; i3++) { C.axsum[i3] += C.gax[i3]; C.axsum[C.parent[i3]] += C.gax[i3]; }
+    return C;
+  }
+  function interp(x, xs, ys) {
+    if (x <= xs[0]) return ys[0];
+    for (var i = 1; i < xs.length; i++) if (x <= xs[i]) { var t = (x - xs[i - 1]) / ((xs[i] - xs[i - 1]) || 1); return ys[i - 1] + t * (ys[i] - ys[i - 1]); }
+    return ys[ys.length - 1];
+  }
+  function interpXYZ(x, xs, P, c) {
+    var ys = []; for (var i = 0; i < xs.length; i++) ys.push(P[3 * i + c]);
+    return interp(x, xs, ys);
+  }
+
+  /* ---------- 2. channel densities (µS per compartment) ---------- */
+  function densities(C, p) {
+    var n = C.n, D = { C: new Float64Array(n), gL: new Float64Array(n), gh: new Float64Array(n), gna: new Float64Array(n),
+                        gk: new Float64Array(n), gm: new Float64Array(n), ghDensity: new Float64Array(n) };
+    for (var i = 0; i < n; i++) {
+      var A = C.area[i] * 1e-5, k = C.kind[i], d = C.dist[i];
+      var frac = Math.min(Math.max(d / p.gh_dist, 0), 1);
+      var gh = k === 4 ? p.gh_soma * (1 + (p.gh_fold - 1) * frac) : p.gh_soma;
+      var near = k === 1 || (k === 4 && d < 50);
+      D.C[i] = p.Cm * A; D.gL[i] = A / p.Rm * 1e3; D.gh[i] = gh * A; D.ghDensity[i] = gh;
+      D.gna[i] = p.spikes ? (near ? p.g_na : k === 4 ? p.g_na_dend : 0) * A : 0;
+      D.gk[i] = p.spikes ? (near ? p.g_kdr : k === 4 ? 0.4 * p.g_kdr : 0) * A : 0;
+      D.gm[i] = k === 1 ? p.g_m_soma * A : 0;
+    }
+    return D;
+  }
+
+  /* ---------- 3. gates ---------- */
+  function hInf(V, p) { return 1 / (1 + Math.exp((V - p.h_vhalf) / p.h_k)); }
+  function tauH(V, p) {
+    var t = p.h_kin === "lowet2023"
+      ? 1 / (Math.exp(-17.9 - 0.116 * V) + Math.exp(-1.84 + 0.09 * V)) + 0.1
+      : 2 * p.h_tau_peak / (Math.exp((V - p.h_vtau) / 15) + Math.exp(-(V - p.h_vtau) / 15));
+    return p.h_tau_scale * t;
+  }
+  function vtrap(x, y) { return Math.abs(x / y) < 1e-6 ? y * (1 - x / y / 2) : x / (Math.exp(x / y) - 1); }
+  function naRates(V, p) { var u = V - p.VT; return [0.32 * vtrap(13 - u, 4), 0.28 * vtrap(u - 40, 5), 0.128 * Math.exp((17 - u) / 18), 4 / (1 + Math.exp((40 - u) / 5))]; }
+  function kRates(V, p) { var u = V - p.VT; return [0.032 * vtrap(15 - u, 5), 0.5 * Math.exp((10 - u) / 40)]; }
+  function mInf(V) { return 1 / (1 + Math.exp(-(V + 35) / 10)); }
+  function tauM(V, p) { return p.m_taumax / (3.3 * Math.exp((V + 35) / 20) + Math.exp(-(V + 35) / 20)); }
+
+  /* ---------- 4. Hines solver (real) ----------
+     Each row: d[i]·V[i] − gax[i]·V[parent] − Σchildren gax[c]·V[c] = b[i].  Parent index < child index. */
+  function hines(par, gax, d, b, V) {
+    var n = d.length;
+    for (var i = n - 1; i > 0; i--) { var f = gax[i] / d[i], q = par[i]; d[q] -= f * gax[i]; b[q] += f * b[i]; }
+    V[0] = b[0] / d[0];
+    for (var i2 = 1; i2 < n; i2++) V[i2] = (b[i2] + gax[i2] * V[par[i2]]) / d[i2];
+    return V;
+  }
+  /* complex version: separate real/imag arrays */
+  function hinesC(par, gax, dr, di, br, bi, Vr, Vi) {
+    var n = dr.length;
+    for (var i = n - 1; i > 0; i--) {
+      var q = par[i], den = dr[i] * dr[i] + di[i] * di[i];
+      var fr = gax[i] * dr[i] / den, fi = -gax[i] * di[i] / den;          // f = gax / d
+      dr[q] -= fr * gax[i]; di[q] -= fi * gax[i];
+      br[q] += fr * br[i] - fi * bi[i]; bi[q] += fr * bi[i] + fi * br[i];
+    }
+    var d0 = dr[0] * dr[0] + di[0] * di[0];
+    Vr[0] = (br[0] * dr[0] + bi[0] * di[0]) / d0; Vi[0] = (bi[0] * dr[0] - br[0] * di[0]) / d0;
+    for (var j = 1; j < n; j++) {
+      var nr = br[j] + gax[j] * Vr[par[j]], ni = bi[j] + gax[j] * Vi[par[j]], dd = dr[j] * dr[j] + di[j] * di[j];
+      Vr[j] = (nr * dr[j] + ni * di[j]) / dd; Vi[j] = (ni * dr[j] - nr * di[j]) / dd;
+    }
+  }
+
+  /* ---------- 5. exact resting state ---------- */
+  function rest(C, p, D) {
+    var n = C.n, V = new Float64Array(n).fill(p.E_L), Vn = new Float64Array(n), d = new Float64Array(n), b = new Float64Array(n);
+    for (var it = 0; it < 80; it++) {
+      for (var i = 0; i < n; i++) {
+        var h = hInf(V[i], p), gm = D.gm[i] * mInf(V[i]);
+        d[i] = D.gL[i] + D.gh[i] * h + gm + C.axsum[i];
+        b[i] = D.gL[i] * p.E_L + D.gh[i] * h * p.E_h + gm * p.E_K;
+      }
+      hines(C.parent, C.gax, d, b, Vn);
+      var err = 0;
+      for (var k = 0; k < n; k++) { err = Math.max(err, Math.abs(Vn[k] - V[k])); V[k] = 0.5 * V[k] + 0.5 * Vn[k]; }
+      if (err < 1e-7) break;
+    }
+    return V;
+  }
+
+  /* ---------- 6. time simulation (generator: runs in chunks so the page stays responsive) ---------- */
+  function Sim(C, p, opts) {
+    var D = densities(C, p), n = C.n, dt = p.dt;
+    var V = rest(C, p, D), h = new Float64Array(n), m = new Float64Array(n), hn = new Float64Array(n), nk = new Float64Array(n), z = new Float64Array(n);
+    for (var i = 0; i < n; i++) {
+      h[i] = hInf(V[i], p); var r = naRates(V[i], p), kr = kRates(V[i], p);
+      m[i] = r[0] / (r[0] + r[1]); hn[i] = r[2] / (r[2] + r[3]); nk[i] = kr[0] / (kr[0] + kr[1]); z[i] = mInf(V[i]);
+    }
+    var d = new Float64Array(n), b = new Float64Array(n), Vn = new Float64Array(n);
+    var step = 0, nsteps = Math.round(opts.T / dt), save = Math.max(1, Math.round((opts.every || 0.5) / dt));
+    var out = { t: [], Vrec: opts.record.map(function () { return []; }), frames: [], spikes: [], V0: Float64Array.from(V) };
+    this.out = out; this.D = D;
+    this.run = function (budgetSteps) {
+      var end = Math.min(nsteps, step + budgetSteps);
+      for (; step <= end; step++) {
+        var t = step * dt;
+        if (step % save === 0) {
+          out.t.push(t); opts.record.forEach(function (c, j) { out.Vrec[j].push(V[c]); });
+          if (opts.frames) out.frames.push(Float32Array.from(V));
+        }
+        var Iinj = opts.I(t);
+        for (var i = 0; i < n; i++) {
+          var v = V[i];
+          var hi = hInf(v, p); h[i] = hi + (h[i] - hi) * Math.exp(-dt / tauH(v, p));
+          var G = D.gL[i] + D.gh[i] * h[i], E = D.gL[i] * p.E_L + D.gh[i] * h[i] * p.E_h;
+          if (D.gna[i] > 0 || D.gk[i] > 0) {
+            var r = naRates(v, p), kr = kRates(v, p), tm = 1 / (r[0] + r[1]), th = 1 / (r[2] + r[3]), tk = 1 / (kr[0] + kr[1]);
+            m[i] = r[0] * tm + (m[i] - r[0] * tm) * Math.exp(-dt / tm);
+            hn[i] = r[2] * th + (hn[i] - r[2] * th) * Math.exp(-dt / th);
+            nk[i] = kr[0] * tk + (nk[i] - kr[0] * tk) * Math.exp(-dt / tk);
+            var gna = D.gna[i] * m[i] * m[i] * m[i] * hn[i], gk = D.gk[i] * nk[i] * nk[i] * nk[i] * nk[i];
+            G += gna + gk; E += gna * p.E_Na + gk * p.E_K;
+          }
+          if (D.gm[i] > 0) { var zi = mInf(v); z[i] = zi + (z[i] - zi) * Math.exp(-dt / tauM(v, p)); var gmm = D.gm[i] * z[i]; G += gmm; E += gmm * p.E_K; }
+          d[i] = D.C[i] / dt + G + C.axsum[i];
+          b[i] = D.C[i] / dt * v + E + (i === opts.site ? Iinj : 0) + (i === 0 ? (opts.hold || 0) : 0);
+        }
+        var v0 = V[0];
+        hines(C.parent, C.gax, d, b, Vn);
+        V.set(Vn);
+        if (v0 < 0 && V[0] >= 0) out.spikes.push(t);
+      }
+      return step > nsteps;
+    };
+    this.progress = function () { return Math.min(1, step / nsteps); };
+  }
+
+  /* ---------- 7. impedance (quasi-active, complex Hines) ---------- */
+  function admittance(C, p, D, V0, f, yr, yi) {
+    var w = 2 * Math.PI * f / 1000;
+    for (var i = 0; i < C.n; i++) {
+      var v = V0[i], hi = hInf(v, p), dhi = -hi * (1 - hi) / p.h_k, th = tauH(v, p);
+      var a = D.gh[i] * (v - p.E_h) * dhi, den = 1 + w * w * th * th;     // a / (1 + iωτ)
+      yr[i] = D.gL[i] + D.gh[i] * hi + a / den + C.axsum[i];
+      yi[i] = w * D.C[i] - a * w * th / den;
+      if (D.gm[i] > 0) {
+        var zi = mInf(v), dzi = zi * (1 - zi) / 10, tm = tauM(v, p), am = D.gm[i] * (v - p.E_K) * dzi, dm = 1 + w * w * tm * tm;
+        yr[i] += D.gm[i] * zi + am / dm; yi[i] -= am * w * tm / dm;
+      }
+    }
+  }
+  /* Z from one site to every compartment, for each frequency: returns {abs:[f][n], phase:[f][n]} */
+  function impedanceFrom(C, p, site, freqs, V0) {
+    var D = densities(C, p); V0 = V0 || rest(C, p, D);
+    var n = C.n, yr = new Float64Array(n), yi = new Float64Array(n), br = new Float64Array(n), bi = new Float64Array(n),
+        Vr = new Float64Array(n), Vi = new Float64Array(n), abs = [], ph = [];
+    freqs.forEach(function (f) {
+      admittance(C, p, D, V0, f, yr, yi);
+      br.fill(0); bi.fill(0); br[site] = 1;
+      hinesC(C.parent, C.gax, Float64Array.from(yr), Float64Array.from(yi), br, bi, Vr, Vi);
+      var a = new Float64Array(n), q = new Float64Array(n);
+      for (var i = 0; i < n; i++) { a[i] = Math.hypot(Vr[i], Vi[i]); q[i] = Math.atan2(Vi[i], Vr[i]); }
+      abs.push(a); ph.push(q);
+    });
+    return { abs: abs, phase: ph, V0: V0 };
+  }
+  /* local resonance at every compartment (N solves per frequency) */
+  function resonanceMap(C, p, freqs, onProgress) {
+    var D = densities(C, p), V0 = rest(C, p, D), n = C.n;
+    var Z = freqs.map(function () { return new Float64Array(n); });
+    var yr = new Float64Array(n), yi = new Float64Array(n), br = new Float64Array(n), bi = new Float64Array(n),
+        Vr = new Float64Array(n), Vi = new Float64Array(n), dr = new Float64Array(n), di = new Float64Array(n);
+    freqs.forEach(function (f, fi) {
+      admittance(C, p, D, V0, f, yr, yi);
+      for (var s = 0; s < n; s++) {
+        dr.set(yr); di.set(yi); br.fill(0); bi.fill(0); br[s] = 1;
+        hinesC(C.parent, C.gax, dr, di, br, bi, Vr, Vi);
+        Z[fi][s] = Math.hypot(Vr[s], Vi[s]);
+      }
+    });
+    var fres = new Float64Array(n), Q = new Float64Array(n);
+    for (var s2 = 0; s2 < n; s2++) {
+      var k = 0; for (var fi2 = 1; fi2 < freqs.length; fi2++) if (Z[fi2][s2] > Z[k][s2]) k = fi2;
+      fres[s2] = freqs[k]; Q[s2] = Z[k][s2] / Z[0][s2];
+    }
+    return { fres: fres, Q: Q, Z: Z, V0: V0 };
+  }
+
+  return { defaults: defaults, build: build, densities: densities, rest: rest, Sim: Sim,
+           impedanceFrom: impedanceFrom, resonanceMap: resonanceMap, hInf: hInf, tauH: tauH };
+})();
+
+
+</script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var MORPH = window.CA1_MORPH;
+  var P = LAB.defaults(), C = null, cache = {};
+  var site = 0, view = { s: 1, ox: 0, oy: 0 }, sim = null, simOut = null, frameIdx = -1, playing = false, lastAction = "run";
+
+  /* ---------------- parameters <-> controls ---------------- */
+  var UNITS = { gh_soma: [" mS/cm²", 3], gh_fold: ["×", 1], gh_dist: [" µm", 0], h_vhalf: [" mV", 1], h_k: [" mV", 1], h_tau_peak: [" ms", 0],
+    h_tau_scale: ["×", 2], g_na: [" mS/cm²", 0], g_kdr: [" mS/cm²", 1], g_na_dend: [" mS/cm²", 1], VT: [" mV", 1], g_m_soma: [" mS/cm²", 2],
+    Rm: [" Ω·cm²", 0], Cm: [" µF/cm²", 2], Ra: [" Ω·cm", 0], E_L: [" mV", 1], spine_factor: ["×", 1], soma_diam: [" µm", 0], max_seg: [" µm", 0] };
+  var GEOM = { Ra: 1, spine_factor: 1, soma_diam: 1, max_seg: 1 };
+  function bindParams() {
+    Object.keys(UNITS).forEach(function (k) {
+      var el = $(k); if (!el) return;
+      el.value = P[k];
+      var out = el.parentNode.querySelector("output");
+      var show = function () { if (out) out.textContent = (+el.value).toFixed(UNITS[k][1]) + UNITS[k][0]; };
+      show();
+      el.oninput = function () { P[k] = +el.value; show(); changed(GEOM[k]); };
+    });
+    $("h_kin").value = P.h_kin; $("h_kin").onchange = function () { P.h_kin = this.value; changed(false); };
+    $("spikes").checked = P.spikes; $("spikes").onchange = function () { P.spikes = this.checked; changed(false); };
+  }
+  var STIM = { stype: "step", samp: 0.2, sfreq: 8, sdur: 500, shold: 0 };
+  function bindStim() {
+    var fmt = { samp: function (v) { return (+v).toFixed(2) + " nA"; }, sfreq: function (v) { return (+v).toFixed(1) + " Hz"; }, sdur: function (v) { return v + " ms"; }, shold: function (v) { return (+v).toFixed(3) + " nA"; } };
+    ["samp", "sfreq", "sdur", "shold"].forEach(function (k) {
+      var el = $(k); el.value = STIM[k]; var o = $("o-" + k);
+      var show = function () { o.textContent = fmt[k](el.value); };
+      show(); el.oninput = function () { STIM[k] = +el.value; show(); codeUpdate(); };
+    });
+    $("stype").value = STIM.stype;
+    $("stype").onchange = function () { STIM.stype = this.value; $("row-freq").style.opacity = (this.value === "sine" || this.value === "epsp") ? 1 : 0.4; codeUpdate(); };
+  }
+  var rebuildTimer = null;
+  function changed(geom) {
+    cache = {};
+    if (geom) { clearTimeout(rebuildTimer); rebuildTimer = setTimeout(function () { C = LAB.build(MORPH, P); if (site >= C.n) site = 0; simOut = null; frameIdx = -1; $("scrub").disabled = true; $("play").disabled = true; render(); badge(); codeUpdate(); }, 120); return; }
+    render(); badge(); codeUpdate();
+    if ($("zc").dataset.on) { clearTimeout(zT); zT = setTimeout(doImpedance, 150); }
+    if (cache.mapWanted) {}
+  }
+  var zT = null;
+
+  /* ---------------- derived quantities (cached) ---------------- */
+  function rest() { if (!cache.V0) cache.V0 = LAB.rest(C, P, LAB.densities(C, P)); return cache.V0; }
+  function dens() { if (!cache.D) cache.D = LAB.densities(C, P); return cache.D; }
+  var MAPF = [0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20];
+  function map() { if (!cache.map) cache.map = LAB.resonanceMap(C, P, MAPF); return cache.map; }
+  function atF(f) {                         // transfer to soma and local Z at one frequency, every compartment
+    var key = "f" + f; if (cache[key]) return cache[key];
+    var V0 = rest(), tr = LAB.impedanceFrom(C, P, 0, [f], V0).abs[0];   // reciprocity: soma->site = site->soma
+    var loc = new Float64Array(C.n);
+    var one = LAB.resonanceMap ? null : null;
+    // local input impedance at f for every site (N solves)
+    var m = localAt(f, V0);
+    for (var i = 0; i < C.n; i++) loc[i] = m[i];
+    cache[key] = { tr: tr, loc: loc }; return cache[key];
+  }
+  function localAt(f, V0) {
+    var r = LAB.resonanceMap(C, P, [f]);
+    return r.Z[0];
+  }
+
+  /* ---------------- colour maps ---------------- */
+  var SEQ = [[13, 8, 135], [84, 2, 163], [139, 10, 165], [185, 50, 137], [219, 92, 104], [244, 136, 73], [254, 188, 43], [240, 249, 33]];
+  function seq(t) { t = Math.max(0, Math.min(1, t)); var x = t * (SEQ.length - 1), i = Math.min(SEQ.length - 2, Math.floor(x)), u = x - i, a = SEQ[i], b = SEQ[i + 1];
+    return "rgb(" + Math.round(a[0] + u * (b[0] - a[0])) + "," + Math.round(a[1] + u * (b[1] - a[1])) + "," + Math.round(a[2] + u * (b[2] - a[2])) + ")"; }
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  function colourValues() {
+    var mode = $("colorby").value, f = +$("viewf").value, n = C.n, v = new Float64Array(n), lab = "", lo, hi, unit = "";
+    if (mode === "type") return null;
+    if (mode === "dist") { for (var i = 0; i < n; i++) v[i] = C.dist[i]; lab = "path distance"; unit = " µm"; }
+    else if (mode === "gh") { var D = dens(); for (var i2 = 0; i2 < n; i2++) v[i2] = D.ghDensity[i2]; lab = "I_h density"; unit = " mS/cm²"; }
+    else if (mode === "rest") { var V0 = rest(); v.set(V0); lab = "resting V"; unit = " mV"; }
+    else if (mode === "volt") {
+      if (simOut && frameIdx >= 0) { v.set(simOut.frames[frameIdx]); lo = -75; hi = 20; lab = "V at t = " + simOut.t[frameIdx].toFixed(1) + " ms"; unit = " mV"; }
+      else { v.set(rest()); lab = "V (run a simulation to animate)"; unit = " mV"; }
+    }
+    else if (mode === "transfer") { var a = atF(f); v.set(a.tr); lab = "|Z transfer to soma| at " + f + " Hz"; unit = " MΩ"; }
+    else if (mode === "atten") { var b = atF(f); for (var i3 = 0; i3 < n; i3++) v[i3] = b.tr[i3] / b.loc[i3]; lab = "V_soma / V_site at " + f + " Hz"; lo = 0; hi = 1; }
+    else if (mode === "fres") { v.set(map().fres); lab = "local resonance frequency"; unit = " Hz"; lo = 0.5; hi = 12; }
+    else if (mode === "Q") { v.set(map().Q); lab = "local resonance strength Q"; lo = 1; }
+    else if (mode === "rin") { var M = map(); for (var i4 = 0; i4 < n; i4++) v[i4] = Math.log10(M.Z[0][i4]); lab = "local input resistance (log10 MΩ, 0.5 Hz)"; }
+    if (lo === undefined || hi === undefined) {
+      var mn = Infinity, mx = -Infinity; for (var k = 0; k < n; k++) { if (v[k] < mn) mn = v[k]; if (v[k] > mx) mx = v[k]; }
+      if (lo === undefined) lo = mn; if (hi === undefined) hi = mx; if (hi - lo < 1e-9) hi = lo + 1;
+    }
+    return { v: v, lo: lo, hi: hi, lab: lab, unit: unit };
+  }
+
+  /* ---------------- canvas ---------------- */
+  var cv = $("cv"), ctx = cv.getContext("2d"), bbox = null;
+  function fit() {
+    var xs = [], ys = []; C.draw.forEach(function (d) { xs.push(d[0], d[2]); ys.push(d[1], d[3]); });
+    var minx = Math.min.apply(null, xs), maxx = Math.max.apply(null, xs), miny = Math.min.apply(null, ys), maxy = Math.max.apply(null, ys);
+    var W = cv.clientWidth, H = cv.clientHeight, s = 0.9 * Math.min(W / (maxx - minx), H / (maxy - miny));
+    view.s = s; view.ox = W / 2 - s * (minx + maxx) / 2; view.oy = H / 2 + s * (miny + maxy) / 2;
+  }
+  function X(x) { return view.ox + x * view.s; } function Y(y) { return view.oy - y * view.s; }
+  function render() {
+    var dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    var cvals = colourValues(), apical = css("--apical"), basal = css("--basal"), soma = css("--soma");
+    ctx.lineCap = "round";
+    for (var k = 0; k < C.draw.length; k++) {
+      var d = C.draw[k], ci = d[4];
+      ctx.strokeStyle = cvals ? seq((cvals.v[ci] - cvals.lo) / (cvals.hi - cvals.lo)) : (C.kind[ci] === 4 ? apical : basal);
+      ctx.lineWidth = Math.max(1.1, d[5] * view.s);
+      ctx.beginPath(); ctx.moveTo(X(d[0]), Y(d[1])); ctx.lineTo(X(d[2]), Y(d[3])); ctx.stroke();
+    }
+    ctx.fillStyle = cvals ? seq((cvals.v[0] - cvals.lo) / (cvals.hi - cvals.lo)) : soma;
+    ctx.beginPath(); ctx.arc(X(0), Y(0), Math.max(4, C.rs * view.s), 0, 2 * Math.PI); ctx.fill();
+    // site marker
+    var sx = X(C.x[site]), sy = Y(C.y[site]);
+    ctx.strokeStyle = css("--ink"); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(sx, sy, 9, 0, 2 * Math.PI); ctx.stroke();
+    ctx.strokeStyle = css("--bg"); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(sx, sy, 12, 0, 2 * Math.PI); ctx.stroke();
+    ctx.fillStyle = css("--ink"); ctx.font = "600 12px system-ui"; ctx.fillText("stim", sx + 15, sy - 10);
+    // scale bar 100 µm
+    var L = 100 * view.s; ctx.strokeStyle = css("--muted"); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(16, H - 18); ctx.lineTo(16 + L, H - 18); ctx.stroke();
+    ctx.fillStyle = css("--muted"); ctx.font = "11px system-ui"; ctx.fillText("100 µm", 16, H - 24);
+    legend(cvals);
+  }
+  function legend(c) {
+    var el = $("legend");
+    if (!c) { el.innerHTML = '<span style="color:var(--apical)">■</span> apical dendrite <span style="color:var(--basal)">■</span> basal dendrite <span>●</span> soma · ' + C.n + " compartments"; return; }
+    var stops = []; for (var i = 0; i <= 10; i++) stops.push(seq(i / 10) + " " + i * 10 + "%");
+    el.innerHTML = "<span>" + c.lab + "</span><span>" + fmtv(c.lo) + c.unit + '</span><span class="cbar" style="background:linear-gradient(90deg,' + stops.join(",") + ')"></span><span>' + fmtv(c.hi) + c.unit + "</span>";
+  }
+  function fmtv(x) { return Math.abs(x) >= 100 ? x.toFixed(0) : Math.abs(x) >= 10 ? x.toFixed(1) : x.toFixed(2); }
+
+  // pointer: pan, zoom, click
+  var ptrs = {}, dragged = false, last = null, pinch = null;
+  cv.addEventListener("pointerdown", function (e) { cv.setPointerCapture(e.pointerId); ptrs[e.pointerId] = { x: e.offsetX, y: e.offsetY }; dragged = false; last = { x: e.offsetX, y: e.offsetY }; });
+  cv.addEventListener("pointermove", function (e) {
+    if (!ptrs[e.pointerId]) return;
+    var ids = Object.keys(ptrs);
+    if (ids.length === 2) {
+      ptrs[e.pointerId] = { x: e.offsetX, y: e.offsetY };
+      var a = ptrs[ids[0]], b = ptrs[ids[1]], dd = Math.hypot(a.x - b.x, a.y - b.y), cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+      if (pinch) zoomAt(cx, cy, dd / pinch); pinch = dd; dragged = true; return;
+    }
+    var dx = e.offsetX - last.x, dy = e.offsetY - last.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) dragged = true;
+    if (dragged) { view.ox += dx; view.oy += dy; last = { x: e.offsetX, y: e.offsetY }; render(); }
+  });
+  cv.addEventListener("pointerup", function (e) {
+    delete ptrs[e.pointerId]; pinch = null;
+    if (!dragged) pick(e.offsetX, e.offsetY);
+  });
+  cv.addEventListener("wheel", function (e) { e.preventDefault(); zoomAt(e.offsetX, e.offsetY, Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+  function zoomAt(x, y, f) { view.ox = x - (x - view.ox) * f; view.oy = y - (y - view.oy) * f; view.s *= f; render(); }
+  function pick(px, py) {
+    var best = -1, bd = 14 * 14;
+    for (var i = 0; i < C.n; i++) { var dx = X(C.x[i]) - px, dy = Y(C.y[i]) - py, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
+    if (best < 0) return;
+    site = best; render(); badge(); codeUpdate();
+    if ($("zc").dataset.on) doImpedance();
+  }
+  $("fit").onclick = function () { fit(); render(); };
+  $("colorby").onchange = function () { render(); if (["fres", "Q", "rin"].indexOf(this.value) >= 0) profile(); };
+  $("viewf").onchange = function () { render(); profile(); };
+  window.addEventListener("resize", function () { render(); drawTraces(); drawZ(); profile(); });
+
+  function region(i) { return i === 0 ? "soma" : C.kind[i] === 4 ? "apical dendrite" : "basal dendrite"; }
+  function badge() {
+    var V0 = rest();
+    $("sitebadge").innerHTML = "<b>Site: compartment #" + site + "</b><span>" + region(site) + " · " + C.dist[site].toFixed(0) + " µm from soma · diameter " + C.diam[site].toFixed(2) + " µm</span><span>rest " + V0[site].toFixed(1) + " mV · I_h " + dens().ghDensity[site].toFixed(3) + " mS/cm²</span>";
+  }
+
+  /* ---------------- stimulus ---------------- */
+  function stimFn() {
+    var a = STIM.samp, f = STIM.sfreq, t0 = 100, t1 = 100 + STIM.sdur, typ = STIM.stype;
+    if (typ === "step") return function (t) { return t >= t0 && t < t1 ? a : 0; };
+    if (typ === "sine") return function (t) { return t >= t0 && t < t1 ? a * Math.sin(2 * Math.PI * f * (t - t0) / 1000) : 0; };
+    if (typ === "zap") return function (t) { if (t < t0 || t >= t1) return 0; var T = t1 - t0, u = t - t0; return a * Math.sin(2 * Math.PI * (0.5 * u + (20 - 0.5) * u * u / (2 * T)) / 1000); };
+    var period = 1000 / f, tau = 2;
+    return function (t) {
+      if (t < t0) return 0; var s = 0;
+      for (var k = 0; ; k++) { var tk = t0 + k * period; if (tk >= t1 || tk > t) break; var u = (t - tk) / tau; if (u < 15) s += a * u * Math.exp(1 - u); }
+      return s;
+    };
+  }
+
+  /* ---------------- simulation ---------------- */
+  $("run").onclick = function () {
+    lastAction = "run"; codeUpdate();
+    var T = STIM.sdur + 200, every = T > 1200 ? 1 : 0.5;
+    sim = new LAB.Sim(C, Object.assign({}, P), { T: T, site: site, I: stimFn(), record: [0, site], every: every, frames: true, hold: STIM.shold });
+    $("run").disabled = true; $("stop").disabled = false; $("runnote").textContent = "Running…";
+    var I = stimFn(), t0 = performance.now();
+    (function chunk() {
+      if (!sim) return;
+      var done = sim.run(Math.max(400, Math.round(160000 / C.n)));
+      $("progbar").style.width = (100 * sim.progress()).toFixed(0) + "%";
+      if (!done) { requestAnimationFrame(chunk); return; }
+      simOut = sim.out; simOut.I = simOut.t.map(I); sim = null;
+      $("run").disabled = false; $("stop").disabled = true;
+      $("runnote").textContent = "Done in " + ((performance.now() - t0) / 1000).toFixed(1) + " s · " + simOut.spikes.length + " somatic spike(s).";
+      $("scrub").max = simOut.t.length - 1; $("scrub").disabled = false; $("play").disabled = false;
+      frameIdx = simOut.t.length - 1; $("scrub").value = frameIdx; $("tnow").textContent = simOut.t[frameIdx].toFixed(1) + " ms";
+      if ($("colorby").value !== "volt") { $("colorby").value = "volt"; }
+      render(); drawTraces(); tiles();
+    })();
+  };
+  $("stop").onclick = function () { sim = null; $("run").disabled = false; $("stop").disabled = true; $("runnote").textContent = "Stopped."; };
+  $("scrub").oninput = function () { frameIdx = +this.value; $("tnow").textContent = simOut.t[frameIdx].toFixed(1) + " ms"; if ($("colorby").value !== "volt") $("colorby").value = "volt"; render(); drawTraces(); };
+  $("play").onclick = function () {
+    if (!simOut) return; playing = !playing; this.textContent = playing ? "❚❚ Pause" : "▶ Play";
+    if ($("colorby").value !== "volt") $("colorby").value = "volt";
+    if (frameIdx >= simOut.t.length - 1) frameIdx = 0;
+    (function step() { if (!playing) return; frameIdx = Math.min(simOut.t.length - 1, frameIdx + 2); $("scrub").value = frameIdx; $("tnow").textContent = simOut.t[frameIdx].toFixed(1) + " ms"; render(); drawTraces();
+      if (frameIdx >= simOut.t.length - 1) { playing = false; $("play").textContent = "▶ Play"; return; } requestAnimationFrame(step); })();
+  };
+
+  /* ---------------- plots ---------------- */
+  function setupCanvas(c) { var dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight; c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); var g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); return { g: g, W: W, H: H }; }
+  function axes(g, W, H, m, xr, yr, xlab, ylab, logx) {
+    var xs = function (x) { return m.l + (logx ? (Math.log(x) - Math.log(xr[0])) / (Math.log(xr[1]) - Math.log(xr[0])) : (x - xr[0]) / (xr[1] - xr[0])) * (W - m.l - m.r); };
+    var ys = function (y) { return H - m.b - (y - yr[0]) / (yr[1] - yr[0]) * (H - m.t - m.b); };
+    g.strokeStyle = css("--rule"); g.fillStyle = css("--muted"); g.font = "11px system-ui"; g.lineWidth = 1;
+    var xt = logx ? [0.5, 1, 2, 5, 10, 20, 50].filter(function (v) { return v >= xr[0] && v <= xr[1]; }) : ticks(xr[0], xr[1], 5);
+    xt.forEach(function (v) { g.beginPath(); g.moveTo(xs(v), m.t); g.lineTo(xs(v), H - m.b); g.stroke(); g.textAlign = "center"; g.fillText(fmtv(v), xs(v), H - m.b + 14); });
+    ticks(yr[0], yr[1], 4).forEach(function (v) { g.beginPath(); g.moveTo(m.l, ys(v)); g.lineTo(W - m.r, ys(v)); g.stroke(); g.textAlign = "right"; g.fillText(fmtv(v), m.l - 6, ys(v) + 4); });
+    g.textAlign = "center"; g.fillText(xlab, (m.l + W - m.r) / 2, H - 4);
+    g.save(); g.translate(11, (m.t + H - m.b) / 2); g.rotate(-Math.PI / 2); g.fillText(ylab, 0, 0); g.restore();
+    return { xs: xs, ys: ys };
+  }
+  function ticks(a, b, n) { var step = Math.pow(10, Math.floor(Math.log10((b - a) / n))), e = (b - a) / n / step; step *= e > 5 ? 10 : e > 2 ? 5 : e > 1 ? 2 : 1; var out = []; for (var v = Math.ceil(a / step) * step; v <= b + 1e-9; v += step) out.push(+v.toFixed(10)); return out; }
+  function line(g, A, xsArr, ysArr, color, w) { g.strokeStyle = color; g.lineWidth = w || 2; g.beginPath(); for (var i = 0; i < xsArr.length; i++) { var x = A.xs(xsArr[i]), y = A.ys(ysArr[i]); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
+
+  function drawTraces() {
+    var c = setupCanvas($("trc")); if (!simOut) return;
+    var vs = simOut.Vrec[0], vd = simOut.Vrec[1], t = simOut.t, all = vs.concat(vd);
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all); if (hi - lo < 2) { hi += 1; lo -= 1; }
+    var pad = (hi - lo) * 0.08, m = { l: 46, r: 10, t: 10, b: 58 };
+    var A = axes(c.g, c.W, c.H, m, [0, t[t.length - 1]], [lo - pad, hi + pad], "time (ms)", "mV");
+    line(c.g, A, t, vd, css("--apical"), 1.6); line(c.g, A, t, vs, css("--ink"), 1.8);
+    // input current strip
+    var I = simOut.I, imx = Math.max.apply(null, I.map(Math.abs)) || 1, y0 = c.H - 30;
+    c.g.strokeStyle = css("--muted"); c.g.lineWidth = 1.2; c.g.beginPath();
+    for (var i = 0; i < t.length; i++) { var x = A.xs(t[i]), y = y0 - I[i] / imx * 9; i ? c.g.lineTo(x, y) : c.g.moveTo(x, y); } c.g.stroke();
+    if (frameIdx >= 0) { var xx = A.xs(t[frameIdx]); c.g.strokeStyle = css("--accent"); c.g.lineWidth = 1; c.g.beginPath(); c.g.moveTo(xx, m.t); c.g.lineTo(xx, c.H - m.b); c.g.stroke(); }
+    $("trlab").innerHTML = '<span style="color:var(--ink)">— soma</span> · <span style="color:var(--apical)">— site #' + site + "</span> · grey: input";
+  }
+
+  var ZF = []; for (var q = 0; q < 50; q++) ZF.push(Math.exp(Math.log(0.3) + (Math.log(60) - Math.log(0.3)) * q / 49));
+  var zRes = null;
+  function doImpedance() {
+    lastAction = "imp"; codeUpdate();
+    var V0 = rest(), Z = LAB.impedanceFrom(C, P, site, ZF, V0);
+    zRes = { loc: Z.abs.map(function (a) { return a[site]; }), tr: Z.abs.map(function (a) { return a[0]; }) };
+    $("zc").dataset.on = "1"; drawZ(); tiles();
+  }
+  $("zbtn").onclick = doImpedance;
+  function drawZ() {
+    var c = setupCanvas($("zc")); if (!zRes) return;
+    var all = zRes.loc.concat(zRes.tr), hi = Math.max.apply(null, all) * 1.08, m = { l: 50, r: 10, t: 10, b: 32 };
+    var g = c.g, A = axes(g, c.W, c.H, m, [0.3, 60], [0, hi], "frequency (Hz, log)", "|Z| (MΩ)", true);
+    g.fillStyle = css("--theta-bg"); g.fillRect(A.xs(4), m.t, A.xs(12) - A.xs(4), c.H - m.t - m.b);
+    g.fillStyle = css("--gamma-bg"); g.fillRect(A.xs(30), m.t, A.xs(60) - A.xs(30), c.H - m.t - m.b);
+    line(g, A, ZF, zRes.loc, css("--apical"), 2.2); line(g, A, ZF, zRes.tr, css("--ink"), 2);
+    var k = 0; zRes.loc.forEach(function (z, i) { if (z > zRes.loc[k]) k = i; });
+    if (zRes.loc[k] / zRes.loc[0] > 1.005) { g.fillStyle = css("--apical"); g.beginPath(); g.arc(A.xs(ZF[k]), A.ys(zRes.loc[k]), 4.5, 0, 7); g.fill(); g.font = "600 11.5px system-ui"; g.textAlign = "left"; g.fillText(ZF[k].toFixed(1) + " Hz", A.xs(ZF[k]) + 7, A.ys(zRes.loc[k]) - 6); }
+    $("zlab").innerHTML = '<span style="color:var(--apical)">— input at site</span> · <span style="color:var(--ink)">— transfer to soma</span>';
+  }
+
+  function profile() {
+    var c = setupCanvas($("pc")), mode = $("profy").value, f = +$("viewf").value, n = C.n, y = new Float64Array(n), lab = "";
+    if (mode === "fres") { y.set(map().fres); lab = "local f_res (Hz)"; }
+    else if (mode === "Q") { y.set(map().Q); lab = "Q"; }
+    else if (mode === "rin") { var M = map(); for (var i = 0; i < n; i++) y[i] = Math.log10(M.Z[0][i]); lab = "log10 R_in (MΩ)"; }
+    else if (mode === "atten") { var a = atF(f); for (var j = 0; j < n; j++) y[j] = a.tr[j] / a.loc[j]; lab = "V_soma/V_site @ " + f + " Hz"; }
+    else if (mode === "gh") { y.set(dens().ghDensity); lab = "I_h density (mS/cm²)"; }
+    else { y.set(rest()); lab = "rest (mV)"; }
+    var lo = Infinity, hi = -Infinity, dmax = 0; for (var k = 0; k < n; k++) { lo = Math.min(lo, y[k]); hi = Math.max(hi, y[k]); dmax = Math.max(dmax, C.dist[k]); }
+    if (hi - lo < 1e-6) { hi += 0.5; lo -= 0.5; } var pad = (hi - lo) * 0.08;
+    var A = axes(c.g, c.W, c.H, { l: 50, r: 10, t: 10, b: 32 }, [0, dmax * 1.02], [lo - pad, hi + pad], "path distance from soma (µm)", lab);
+    var ap = css("--apical"), bs = css("--basal");
+    for (var s = 0; s < n; s++) { c.g.fillStyle = s === 0 ? css("--ink") : C.kind[s] === 4 ? ap : bs; c.g.globalAlpha = 0.65; c.g.beginPath(); c.g.arc(A.xs(C.dist[s]), A.ys(y[s]), s === site ? 5 : 2.2, 0, 7); c.g.fill(); }
+    c.g.globalAlpha = 1; c.g.strokeStyle = css("--ink"); c.g.lineWidth = 2; c.g.beginPath(); c.g.arc(A.xs(C.dist[site]), A.ys(y[site]), 6, 0, 7); c.g.stroke();
+    $("plab").innerHTML = '<span style="color:var(--apical)">● apical</span> · <span style="color:var(--basal)">● basal</span> · ○ site';
+    if (mode === "fres" || mode === "Q" || mode === "rin") { lastAction = "map"; codeUpdate(); }
+  }
+  $("profy").onchange = profile;
+  $("mapbtn").onclick = function () { lastAction = "map"; $("colorby").value = "fres"; render(); profile(); tiles(); codeUpdate(); };
+
+  /* ---------------- tiles ---------------- */
+  function tiles() {
+    var V0 = rest(), out = [];
+    out.push(["" + V0[0].toFixed(1) + " mV", "rest at soma"]);
+    out.push(["" + V0[site].toFixed(1) + " mV", "rest at site (" + C.dist[site].toFixed(0) + " µm)"]);
+    var M = cache.map;
+    if (M) { out.push([M.Z[0][0].toFixed(1) + " MΩ", "soma input resistance (0.5 Hz)"]); out.push([M.Z[0][site].toFixed(0) + " MΩ", "site input resistance"]); out.push([M.fres[site] + " Hz · Q " + M.Q[site].toFixed(2), "local resonance at site"]); out.push([M.fres[0] + " Hz · Q " + M.Q[0].toFixed(2), "local resonance at soma"]); }
+    if (zRes) {
+      var at = function (arr, f) { var k = 0; ZF.forEach(function (x, i) { if (Math.abs(x - f) < Math.abs(ZF[k] - f)) k = i; }); return arr[k]; };
+      out.push([(at(zRes.tr, 8) / at(zRes.loc, 8)).toFixed(2) + " / " + (at(zRes.tr, 40) / at(zRes.loc, 40)).toFixed(2), "V_soma / V_site at 8 / 40 Hz"]);
+    }
+    if (simOut) {
+      var dur = STIM.sdur / 1000, ns = simOut.spikes.filter(function (t) { return t >= 100 && t < 100 + STIM.sdur; }).length;
+      out.push([ns + " (" + (ns / dur).toFixed(1) + " Hz)", "somatic spikes during input"]);
+      var vs = simOut.Vrec[0], t = simOut.t;
+      if (STIM.stype === "step" && STIM.samp < 0 && site === 0) {
+        var base = 0, nb = 0, peak = Infinity, ss = 0, nss = 0;
+        for (var i = 0; i < t.length; i++) { if (t[i] < 100) { base += vs[i]; nb++; } else if (t[i] < 100 + STIM.sdur) { peak = Math.min(peak, vs[i]); if (t[i] > 100 + STIM.sdur - 50) { ss += vs[i]; nss++; } } }
+        base /= nb; ss /= nss; out.push([((ss - peak) / (base - peak)).toFixed(2), "sag ratio"]);
+      }
+    }
+    $("tiles").innerHTML = out.map(function (o) { return '<div class="tile"><b>' + o[0] + "</b><span>" + o[1] + "</span></div>"; }).join("");
+  }
+
+  /* ---------------- live code ---------------- */
+  var DEF = LAB.defaults();
+  function changedParams(style) {
+    var keys = Object.keys(DEF).filter(function (k) { return P[k] !== DEF[k]; });
+    if (!keys.length) return style === "py" ? "cm.CellParams()" : "";
+    return "replace(cm.CellParams(), " + keys.map(function (k) { return k + "=" + (typeof P[k] === "string" ? '"' + P[k] + '"' : typeof P[k] === "boolean" ? (P[k] ? "True" : "False") : P[k]); }).join(", ") + ")";
+  }
+  function stimPy() {
+    var a = STIM.samp, f = STIM.sfreq, d = STIM.sdur;
+    if (STIM.stype === "step") return "I = lambda t: " + a + " if 100 <= t < " + (100 + d) + " else 0.0          # nA step";
+    if (STIM.stype === "sine") return "I = lambda t: " + a + " * np.sin(2*np.pi*" + f + "*(t - 100)/1000) if 100 <= t < " + (100 + d) + " else 0.0";
+    if (STIM.stype === "zap") return "def I(t):                                   # ZAP chirp 0.5 -> 20 Hz\n    if not 100 <= t < " + (100 + d) + ": return 0.0\n    u, T = t - 100, " + d + "\n    return " + a + " * np.sin(2*np.pi*(0.5*u + 19.5*u**2/(2*T))/1000)";
+    return "def I(t):                                   # EPSC train, alpha shape, tau 2 ms\n    s = 0.0\n    for tk in np.arange(100, " + (100 + d) + ", 1000/" + f + "):\n        u = (t - tk) / 2.0\n        if 0 <= u < 15: s += " + a + " * u * np.exp(1 - u)\n    return s";
+  }
+  function codeUpdate() {
+    var pp = changedParams("py"), T = STIM.sdur + 200, head =
+      "import numpy as np, matplotlib.pyplot as plt\nfrom dataclasses import replace\nimport ca1_morph as cm                       # same engine as this page\n\n" +
+      "morph = cm.load_morphology(\"ca1-jarsky.json\")\np = " + pp + "\ncell = cm.build_cell(morph, p)                # " + C.n + " compartments\nsite = " + site + "                                   # " + region(site) + ", " + C.dist[site].toFixed(0) + " µm from the soma (same number as on the page)\n\n";
+    var body;
+    if (lastAction === "imp") body =
+      "# Frequency response at the site (quasi-active, linearised at rest)\nfreqs = np.geomspace(0.3, 60, 50)\nZ = cm.impedance_from(cell, p, site, freqs)     # Z[f, compartment], MΩ\nZ_in, Z_tr = np.abs(Z[:, site]), np.abs(Z[:, 0])\nk = Z_in.argmax()\nprint(f\"f_res {freqs[k]:.1f} Hz, Q {Z_in[k]/Z_in[0]:.2f}, V_soma/V_site at 8 Hz {np.interp(8, freqs, Z_tr/Z_in):.2f}\")\n\nplt.semilogx(freqs, Z_in, label=\"input at site\")\nplt.semilogx(freqs, Z_tr, label=\"transfer to soma\")\nplt.axvspan(4, 12, alpha=.15)                  # theta band\nplt.xlabel(\"f (Hz)\"); plt.ylabel(\"|Z| (MΩ)\"); plt.legend(); plt.show()";
+    else if (lastAction === "map") body =
+      "# Local resonance at every compartment (O(N²F); ~10 s in pure Python)\nfreqs = np.array(" + JSON.stringify(MAPF) + ")\nfres, Q, Zloc = cm.resonance_map(cell, p, freqs)\napical = cell.kind == 4; basal = cell.kind == 3\nplt.scatter(cell.dist[apical], fres[apical], s=8, c=\"#a62961\", label=\"apical\")\nplt.scatter(cell.dist[basal], fres[basal], s=8, c=\"#3d5a8a\", label=\"basal\")\nplt.xlabel(\"path distance (µm)\"); plt.ylabel(\"local f_res (Hz)\"); plt.legend(); plt.show()\nprint(\"soma R_in %.1f MΩ, f_res %.1f Hz, Q %.2f\" % (Zloc[0, 0], fres[0], Q[0]))\n\n# colour the morphology by f_res\nfor x0, y0, x1, y1, ci in cell.draw:\n    plt.plot([x0, x1], [y0, y1], color=plt.cm.plasma((fres[ci] - 0.5) / 11.5), lw=1)\nplt.gca().set_aspect(\"equal\"); plt.axis(\"off\"); plt.show()";
+    else body =
+      "# Stimulus (nA) injected at the site; holding current at the soma\n" + stimPy() + "\n\n" +
+      "r = cm.simulate(cell, p, T=" + T + ", stim_comp=site, I=I, record=(0, site), every=0.5, hold=" + STIM.shold + ")\n" +
+      "plt.plot(r[\"t\"], r[\"V\"][:, 0], label=\"soma\")\nplt.plot(r[\"t\"], r[\"V\"][:, 1], label=f\"site #{site}\")\nplt.xlabel(\"t (ms)\"); plt.ylabel(\"V (mV)\"); plt.legend(); plt.show()\nprint(\"somatic spikes:\", r[\"spikes\"])\n\n# animate the whole tree: r[\"frames\"][k] is V in every compartment at r[\"t\"][k]";
+    $("pycode").textContent = head + body;
+    $("b2code").textContent = brian2Code();
+    $("nrncode").textContent = neuronCode();
+  }
+  function n(x) { return +(+x).toPrecision(6); }
+  function brian2Code() {
+    var tau = P.h_kin === "bell"
+      ? "tauh = h_scale*2*tau_peak/(exp((v - Vtau)/(15*mV)) + exp(-(v - Vtau)/(15*mV))) : second"
+      : "tauh = h_scale*(1/(exp(-17.9 - 0.116*v/mV) + exp(-1.84 + 0.09*v/mV)) + 0.1)*ms : second";
+    return "from brian2 import *\nimport numpy as np\nprefs.codegen.target = \"numpy\"\n\nmorpho = Morphology.from_file(\"ca1_jarsky.swc\")      # exported from the same reconstruction\n\neqs = '''\nIm = gL*(EL - v) + gh*h*(Eh - v) : amp/meter**2\ndh/dt = (hinf - h)/tauh : 1\nhinf = 1/(1 + exp((v - Vhalf)/k_h)) : 1\n" + tau + "\ngL : siemens/meter**2\ngh : siemens/meter**2\nI : amp (point current)\n'''\nns = dict(EL=" + n(P.E_L) + "*mV, Eh=" + n(P.E_h) + "*mV, Vhalf=" + n(P.h_vhalf) + "*mV, k_h=" + n(P.h_k) + "*mV,\n          tau_peak=" + n(P.h_tau_peak) + "*ms, Vtau=" + n(P.h_vtau) + "*mV, h_scale=" + n(P.h_tau_scale) + ")\nneuron = SpatialNeuron(morphology=morpho, model=eqs, Cm=" + n(P.Cm) + "*uF/cm**2, Ri=" + n(P.Ra) + "*ohm*cm,\n                       method=\"exponential_euler\", namespace=ns)\n\n# densities: I_h rises along the apical tree (apical = above the soma, y > 0)\nd = neuron.distance\nfrac = np.clip(d / (" + n(P.gh_dist) + "*um), 0, 1)\napical = neuron.y > 0*um\nneuron.gh = " + n(P.gh_soma) + "*msiemens/cm**2 * np.where(apical, 1 + (" + n(P.gh_fold) + " - 1)*frac, 1)\nneuron.gL = 1/(" + n(P.Rm) + "*ohm*cm**2)\n# spines: scale membrane beyond " + P.spine_start + " µm\nsf = np.where(d > " + P.spine_start + "*um, " + n(P.spine_factor) + ", 1)\nneuron.Cm = neuron.Cm * sf; neuron.gL = neuron.gL * sf; neuron.gh = neuron.gh * sf\nneuron.v = " + n(P.E_L) + "*mV; neuron.h = 'hinf'\n\n# pick the compartment nearest to the page's site (x, y in µm)\nsite = int(np.argmin((neuron.x/um - " + C.x[site].toFixed(1) + ")**2 + (neuron.y/um - " + C.y[site].toFixed(1) + ")**2))\nmon = StateMonitor(neuron, 'v', record=[0, site])\n\nrun(2*second)                                   # settle (I_h is slow)\nmon.active = True\nneuron.I[site] = " + n(STIM.samp) + "*nA; run(" + STIM.sdur + "*ms)               # step; for sine/ZAP use a TimedArray + run_regularly\nneuron.I[site] = 0*nA; run(100*ms)\n\nplot(mon.t/ms, mon.v[0]/mV, label='soma'); plot(mon.t/ms, mon.v[1]/mV, label='site')\nxlim(2000, None); xlabel('t (ms)'); ylabel('V (mV)'); legend(); show()";
+  }
+  function neuronCode() {
+    var tauLine = P.h_kin === "bell"
+      ? "    taul = h_scale*2*taupeak/(exp((v - vtau)/15) + exp(-(v - vtau)/15))"
+      : "    taul = h_scale*(1/(exp(-17.9 - 0.116*v) + exp(-1.84 + 0.09*v)) + 0.1)";
+    return "# ---- hd.mod (save next to your script, then run `nrnivmodl`) ----\n: I_h with Boltzmann activation and the page's tau(V)\nNEURON { SUFFIX hd  NONSPECIFIC_CURRENT i  RANGE ghdbar, ehd, vhalfl, kl, taupeak, vtau, h_scale }\nUNITS  { (mA) = (milliamp)  (mV) = (millivolt)  (S) = (siemens) }\nPARAMETER { ghdbar = 0.00005 (S/cm2)  ehd = " + n(P.E_h) + " (mV)  vhalfl = " + n(P.h_vhalf) + " (mV)  kl = " + n(P.h_k) + " (mV)\n            taupeak = " + n(P.h_tau_peak) + " (ms)  vtau = " + n(P.h_vtau) + " (mV)  h_scale = " + n(P.h_tau_scale) + " }\nASSIGNED { v (mV)  i (mA/cm2)  linf  taul (ms) }\nSTATE { l }\nBREAKPOINT { SOLVE states METHOD cnexp   i = ghdbar*l*(v - ehd) }\nINITIAL { rates(v)  l = linf }\nDERIVATIVE states { rates(v)  l' = (linf - l)/taul }\nPROCEDURE rates(v (mV)) {\n    linf = 1/(1 + exp((v - vhalfl)/kl))\n" + tauLine + "\n}\n\n# ---- model.py ----\nfrom neuron import h\nimport numpy as np\nh.load_file(\"stdrun.hoc\"); h.load_file(\"import3d.hoc\")\n\nclass Cell: pass\ncell = Cell()\nr = h.Import3d_SWC_read(); r.input(\"ca1_jarsky.swc\")\nh.Import3d_GUI(r, False).instantiate(cell)         # creates cell.soma, cell.dend, cell.apic\nsoma = cell.soma[0]\napic = set(cell.apic) if hasattr(cell, \"apic\") else set()\nh.distance(0, 0.5, sec=soma)\n\nfor sec in h.allsec():\n    sec.Ra = " + n(P.Ra) + "\n    sec.nseg = 1 + 2*int(sec.L / (2*" + P.max_seg + "))         # odd, <= " + P.max_seg + " µm\n    sec.insert(\"pas\"); sec.insert(\"hd\")\n    for seg in sec:\n        d = h.distance(seg)\n        sf = " + n(P.spine_factor) + " if d > " + P.spine_start + " else 1.0\n        seg.cm = " + n(P.Cm) + "*sf; seg.g_pas = sf/" + n(P.Rm) + "; seg.e_pas = " + n(P.E_L) + "\n        gh = " + n(P.gh_soma) + "*(1 + (" + n(P.gh_fold) + " - 1)*min(d/" + n(P.gh_dist) + ", 1)) if sec in apic else " + n(P.gh_soma) + "\n        seg.hd.ghdbar = gh*1e-3*sf                      # mS/cm² -> S/cm²\n\n# nearest segment to the page's site\ndef nearest(x0, y0):\n    best = (1e18, None)\n    for sec in h.allsec():\n        n3 = sec.n3d()\n        for k in range(n3):\n            dd = (sec.x3d(k) - x0)**2 + (sec.y3d(k) - y0)**2\n            if dd < best[0]: best = (dd, sec(sec.arc3d(k)/sec.L if sec.L else 0.5))\n    return best[1]\nsite = nearest(" + C.x[site].toFixed(1) + ", " + C.y[site].toFixed(1) + ")\n\n# ---- current step at the site ----\nstim = h.IClamp(site); stim.delay = 2100; stim.dur = " + STIM.sdur + "; stim.amp = " + n(STIM.samp) + "\nt = h.Vector().record(h._ref_t); vs = h.Vector().record(soma(0.5)._ref_v); vd = h.Vector().record(site._ref_v)\nh.finitialize(" + n(P.E_L) + "); h.continuerun(2100 + " + STIM.sdur + " + 100)\n\n# ---- impedance: input at every segment, transfer site -> soma ----\nimp = h.Impedance()\nimp.loc(site.x, sec=site.sec)\nfreqs = np.geomspace(0.3, 60, 50)\nZin, Ztr = [], []\nfor f in freqs:\n    imp.compute(f, 1)                              # 1 = include active channels (quasi-active)\n    Zin.append(imp.input(site.x, sec=site.sec)); Ztr.append(imp.transfer(0.5, sec=soma))\n# resonance map: after imp.compute(f, 1), imp.input(seg.x, sec=sec) gives Z_in at every segment";
+  }
+
+  /* ---------------- tabs, copy, engine source ---------------- */
+  function tabs(sel, attr, panelAttr) {
+    document.querySelectorAll(sel).forEach(function (b) {
+      b.onclick = function () {
+        document.querySelectorAll(sel).forEach(function (x) { x.setAttribute("aria-selected", x === b ? "true" : "false"); });
+        document.querySelectorAll("[" + panelAttr + "]").forEach(function (p) { p.hidden = p.getAttribute(panelAttr) !== b.getAttribute(attr); });
+        render();
+      };
+    });
+  }
+  tabs("[data-tab]", "data-tab", "data-panel"); tabs("[data-dtab]", "data-dtab", "data-dpanel");
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-copy]"); if (!b) return;
+    var el = $(b.dataset.copy), txt = el.textContent;
+    function done(m) { b.textContent = m; setTimeout(function () { b.textContent = "Copy"; }, 1400); }
+    try { navigator.clipboard.writeText(txt).then(function () { done("Copied"); }, function () { sel(); }); } catch (err) { sel(); }
+    function sel() { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected"); }
+  });
+  $("resetp").onclick = function () { P = LAB.defaults(); bindParams(); C = LAB.build(MORPH, P); cache = {}; render(); badge(); codeUpdate(); };
+
+
+  /* ---------------- public hooks for lessons.js ---------------- */
+  function rebind() { bindParams(); }
+  window.LABUI = {
+    run: function () { $("run").click(); },
+    impedance: function () { doImpedance(); },
+    map: function () { $("mapbtn").click(); },
+    color: function (m) { $("colorby").value = m; render(); if (["fres", "Q", "rin"].indexOf(m) >= 0) profile(); },
+    profile: function (m) { $("profy").value = m; profile(); },
+    code: function (action) { lastAction = action; codeUpdate(); $("d-py").click(); $("dock").scrollIntoView({ behavior: "smooth" }); },
+    setParams: function (over, reset) {
+      var geomBefore = JSON.stringify([P.Ra, P.spine_factor, P.soma_diam, P.max_seg]);
+      if (reset) P = LAB.defaults();
+      Object.keys(over || {}).forEach(function (k) { P[k] = over[k]; });
+      rebind();
+      if (JSON.stringify([P.Ra, P.spine_factor, P.soma_diam, P.max_seg]) !== geomBefore) { C = LAB.build(MORPH, P); simOut = null; frameIdx = -1; }
+      cache = {}; render(); badge(); codeUpdate(); profile(); tiles();
+      if ($("zc").dataset.on) doImpedance();
+    },
+    setSite: function (spec) {
+      if (spec.kind === 1) site = 0;
+      else { var best = -1; for (var i = 1; i < C.n; i++) { if (C.kind[i] !== spec.kind) continue; var sc = Math.abs(C.dist[i] - spec.dist) + (spec.kind === 4 ? 0.3 * Math.abs(C.x[i]) : 0); if (best < 0 || sc < best[0]) best = [sc, i]; } if (best) site = best[1]; }
+      render(); badge(); codeUpdate(); if ($("zc").dataset.on) doImpedance();
+    },
+    setStim: function (o) {
+      Object.keys(o).forEach(function (k) { STIM[k] = o[k]; });
+      bindStim(); $("stype").onchange.call($("stype")); codeUpdate();
+    }
+  };
+
+  /* ---------------- start ---------------- */
+  C = LAB.build(MORPH, P);
+  // default site: apical ~300 µm on the main trunk side
+  var bestS = 0; for (var i = 1; i < C.n; i++) if (C.kind[i] === 4 && Math.abs(C.dist[i] - 300) < Math.abs(C.dist[bestS] - 300) && Math.abs(C.x[i]) < 60) bestS = i;
+  site = bestS;
+  bindParams(); bindStim();
+  requestAnimationFrame(function () { fit(); render(); badge(); tiles(); codeUpdate(); profile(); setTimeout(function () { doImpedance(); tiles(); }, 50); });
+})();
+
+</script>
+<script>
+/* CA1 Morphology Lab · lessons.js — guided experiments built on the lab's public hooks (window.LABUI). */
+(function () {
+  "use strict";
+  var U = window.LABUI;
+  var LESSONS = [
+    {
+      id: "passive", title: "Passive cable", time: "5 min",
+      goal: "See how a signal shrinks and slows as it travels from the dendrite to the soma when there are no active channels.",
+      bio: "A dendrite is a long, thin, leaky tube. Current injected far out leaks across the membrane as it flows toward the soma, and the membrane capacitance smooths it. Real CA1 cells receive CA3 input 100–350 µm from the soma, so this loss matters for every synapse.",
+      predict: { q: "You inject a 0.2 nA step 300 µm up the apical dendrite. Compared with the voltage change at the injection site, the soma's change will be…",
+        opts: ["About the same size", "Smaller, and it rises more slowly", "Larger, because the soma is bigger"], a: 1,
+        why: "Current leaks out along the way and charges the membrane in between, so the soma sees a smaller, slower version." },
+      setup: { params: { gh_soma: 0, spikes: false, g_m_soma: 0 }, site: { kind: 4, dist: 300 }, stim: { stype: "step", samp: 0.2, sdur: 500, shold: 0 }, color: "volt", prof: "atten" },
+      steps: [["Run the step", "run"], ["Colour by attenuation to the soma", "color:atten"], ["Impedance at this site", "imp"]],
+      look: ["Soma trace (black) is smaller than the site trace (magenta).", "Attenuation map: the soma keeps most of a proximal signal, very little of a distal tuft signal.", "Impedance: both curves fall with frequency. No hump means no resonance; a passive cable can only filter."],
+      check: { q: "Why does the transfer impedance to the soma fall faster with frequency than the input impedance at the site?",
+        opts: ["The axial resistance is frequency dependent", "Each stretch of membrane between site and soma filters again, so filtering compounds with distance", "The soma has more ion channels"], a: 1,
+        why: "Every bit of membrane capacitance along the path acts as a low-pass filter, and they stack." },
+      code: "imp"
+    },
+    {
+      id: "ih", title: "I_h gradient", time: "6 min",
+      goal: "Add HCN channels that increase toward the tuft, and see what they do to resting voltage, sag and EPSP shape.",
+      bio: "CA1 dendrites have more than six times as many HCN channels distally as at the soma (Magee 1998). I_h is open at rest, carries inward current, and closes slowly when the membrane depolarizes.",
+      predict: { q: "Turning I_h on (density rising 6× toward the tuft) will make the resting potential…",
+        opts: ["More negative", "More positive, especially in the tuft", "Unchanged"], a: 1,
+        why: "I_h reverses near −30 mV, so its open channels pull the membrane up; more channels distally means more depolarization there." },
+      setup: { params: {}, site: { kind: 1 }, stim: { stype: "step", samp: -0.15, sdur: 800, shold: 0 }, color: "gh", prof: "rest" },
+      steps: [["Run a hyperpolarizing step at the soma", "run"], ["Colour by resting voltage", "color:rest"], ["Remove I_h and compare", "set:gh_soma=0"], ["Restore I_h", "set:gh_soma=0.05"]],
+      look: ["A sag: the voltage drops, then partly recovers during the step as I_h opens. The sag ratio tile reports it.", "Profile: resting voltage is higher in the distal tuft than at the soma.", "With I_h removed, rest returns to E_L and the sag disappears."],
+      check: { q: "Why does the sag develop over tens to hundreds of milliseconds rather than instantly?",
+        opts: ["Because τ_h, the time HCN channels take to open, is tens of ms or longer", "Because the axial resistance is high", "Because spikes are turned off"], a: 0,
+        why: "The sag follows the gate: it grows as h moves toward its new, higher steady state with time constant τ_h." },
+      code: "run"
+    },
+    {
+      id: "res", title: "Impedance and resonance", time: "7 min",
+      goal: "Measure the frequency response and find out what turns a filter into a resonator.",
+      bio: "Hu et al. (2002) found CA1 cells respond best to 2–5 Hz inputs at 33 °C and ~7 Hz at body temperature. A preferred frequency needs a current that opposes slow changes: I_h does this.",
+      predict: { q: "Which change moves the resonance peak to higher frequencies?",
+        opts: ["Increasing ḡ_h", "Making τ_h faster (smaller)", "Increasing membrane capacitance"], a: 1,
+        why: "τ_h sets the time scale of the push-back; a faster gate opposes faster inputs. ḡ_h mostly changes how strong the peak is." },
+      setup: { params: {}, site: { kind: 1 }, stim: { stype: "zap", samp: 0.03, sdur: 2000, shold: 0 }, color: "Q", prof: "fres" },
+      steps: [["Impedance at the soma", "imp"], ["Speed up τ_h × 0.33", "set:h_tau_scale=0.33"], ["Slow it down × 3", "set:h_tau_scale=3"], ["Back to × 1", "set:h_tau_scale=1"], ["Try Lowet's slow kinetics", "set:h_kin=lowet2023"], ["Back to bell kinetics", "set:h_kin=bell"], ["Run the ZAP chirp", "run"]],
+      look: ["Input impedance (magenta) has a gentle hump around 5 Hz: that is resonance.", "τ_h × 0.33 moves the peak up; × 3 moves it down. Q changes much less.", "Lowet's kinetics (seconds) push the peak down to about 1–2 Hz.", "The ZAP trace waxes and wanes: largest where the input frequency is near the resonance."],
+      check: { q: "A colleague says 'the soma responds more at 8 Hz than 40 Hz, so it resonates at theta'. What is missing?",
+        opts: ["Nothing, that is the definition", "Evidence of a peak: a passive filter also responds more at 8 Hz than 40 Hz", "A spike count"], a: 1,
+        why: "Resonance means a maximum at a non-zero frequency (Q > 1). Larger-at-low-frequency is just filtering." },
+      code: "imp"
+    },
+    {
+      id: "map", title: "Resonance along the dendrite", time: "6 min",
+      goal: "Map the local resonance frequency everywhere on the cell and compare with recordings.",
+      bio: "Narayanan & Johnston (2007) found resonance frequency changes more than 3-fold between soma and distal dendrites, set by h channels, and that LTP shifts it. Different parts of one cell can be tuned differently.",
+      predict: { q: "Where will the local resonance frequency be highest?",
+        opts: ["At the soma", "In the distal apical tuft, where I_h is densest", "In the basal dendrites"], a: 1,
+        why: "More I_h relative to leak and capacitance means a stronger, faster restoring current, which raises the local resonance frequency." },
+      setup: { params: {}, site: { kind: 4, dist: 450 }, stim: { stype: "step", samp: 0.1, sdur: 300, shold: 0 }, color: "fres", prof: "fres" },
+      steps: [["Compute the resonance map", "map"], ["Plot Q instead", "prof:Q"], ["Make the gradient flat (fold 1)", "set:gh_fold=1"], ["Steeper gradient (fold 12)", "set:gh_fold=12"], ["Back to fold 6", "set:gh_fold=6"]],
+      look: ["Profile: apical points (magenta) reach higher frequencies with distance, up to about 9 Hz in the tuft, with scatter from branch thickness; basal points (blue) stay near the soma value.", "A flat gradient flattens the profile. The gradient, not the morphology alone, makes the tuft resonate faster.", "Thin terminal branches have very high input resistance (log scale in 'local input resistance')."],
+      check: { q: "If you fit a two-compartment model to this cell, why can a single 'dendrite' compartment not capture this map?",
+        opts: ["It can, if g_ax is large", "One compartment has one resonance frequency, but the real cell has a range from about 4 to 9 Hz", "Because two compartments cannot have I_h"], a: 1,
+        why: "Lumping the tree averages away the spatial gradient. Choose which site your reduced dendrite should represent." },
+      code: "map"
+    },
+    {
+      id: "spk", title: "Spikes, rhythm and I_M", time: "8 min",
+      goal: "Drive the soma with theta and gamma rhythms of the same size, see which one makes spikes and where in the cycle they fall, then add somatic I_M.",
+      bio: "Place cells fire at particular theta phases. Hu et al. (2002) found a second, depolarized resonance from I_M and I_NaP near threshold, and Lowet (2023) and Ceballos (2025) found bursts and single spikes prefer different rhythms.",
+      predict: { q: "A 0.3 nA sine at 8 Hz makes the cell fire. The same 0.3 nA at 40 Hz will…",
+        opts: ["Make about five times more spikes", "Make few or no spikes, because the membrane filters fast input", "Make the same number of spikes"], a: 1,
+        why: "The membrane's RC filter shrinks a 40 Hz voltage swing several-fold, so the same current no longer reaches threshold." },
+      setup: { params: { spikes: true, g_m_soma: 0 }, site: { kind: 1 }, stim: { stype: "sine", samp: 0.3, sfreq: 8, sdur: 1500, shold: 0 }, color: "volt", prof: "rest" },
+      steps: [["Run 8 Hz", "run"], ["Switch to 40 Hz", "stim:sfreq=40"], ["Run 40 Hz", "run"], ["Back to 8 Hz", "stim:sfreq=8"], ["Add somatic I_M (ḡ 0.3)", "set:g_m_soma=0.3"], ["Run with I_M", "run"], ["Impedance at the soma (at rest)", "imp"]],
+      look: ["8 Hz: a cluster of about five spikes on each cycle, always near the same phase (about 140° after the sine's upward zero crossing).", "40 Hz: no spikes. Same current, but filtered.", "With I_M the clusters tighten: phase locking rises from about 0.77 to 0.93 (vector strength).", "Impedance at rest barely changes with I_M, because I_M is closed below about −65 mV. Hu et al. saw M-resonance only at depolarized potentials.", "Spike shape here is simplified (no after-hyperpolarization). Use it for timing, not waveform."],
+      check: { q: "The 8 Hz clusters look like bursts. Why can't you use this model to test Lowet's burst-vs-single-spike result yet?",
+        opts: ["Because the clusters come only from the input's shape: there is no intrinsic burst mechanism that could compete with single spikes", "Because 8 Hz is too slow", "Because there are too many compartments"], a: 0,
+        why: "Lowet's bursts come from the cell's own dynamics (Golomb's I_M/I_NaP soma, dendritic Ca²⁺). Here clusters simply follow the long suprathreshold part of each sine." },
+      code: "run"
+    }
+  ];
+
+  var host = document.getElementById("lessonbar"), panel = document.getElementById("lessonpanel"), tab = document.getElementById("t-lesson");
+  var cur = -1;
+  function chipList() {
+    return LESSONS.map(function (L, i) {
+      return '<button type="button" class="lchip" role="tab" aria-selected="' + (i === cur) + '" data-l="' + i + '" id="lchip-' + i + '"><span>' + (i + 1) + '</span><em class="lt">' + sub(L.title) + "</em></button>";
+    }).join("") + '<button type="button" class="lchip free" data-l="-1" id="lchip-free" aria-selected="' + (cur < 0) + '">Free explore</button>';
+  }
+  function sub(s) { return s.replace(/I_h/g, "I<sub>h</sub>").replace(/I_M/g, "I<sub>M</sub>").replace(/I_NaP/g, "I<sub>NaP</sub>").replace(/τ_h/g, "τ<sub>h</sub>").replace(/ḡ_h/g, "ḡ<sub>h</sub>").replace(/g_ax/g, "g<sub>ax</sub>").replace(/E_L/g, "E<sub>L</sub>"); }
+  function mcq(name, o) {
+    return '<div class="mcq" data-a="' + o.a + '"><p>' + sub(o.q) + "</p>" + o.opts.map(function (t, i) { return '<button type="button" class="opt" data-i="' + i + '">' + sub(t) + "</button>"; }).join("") + '<p class="why" hidden>' + sub(o.why) + "</p></div>";
+  }
+  function render() {
+    host.innerHTML = '<div class="lbar" role="tablist" aria-label="Lessons">' + chipList() + "</div>";
+    if (cur < 0) {
+      tab.hidden = true; panel.innerHTML = "";
+      if (tab.getAttribute("aria-selected") === "true") document.getElementById("t-stim").click();
+      return;
+    }
+    var L = LESSONS[cur];
+    panel.innerHTML = '<div class="lcol"><span class="kicker">Lesson ' + (cur + 1) + " of " + LESSONS.length + " · " + L.time + "</span><h2>" + sub(L.title) + '</h2><p class="lgoal">' + sub(L.goal) + "</p>" +
+      "<h3>Biology</h3><p>" + sub(L.bio) + "</p><h3>1 · Predict first</h3>" + mcq("p", L.predict) +
+      '<h3>2 · Do</h3><ol class="lsteps"><li><button type="button" class="btn primary" data-act="setup">Set up this experiment</button></li>' +
+      L.steps.map(function (s) { return '<li><button type="button" class="btn" data-act="' + s[1] + '">' + sub(s[0]) + "</button></li>"; }).join("") +
+      '</ol><h3>3 · Look for</h3><ul class="llook">' + L.look.map(function (t) { return "<li>" + sub(t) + "</li>"; }).join("") + "</ul>" +
+      "<h3>4 · Check yourself</h3>" + mcq("c", L.check) +
+      '<p><button type="button" class="btn" data-act="code">See the Python for this lesson ↓</button></p>' +
+      '<div class="lnav">' + (cur > 0 ? '<button type="button" class="btn" data-go="' + (cur - 1) + '">← Previous</button>' : "<span></span>") + (cur < LESSONS.length - 1 ? '<button type="button" class="btn" data-go="' + (cur + 1) + '">Next lesson →</button>' : "") + "</div></div>";
+    tab.hidden = false; tab.click(); panel.scrollTop = 0;
+  }
+  function onClick(e) {
+    var b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.l !== undefined) { cur = +b.dataset.l; render(); if (cur >= 0) setup(); return; }
+    if (b.dataset.go !== undefined) { cur = +b.dataset.go; render(); setup(); return; }
+    if (b.classList.contains("opt")) {
+      var box = b.closest(".mcq"), a = +box.dataset.a;
+      box.querySelectorAll(".opt").forEach(function (o) { o.classList.remove("right", "wrong"); });
+      b.classList.add(+b.dataset.i === a ? "right" : "wrong");
+      box.querySelector(".opt[data-i='" + a + "']").classList.add("right");
+      box.querySelector(".why").hidden = false; return;
+    }
+    var act = b.dataset.act; if (!act) return;
+    if (act === "setup") return setup();
+    if (act === "run") return U.run();
+    if (act === "imp") return U.impedance();
+    if (act === "map") return U.map();
+    if (act === "code") { U.code(LESSONS[cur].code); return; }
+    var kv = act.split(":"), arg = kv[1];
+    if (kv[0] === "color") return U.color(arg);
+    if (kv[0] === "prof") return U.profile(arg);
+    if (kv[0] === "set") { var p = arg.split("="), o = {}; o[p[0]] = isNaN(+p[1]) ? p[1] : +p[1]; U.setParams(o, false); return; }
+    if (kv[0] === "stim") { var q = arg.split("="), s = {}; s[q[0]] = +q[1]; U.setStim(s); return; }
+  }
+  host.addEventListener("click", onClick); panel.addEventListener("click", onClick);
+  function setup() { var L = LESSONS[cur]; U.setParams(L.setup.params, true); U.setSite(L.setup.site); U.setStim(L.setup.stim); U.color(L.setup.color); U.profile(L.setup.prof); }
+  render();
+})();
+
+</script>
+</body></html>

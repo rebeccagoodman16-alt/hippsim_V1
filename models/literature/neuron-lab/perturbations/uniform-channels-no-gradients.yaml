@@ -1,0 +1,14 @@
+schema: hippsim.perturbation/1.0
+name: Uniform channels (no gradients)
+tool: neuron-lab
+kind: model
+what: A-type and I_h no longer rise with distance.
+expected_size: structural change
+references:
+- hoffman1997
+- magee1998
+ops:
+- control: ~^A-type rises with distance
+  set: false
+- control: ~^Ih rises with distance
+  set: false

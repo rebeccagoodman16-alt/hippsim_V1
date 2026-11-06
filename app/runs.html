@@ -1,0 +1,196 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>hippsim Runs</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#f8cddd"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="hippsim"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png"><script src="hs-layout.js"></script>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="hs-sim.css">
+</head><body class="hs-hubpage">
+<header><a class="brand" href="simulator.html">hippsim</a><span class="hs-title">Lab run log</span><a class="hs-back" href="index.html">Home</a></header>
+<main class="hs-log-wrap">
+<h1>Runs</h1>
+<p class="hs-sub">Saved runs, newest first. <b>Open</b> puts the tool back as it was.</p>
+<div class="hs-runs">
+  <nav class="hs-folders" id="folders" aria-label="Folders"></nav>
+  <div class="hs-runs-main">
+    <div class="hs-log-bar">
+      <input type="search" id="q" placeholder="Search runs…" aria-label="Search runs">
+      <select id="ftool" aria-label="Tool"><option value="">All tools</option></select>
+      <button type="button" class="hs-btn" id="open">Open a run file…</button>
+    </div>
+    <div class="hs-factions" id="factions" hidden></div>
+    <p class="hs-muted" id="status" aria-live="polite">Loading…</p>
+    <div class="hs-log-scroll"><table class="hs-log-tbl"><thead><tr><th>Saved</th><th>By</th><th>Tool</th><th>Run</th><th class="opt">Changes from baseline</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+    <div class="hs-log-empty" id="empty" hidden></div>
+    <p class="hs-log-foot"><button type="button" class="hs-linkbtn" id="add">Add a run file</button><span class="hs-sep"> · </span><button type="button" class="hs-linkbtn" id="csv">Download the list (.csv)</button></p>
+  </div>
+</div>
+<div class="hs-pop" id="pop" hidden role="menu"></div>
+</main>
+<script src="hs-registry.js"></script>
+<script src="hs-app-config.js"></script>
+<script src="hs-run.js"></script>
+<script>
+(function () {
+  'use strict';
+  const REG = (window.HS_REG || {}).tools || {};
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const loaded = new Promise(r => document.readyState === 'complete' ? r() : addEventListener('load', r));   // storage scripts load after this one
+  const cap = n => loaded.then(() => window.HS_BACKEND ? window.HS_BACKEND.use(n).catch(() => null)
+    : (window.claude && typeof window.claude.use === 'function') ? window.claude.use(n).catch(() => null) : null);
+  let all = [], me = null, users = null, names = {}, source = 'local', myFolders = [], folder = '*';   // '*' all · '' no folder · name
+  const $ = id => document.getElementById(id);
+  Object.values(REG).sort((a, b) => a.tool.localeCompare(b.tool)).forEach(t => $('ftool').insertAdjacentHTML('beforeend', `<option value="${esc(t.id)}">${esc(t.tool)}</option>`));
+  try { folder = sessionStorage.getItem('hs-runs-folder') ?? '*'; } catch (e) {}
+
+  function local() { try { return JSON.parse(localStorage.getItem('hs-runlog') || '[]').map(e => ({...e, by: 'local'})); } catch (e) { return []; } }
+  const mineRun = e => e.by === 'local' || (me && e.by === me);
+  async function resolveNames() {
+    if (!users) return;
+    const ids = [...new Set(all.map(e => e.by).filter(x => x && x !== 'local'))];
+    try { const ps = await users.profiles(ids); ids.forEach(id => { names[id] = (ps[id] && ps[id].name) || 'Someone'; }); } catch (e) {}
+    render();
+  }
+  async function refreshLocal() { if (source !== 'lab') { all = local(); myFolders = await window.hsRun.folders.list(); render(); } }
+
+  function renderFolders() {
+    const names = [...new Set([...myFolders, ...all.map(e => e.folder).filter(Boolean)])].sort((a, b) => a.localeCompare(b));
+    if (folder !== '*' && folder !== '' && !names.includes(folder)) folder = '*';
+    const n = f => all.filter(e => f === '*' || (e.folder || '') === f).length;
+    const item = (f, label) => `<button type="button" data-f="${esc(f)}" aria-current="${folder === f}"><span>${label}</span><span class="n">${n(f)}</span></button>`;
+    $('folders').innerHTML = `<span class="hs-fh">Folders</span>${item('*', 'All runs')}${names.map(f => item(f, '📁 ' + esc(f))).join('')}${item('', 'Not in a folder')}
+      <button type="button" class="hs-fnew" id="fnew">+ New folder</button>`;
+    const own = folder !== '*' && folder !== '' && myFolders.includes(folder);
+    $('factions').hidden = !own;
+    $('factions').innerHTML = own ? `<b>📁 ${esc(folder)}</b><button type="button" class="hs-linkbtn" data-fa="rename">Rename</button><button type="button" class="hs-linkbtn" data-fa="delete">Delete folder</button>` : '';
+  }
+  function render() {
+    renderFolders();
+    const q = $('q').value.trim().toLowerCase(), ft = $('ftool').value;
+    const rows = all.filter(e => (folder === '*' || (e.folder || '') === folder) && (!ft || e.tool === ft)
+      && (!q || [e.label, e.note, e.tool_name, e.folder, ...(e.perturbations || [])].join(' ').toLowerCase().includes(q)));
+    $('rows').innerHTML = rows.map(e => { const i = all.indexOf(e); return `<tr>
+      <td>${esc(new Date(e.created).toLocaleString([], {dateStyle: 'medium', timeStyle: 'short'}))}</td>
+      <td>${esc(e.by === 'local' ? 'This browser' : e.by === me ? 'You' : names[e.by] || '…')}</td>
+      <td>${esc(e.tool_name || e.tool)}</td>
+      <td><b>${esc(e.label)}</b>${e.folder && folder === '*' ? ` <span class="hs-ftag">📁 ${esc(e.folder)}</span>` : ''}${e.note ? `<br><span class="hs-muted">${esc(e.note)}</span>` : ''}</td>
+      <td class="opt ch">${e.n_changed ? (e.changes || []).slice(0, 4).map(c => `<b>${esc(c.parameter)}</b> ${esc(c.baseline)} → ${esc(c.value)}`).join('<br>') + (e.n_changed > 4 ? `<br>+${e.n_changed - 4} more` : '') : 'Baseline'}</td>
+      <td class="act"><button type="button" class="hs-btn" data-i="${i}">Open</button>${mineRun(e) ? `<button type="button" class="hs-dots" data-m="${i}" aria-label="More for ${esc(e.label)}" aria-haspopup="menu">⋯</button>` : ''}</td></tr>`; }).join('');
+    const empty = !rows.length;
+    $('empty').hidden = !empty;
+    $('empty').innerHTML = !all.length ? 'No runs yet. Open any tool in <a href="simulator.html">Simulate</a>, change something, and choose <b>Save run</b>.'
+      : folder !== '*' ? `Nothing in this folder yet. Use <b>⋯ → Move to folder</b> on a run, or pick this folder when you save.` : 'No run matches.';
+    $('status').textContent = `${rows.length} run${rows.length === 1 ? '' : 's'}` + (source === 'lab' ? '' : ' · on this device');
+  }
+
+  /* folders */
+  $('folders').addEventListener('click', async ev => {
+    const b = ev.target.closest('[data-f]');
+    if (b) { folder = b.dataset.f; try { sessionStorage.setItem('hs-runs-folder', folder); } catch (e) {} render(); return; }
+    if (ev.target.closest('#fnew')) ask('New folder', '', async name => { await window.hsRun.folders.add(name); folder = name.trim(); myFolders = await window.hsRun.folders.list(); await refreshLocal(); render(); });
+  });
+  $('factions').addEventListener('click', ev => {
+    const a = ev.target.closest('[data-fa]'); if (!a) return;
+    if (a.dataset.fa === 'rename') ask('Rename folder', folder, async name => { await window.hsRun.folders.rename(folder, name); folder = name.trim(); myFolders = await window.hsRun.folders.list(); await refreshLocal(); render(); });
+    else confirmBox(`Delete the folder “${folder}”? Its runs are kept and move to “Not in a folder”.`, 'Delete folder', async () => {
+      await window.hsRun.folders.remove(folder); folder = '*'; myFolders = await window.hsRun.folders.list(); await refreshLocal(); render(); });
+  });
+
+  /* a small popover for: name a folder · move a run · confirm a delete */
+  const pop = $('pop'); let popFor = null;
+  function place(anchor) { const r = anchor.getBoundingClientRect(); pop.style.top = (scrollY + r.bottom + 6) + 'px'; pop.style.left = Math.max(12, Math.min(scrollX + r.right - 260, innerWidth - 272)) + 'px'; }
+  function closePop() { pop.hidden = true; popFor = null; }
+  document.addEventListener('click', ev => { if (!pop.hidden && ev.target.isConnected && !ev.target.closest('#pop, [data-m], #fnew, [data-fa]')) closePop(); });   // a button the popover just replaced is no longer connected
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closePop(); });
+  function ask(title, value, done) {
+    const anchor = document.activeElement && document.activeElement.closest('button') || $('folders');
+    pop.innerHTML = `<form class="hs-pform"><b>${esc(title)}</b><input maxlength="40" value="${esc(value)}" aria-label="${esc(title)}" required><div><button class="hs-btn primary">Save</button><button type="button" class="hs-btn" data-x>Cancel</button></div></form>`;
+    place(anchor); pop.hidden = false; const inp = pop.querySelector('input'); inp.focus(); inp.select();
+    pop.querySelector('[data-x]').onclick = closePop;
+    pop.querySelector('form').onsubmit = async ev => { ev.preventDefault(); const v = inp.value.trim(); if (!v) return; closePop(); await done(v); };
+  }
+  function confirmBox(text, label, done, anchor) {
+    pop.innerHTML = `<div class="hs-pform"><span>${esc(text)}</span><div><button type="button" class="hs-btn danger" data-y>${esc(label)}</button><button type="button" class="hs-btn" data-x>Cancel</button></div></div>`;
+    place(anchor || document.activeElement || $('factions')); pop.hidden = false; pop.querySelector('[data-x]').focus();
+    pop.querySelector('[data-x]').onclick = closePop;
+    pop.querySelector('[data-y]').onclick = async () => { closePop(); await done(); };
+  }
+  function runMenu(btn, e) {
+    const fs = [...new Set([...myFolders])].filter(f => f !== e.folder);
+    pop.innerHTML = `<div class="hs-pmenu"><span class="hs-ph">Move to folder</span>${fs.map(f => `<button type="button" role="menuitem" data-mv="${esc(f)}">📁 ${esc(f)}</button>`).join('')}
+      ${e.folder ? '<button type="button" role="menuitem" data-mv="">Not in a folder</button>' : ''}<button type="button" role="menuitem" data-new>+ New folder…</button>
+      ${e.stored && e.by !== 'local' ? '<hr><button type="button" role="menuitem" data-dl>Download run (.zip)</button>' : ''}
+      <hr><button type="button" role="menuitem" class="danger" data-del>Delete run</button></div>`;
+    place(btn); pop.hidden = false; popFor = e; (pop.querySelector('button') || pop).focus();
+    pop.onclick = async ev => {
+      const b = ev.target.closest('button'); if (!b) return;
+      if (b.hasAttribute('data-mv')) { closePop(); await window.hsRun.folders.move(e.id, b.dataset.mv); myFolders = await window.hsRun.folders.list(); await refreshLocal(); }
+      else if (b.hasAttribute('data-new')) { ask('New folder', '', async name => { await window.hsRun.folders.move(e.id, name); myFolders = await window.hsRun.folders.list(); await refreshLocal(); }); place(btn); }
+      else if (b.hasAttribute('data-dl')) { b.textContent = 'Preparing…'; try { await window.hsRun.downloadStored(e.by, e.id); closePop(); } catch (x) { b.textContent = 'Could not download'; } }
+      else if (b.hasAttribute('data-del')) confirmBox(`Delete “${e.label}”? This cannot be undone.`, 'Delete', async () => { await window.hsRun.deleteRun(e.id); await refreshLocal(); }, btn);
+    };
+  }
+  $('rows').addEventListener('click', async ev => {
+    const m = ev.target.closest('[data-m]'); if (m) { ev.stopPropagation(); return runMenu(m, all[+m.dataset.m]); }
+    const b = ev.target.closest('[data-i]'); if (!b) return;
+    const e = all[+b.dataset.i], t = REG[e.route] || {};
+    if (e.href) { location.href = e.href; return; }          // runs saved from the neuron atlas reopen there
+    const run = {schema: 'hippsim.run/1.0', id: e.id, created: e.created, label: e.label, note: e.note, engine: {build: e.build},
+      tool: {id: e.tool, route: e.route, name: e.tool_name, page: e.page}, perturbations: (e.perturbations || []).map(n => ({name: n})), values: e.values || []};
+    try { sessionStorage.setItem('hs-pending-run', JSON.stringify(run)); } catch (x) {}
+    location.href = (e.page || t.page || 'simulator.html') + '#' + e.route.split('/').filter(Boolean).join('.');
+  });
+  ['q', 'ftool'].forEach(id => $(id).addEventListener('input', render));
+  $('open').onclick = () => {     // open a saved run: the tool opens with every control set
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,.zip';
+    inp.onchange = async () => {
+      try { const run = await window.hsRun.readRunFile(inp.files[0]), t = REG[run.tool.route] || {};
+        sessionStorage.setItem('hs-pending-run', JSON.stringify(run));
+        location.href = (t.page || run.tool.page) + '#' + run.tool.route.split('/').filter(Boolean).join('.');
+      } catch (e) { $('status').textContent = 'Could not open: ' + e.message; }
+    };
+    inp.click();
+  };
+  $('csv').onclick = async () => {
+    const cell = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const head = ['run_id', 'saved', 'by', 'folder', 'tool', 'origin', 'level', 'label', 'note', 'perturbations', 'n_changed', 'changes', 'engine_build'];
+    const body = all.map(e => [e.id, e.created, e.by === 'local' ? 'local' : names[e.by] || e.by, e.folder || '', e.tool, e.origin, e.level, e.label, e.note,
+      (e.perturbations || []).join('; '), e.n_changed, (e.changes || []).map(c => `${c.parameter}: ${c.baseline} -> ${c.value}`).join('; '), e.build]);
+    const data = [head, ...body].map(r => r.map(cell).join(',')).join('\n') + '\n', name = `hippsim_run_log_${new Date().toISOString().slice(0, 10)}.csv`;
+    const dl = await cap('downloads');
+    if (dl) { try { await dl.save({filename: name, data}); return; } catch (e) { if (e && e.code === 'declined') return; } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], {type: 'text/csv'})); a.download = name; a.click();
+  };
+
+  $('add').onclick = () => {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,.zip'; inp.multiple = true;
+    inp.onchange = async () => {
+      let ok = 0, where = '';
+      for (const f of inp.files) { try { where = await window.hsRun.logRun(await window.hsRun.readRunFile(f)); ok++; } catch (e) { $('status').textContent = `${f.name}: ${e.message}`; } }
+      if (ok) { await refreshLocal(); $('status').textContent = `Added ${ok} run${ok === 1 ? '' : 's'}` + (where === 'lab' ? ' to the lab log.' : ' to this device’s log.'); }
+    };
+    inp.click();
+  };
+  (async () => { try { myFolders = await window.hsRun.folders.list(); } catch (e) {} all = local(); render(); })();
+  (async () => {
+    const [db, u] = await Promise.all([cap('db'), cap('user')]);
+    if (!db) return;
+    if (window.HS_BACKEND) {                       // Google-account copy: never prompt on page load
+      const cu = await HS_BACKEND.current().catch(() => null);
+      if (!cu) { $('status').textContent = 'Sign in with Google (top right) to see and save runs.'; HS_BACKEND.onChange(x => { if (x) location.reload(); }); return; }
+      users = u; me = cu.uid;
+    } else { users = u; me = u ? await u.id() : null; }
+    const timer = setTimeout(() => { $('status').textContent = 'The shared lab log cannot be reached yet; showing this browser’s runs.'; }, 10000);
+    db.collection('runs').onSnapshot(snap => {
+      if (!(snap.metadata && snap.metadata.fromCache)) clearTimeout(timer);
+      source = 'lab';
+      const mineDoc = snap.docs.find(d => d.id === me); if (mineDoc) myFolders = [...((mineDoc.data() || {}).folders || [])];
+      const shared = snap.docs.flatMap(d => ((d.data() || {}).entries || []).map(e => ({...e, by: d.id})));
+      const ids = new Set(shared.map(e => e.id));
+      all = [...shared, ...local().filter(e => !ids.has(e.id))].sort((a, b) => String(b.created).localeCompare(String(a.created)));
+      render(); resolveNames();
+    }, err => { clearTimeout(timer); $('status').textContent = 'Shared lab log unavailable here; showing this browser’s runs.'; });
+  })();
+})();
+</script>
+<script src="hs-app-config.js"></script><script src="hs-backend-firebase.js"></script><script src="hs-app.js"></script>
+</body></html>

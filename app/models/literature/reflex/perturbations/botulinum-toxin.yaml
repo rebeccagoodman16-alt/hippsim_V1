@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: Botulinum toxin
+tool: reflex
+kind: pharmacology
+what: No ACh release.
+expected_size: complete block in the model
+references:
+- sudhof2013
+ops:
+- control: '#rxBot'
+  set: true

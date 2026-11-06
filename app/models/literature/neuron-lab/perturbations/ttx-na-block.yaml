@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: 'TTX: Na⁺ block'
+tool: neuron-lab
+kind: pharmacology
+what: Na⁺ channels × 0 on the whole cell.
+expected_size: complete block in the model
+references: []
+ops:
+- control: range:~^Na⁺ \(na3
+  set: 0

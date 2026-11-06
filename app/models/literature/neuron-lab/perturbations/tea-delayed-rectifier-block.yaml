@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: 'TEA: delayed-rectifier block'
+tool: neuron-lab
+kind: pharmacology
+what: Kdr × 0.
+expected_size: complete block in the model
+references: []
+ops:
+- control: range:~^K⁺ delayed rectifier
+  set: 0

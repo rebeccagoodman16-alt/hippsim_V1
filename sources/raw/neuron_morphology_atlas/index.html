@@ -1,0 +1,489 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Neuron Morphology Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Every reconstructed neuron from the Little Neural Guide in one place: full-screen 3D viewing, one-scale line-ups, morphometrics, snapshots and rotation videos, with the source always credited.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working instrument. Left rail = specimen drawer (search, filters, thumbnails); centre = the neuron, filling its stage;
+   right = specimen card (provenance, morphometrics, Sholl). Line-up mode lays several cells side by side at one scale. */
+:root{
+  --paper:#fbf7f3; --sheet:#ffffff; --ink:#1a1517; --mute:#6f6266; --line:#e4d9d3; --wash:#f4ece6;
+  --apical:#a62961; --basal:#35588f; --axon:#a8988f; --soma:#1a1517; --accent:#a62961; --accent-ink:#ffffff; --hl:#f8d7e4;
+  --stage:#fbf7f3;
+  --f-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141113; --sheet:#1c181a; --ink:#f3ebee; --mute:#a99ca1; --line:#352d31; --wash:#221d20;
+  --apical:#ff8dbd; --basal:#8fb3ff; --axon:#6f6468; --soma:#f3ebee; --accent:#ff8dbd; --accent-ink:#1a1517; --hl:#4a2234; --stage:#141113; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141113; --sheet:#1c181a; --ink:#f3ebee; --mute:#a99ca1; --line:#352d31; --wash:#221d20;
+  --apical:#ff8dbd; --basal:#8fb3ff; --axon:#6f6468; --soma:#f3ebee; --accent:#ff8dbd; --accent-ink:#1a1517; --hl:#4a2234; --stage:#141113; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font:14px/1.5 var(--f-body);overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{height:100%;display:grid;grid-template-columns:290px minmax(0,1fr) 330px;grid-template-rows:auto minmax(0,1fr)}
+header{grid-column:1/-1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--sheet)}
+header h1{font:600 21px/1.1 var(--f-display);margin:0;letter-spacing:-.2px}
+header .count{font:500 12px var(--f-mono);color:var(--mute)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--wash)}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:999px;cursor:pointer;font-weight:500;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+header .spacer{flex:1}
+.hbtn{border:1px solid var(--line);background:var(--sheet);border-radius:8px;padding:6px 11px;cursor:pointer;font-weight:500;font-size:13px}
+.hbtn:hover{background:var(--wash)}
+/* rail */
+.rail{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:var(--sheet)}
+.rail .filters{padding:12px 14px 8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line)}
+.rail input[type=search]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:3px 9px;font-size:12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--hl);border-color:var(--accent)}
+.list{overflow:auto;min-height:0;flex:1;padding:6px 6px 16px}
+.grp{font:600 11px var(--f-body);letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);padding:12px 8px 4px}
+.item{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:transparent;border-radius:8px;padding:6px 8px;cursor:pointer}
+.item:hover{background:var(--wash)}
+.item[aria-current="true"]{background:var(--hl)}
+.item canvas{width:52px;height:52px;border-radius:6px;background:var(--paper);border:1px solid var(--line)}
+.item b{display:block;font-weight:500;font-size:13px;line-height:1.3}
+.item small{display:block;color:var(--mute);font-size:11.5px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.star{font-size:15px;color:var(--mute);padding:2px 4px;border-radius:6px}
+.item .star.on{color:var(--accent)}
+/* stage */
+.stage{position:relative;min-width:0;min-height:0;background:var(--stage)}
+.stage canvas.main{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.stage canvas.main:active{cursor:grabbing}
+.tools{position:absolute;top:10px;right:calc(10px + env(safe-area-inset-right,0px));display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;z-index:3;transition:opacity .35s;max-width:calc(100% - 20px)}
+.tools>button,.tools>details>summary{border:1px solid var(--line);background:color-mix(in srgb,var(--sheet) 90%,transparent);backdrop-filter:blur(6px);border-radius:8px;padding:6px 11px;cursor:pointer;font-weight:500;font-size:13px;list-style:none;min-height:34px}
+.tools>details>summary::-webkit-details-marker{display:none}
+.tools>button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tools details{position:relative}
+.pop{position:absolute;right:0;top:42px;width:300px;max-width:calc(100vw - 24px);background:var(--sheet);border:1px solid var(--ink);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:9px;box-shadow:0 14px 34px rgba(0,0,0,.18);z-index:4}
+.pop label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px}
+.pop label.cb{justify-content:flex-start}
+.pop select,.pop input[type=text]{padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);max-width:170px}
+.pop input[type=text]{max-width:none;width:100%}
+.pop .note{font-size:11.5px;color:var(--mute);margin:0}
+.pop .go{border:0;background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:9px 12px;font-weight:600;cursor:pointer}
+.pop .alt{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:8px 12px;font-weight:500;cursor:pointer}
+.status{position:absolute;left:50%;top:56px;transform:translateX(-50%);background:var(--sheet);border:1px solid var(--ink);border-radius:10px;padding:8px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:5;font-size:13px;max-width:calc(100% - 24px)}
+.status button{border:1px solid var(--line);background:var(--paper);border-radius:7px;padding:5px 10px;font-weight:600;cursor:pointer}
+.status button.go{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.hint{position:absolute;left:50%;bottom:40px;transform:translateX(-50%);background:color-mix(in srgb,var(--ink) 82%,transparent);color:var(--paper);border-radius:999px;padding:6px 12px;font-size:12px;pointer-events:none;transition:opacity 1s;white-space:nowrap}
+.hint.fade{opacity:0}
+.keys{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--sheet);border:1px solid var(--ink);border-radius:14px;padding:16px 20px;z-index:6;display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:13px;max-width:min(92%,520px)}
+.keys kbd{font:500 12px var(--f-mono);background:var(--wash);border:1px solid var(--line);border-radius:5px;padding:1px 6px;justify-self:start}
+.keys h3{grid-column:1/-1;margin:0 0 6px;font:600 16px var(--f-display)}
+.stage.idle .tools,.stage.idle .hint{opacity:0;pointer-events:none}.stage.idle canvas.main{cursor:none}
+.stage.focus{position:fixed;inset:0;z-index:50}
+/* card */
+.card{border-left:1px solid var(--line);overflow:auto;min-height:0;background:var(--sheet);padding:18px 18px 28px;display:flex;flex-direction:column;gap:14px}
+.card .kicker{font:600 11px var(--f-body);letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);margin:0}
+.card h2{font:600 26px/1.15 var(--f-display);margin:0;text-wrap:balance}
+.card .code{font:500 12.5px var(--f-mono);color:var(--mute);margin:0}
+.card p{margin:0;max-width:65ch}
+.card .lbl{font:600 11px var(--f-body);letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:0 0 3px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stats div{background:var(--sheet);padding:8px 10px}
+.stats b{display:block;font:500 17px var(--f-mono);font-variant-numeric:tabular-nums}
+.stats span{font-size:11.5px;color:var(--mute)}
+.sholl{width:100%;height:120px;display:block}
+.src{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;background:var(--wash);font-size:13px}
+.src a{color:var(--accent);margin-right:12px;font-weight:500}
+.muted{color:var(--mute);font-size:12px}
+/* line-up */
+.lineup-note{position:absolute;left:14px;bottom:12px;font-size:12px;color:var(--mute);z-index:2}
+@media (max-width:1100px){.app{grid-template-columns:250px minmax(0,1fr)}.card{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}body{overflow:auto}.app{height:auto;min-height:100%;grid-template-rows:auto 72vh auto}}
+@media (max-width:700px){
+  body{overflow:auto}
+  .app{display:flex;flex-direction:column;height:auto}
+  .stage{height:68vh;min-height:380px;order:1}
+  .card{order:2;border:0;border-top:1px solid var(--line)}
+  .rail{order:3;border:0;border-top:1px solid var(--line);max-height:none}
+  .list{max-height:62vh}
+  .tools>button,.tools>details>summary{padding:5px 8px;font-size:12px}
+  .hint{white-space:normal;width:84%;text-align:center}
+  header h1{font-size:19px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app" id="app">
+  <header>
+    <h1>Neuron Morphology Atlas</h1><span class="count" id="count"></span>
+    <div class="seg" role="group" aria-label="View"><button type="button" id="v-single" aria-pressed="true">One cell</button><button type="button" id="v-lineup" aria-pressed="false">Line-up at one scale</button></div>
+    <span class="spacer"></span>
+    <button type="button" class="hbtn" id="h-keys">Presenting keys</button>
+  </header>
+
+  <aside class="rail" aria-label="Neurons">
+    <div class="filters">
+      <input type="search" id="q" placeholder="Search: CA1, basket, Purkinje, mouse…" aria-label="Search neurons">
+      <div class="chips" id="chips-sys" role="group" aria-label="Brain system"></div>
+      <div class="chips" id="chips-grp" role="group" aria-label="Cell group"></div>
+      <div class="chips"><button type="button" class="chip" id="only-list" aria-pressed="false">★ My list only</button></div>
+    </div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <main class="stage" id="stage">
+    <canvas class="main" id="cv" aria-label="Neuron. Drag to rotate, scroll to zoom, shift-drag to pan."></canvas>
+    <div class="tools" id="tools" role="toolbar" aria-label="View controls">
+      <button type="button" id="t-star" aria-pressed="false" title="Add to or remove from your list (P)">☆ List</button>
+      <button type="button" id="t-spin" aria-pressed="false" title="Rotate (space)">⟳ Rotate</button>
+      <details id="d-look"><summary>Look</summary><div class="pop">
+        <label>Colour <select id="o-color"><option value="type">by compartment</option><option value="dist">by path distance</option></select></label>
+        <label class="cb"><input type="checkbox" id="o-labels"> Labels: legend, scale bar, region</label>
+        <label>Title <select id="o-title"><option value="name">neuron name</option><option value="custom">custom text</option><option value="none">no title</option></select></label>
+        <input type="text" id="o-custom" placeholder="Custom title" maxlength="90">
+        <label class="cb"><input type="checkbox" id="o-axon"> Show axon</label>
+        <label>Background <select id="o-bg"><option value="auto">match page</option><option value="light">light</option><option value="dark">dark</option></select></label>
+        <label>Tilt <input type="range" id="o-tilt" min="-30" max="45" step="1"></label>
+        <p class="note">The source is always written in the bottom-right corner, on screen, in snapshots and in videos.</p>
+      </div></details>
+      <details id="d-video"><summary>● Video</summary><div class="pop">
+        <label>Size <select id="o-size"><option value="1920x1080">1920 × 1080 landscape</option><option value="1080x1080">1080 × 1080 square</option><option value="1080x1920">1080 × 1920 vertical</option><option value="1280x720">1280 × 720</option><option value="3840x2160">3840 × 2160 (4K)</option></select></label>
+        <label>One turn in <select id="o-dur"><option value="5">5 s</option><option value="8">8 s</option><option value="12">12 s</option><option value="20">20 s</option></select></label>
+        <p class="note">Uses the Look settings. Format: <span id="fmt"></span>. In line-up mode the whole line-up turns.</p>
+        <button type="button" class="go" id="b-rec">Record one turn</button>
+        <button type="button" class="alt" id="b-png">Save snapshot (PNG)</button>
+      </div></details>
+      <button type="button" id="t-fs" title="Neuron only, full screen (F)">⛶ Full screen</button>
+    </div>
+    <div class="hint" id="hint">Drag to rotate · scroll or pinch to zoom · shift-drag to pan · ← → next cell · ? keys</div>
+    <div class="status" id="status" role="status" hidden></div>
+    <div class="keys" id="keys" hidden>
+      <h3>Presenting keys</h3>
+      <kbd>space</kbd><span>rotate / stop</span>
+      <kbd>← →</kbd><span>previous / next cell (your ★ list if it has cells)</span>
+      <kbd>P</kbd><span>add / remove this cell from your list</span>
+      <kbd>L</kbd><span>labels on / off</span>
+      <kbd>T</kbd><span>title: name → custom → none</span>
+      <kbd>C · B</kbd><span>colour mode · background</span>
+      <kbd>+ − 0</kbd><span>zoom in · out · reset view</span>
+      <kbd>V</kbd><span>one cell / line-up</span>
+      <kbd>F</kbd><span>full screen, neuron only</span>
+      <kbd>R · S</kbd><span>record one turn · snapshot</span>
+      <kbd>Esc</kbd><span>close menus / leave full screen</span>
+    </div>
+  </main>
+
+  <section class="card" id="card" aria-live="polite"></section>
+</div>
+
+<script src="cells.js"></script>
+<script>
+(() => {
+'use strict';
+const CELLS = (window.CELLS || []).map((c, i) => Object.assign(c, { _i: i }));
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const fmtN = n => Number(n).toLocaleString('en-US');
+
+/* ---------- preferences (per-viewer convenience only) ---------- */
+const DEF = { color: 'type', labels: true, title: 'name', custom: '', axon: true, bg: 'auto', tilt: 10, size: '1920x1080', dur: 8, list: [], sys: '', grp: '', onlyList: false, view: 'single' };
+let P = { ...DEF }; try { P = Object.assign({}, DEF, JSON.parse(localStorage.getItem('nma-prefs') || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem('nma-prefs', JSON.stringify(P)); } catch (e) {} };
+
+/* ---------- geometry ---------- */
+const GEO = new Map();
+function geo(c) {
+  if (GEO.has(c.id)) return GEO.get(c.id);
+  const S = c.sections, n = S.length, seg = [], endP = new Float64Array(n), done = new Uint8Array(n);
+  const visit = i => {
+    if (done[i]) return; const s = S[i]; if (s[1] >= 0 && !done[s[1]]) visit(s[1]);
+    const p = s[2], r = s[3]; let px, py, pz, pd, pr;
+    if (s[1] >= 0) { const q = S[s[1]][2], L = q.length; px = q[L - 3]; py = q[L - 2]; pz = q[L - 1]; pd = endP[s[1]]; const rq = S[s[1]][3]; pr = rq[rq.length - 1]; }
+    else { px = p[0]; py = p[1]; pz = p[2]; pd = Math.hypot(px, py, pz); pr = r[0]; }
+    for (let k = 0; k < p.length; k += 3) { const x = p[k], y = p[k + 1], z = p[k + 2], rr = r[k / 3] ?? pr, L = Math.hypot(x - px, y - py, z - pz);
+      if (L > 0) seg.push([px, py, pz, x, y, z, pr + rr, s[0], pd + L / 2]); px = x; py = y; pz = z; pd += L; pr = rr; }
+    endP[i] = pd; done[i] = 1;
+  };
+  for (let i = 0; i < n; i++) visit(i);
+  const g = { seg, maxd: 1, rH: 1, y0: Infinity, y1: -Infinity, rHd: 1, y0d: Infinity, y1d: -Infinity, types: new Set(), hasAxon: false };
+  for (const s of seg) { g.maxd = Math.max(g.maxd, s[8]); const h = Math.max(Math.hypot(s[0], s[2]), Math.hypot(s[3], s[5])); g.rH = Math.max(g.rH, h); g.y0 = Math.min(g.y0, s[1], s[4]); g.y1 = Math.max(g.y1, s[1], s[4]); g.types.add(s[7]);
+    if (s[7] === 2) g.hasAxon = true; else { g.rHd = Math.max(g.rHd, h); g.y0d = Math.min(g.y0d, s[1], s[4]); g.y1d = Math.max(g.y1d, s[1], s[4]); } }
+  if (!isFinite(g.y0d)) { g.rHd = g.rH; g.y0d = g.y0; g.y1d = g.y1; }
+  const so = c.soma || []; g.soma = []; if (so.length >= 6) for (let k = 0; k + 1 < so.length; k += 2) g.soma.push([so[k], so[k + 1]]);
+  GEO.set(c.id, g); return g;
+}
+
+/* ---------- colours from the page tokens (or a forced background) ---------- */
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const LIGHT = { bg: '#fbf7f3', ink: '#1a1517', mute: '#6f6266', apical: '#a62961', basal: '#35588f', axon: '#a8988f', soma: '#1a1517' };
+const DARK = { bg: '#141113', ink: '#f3ebee', mute: '#a99ca1', apical: '#ff8dbd', basal: '#8fb3ff', axon: '#6f6468', soma: '#f3ebee' };
+const theme = bg => bg === 'light' ? LIGHT : bg === 'dark' ? DARK : { bg: css('--stage'), ink: css('--ink'), mute: css('--mute'), apical: css('--apical'), basal: css('--basal'), axon: css('--axon'), soma: css('--soma') };
+const RAMP = ['#35588f', '#7d63ad', '#e57aa8', '#a62961', '#5a1430'].map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
+const ramp = t => { const x = Math.max(0, Math.min(.9999, t)) * (RAMP.length - 1), i = Math.floor(x), f = x - i; return `rgb(${RAMP[i].map((v, k) => Math.round(v + (RAMP[i + 1][k] - v) * f)).join(',')})`; };
+
+/* ---------- drawing ---------- */
+const SANS = '"IBM Plex Sans", system-ui, sans-serif', SERIF = '"Source Serif 4", Georgia, serif';
+function strokeCell(ctx, g, proj, scale, T, o, u) {
+  const wpx = d => Math.max(0.6 * u, d * scale * 0.95), bins = new Map();
+  for (const s of g.seg) {
+    if (s[7] === 2 && !o.axon) continue;
+    const col = o.color === 'dist' && s[7] !== 2 ? ramp(s[8] / g.maxd) : s[7] === 4 ? T.apical : s[7] === 2 ? T.axon : T.basal;
+    const w = s[7] === 2 ? Math.min(wpx(s[6]), 1.2 * u) : wpx(s[6]), key = col + '|' + Math.round(w * 4) / 4;
+    let b = bins.get(key); if (!b) bins.set(key, b = []); b.push(s);
+  }
+  ctx.lineCap = 'round';
+  [...bins.keys()].sort((a, b) => (b.startsWith(T.axon) ? 1 : 0) - (a.startsWith(T.axon) ? 1 : 0)).forEach(k => {
+    const [col, w] = k.split('|'); ctx.strokeStyle = col; ctx.lineWidth = +w; ctx.beginPath();
+    for (const s of bins.get(k)) { const a = proj(s[0], s[1], s[2]), b = proj(s[3], s[4], s[5]); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+    ctx.stroke();
+  });
+  ctx.fillStyle = T.soma; ctx.beginPath();
+  if (g.soma.length >= 3) g.soma.forEach(([x, y], i) => { const p = proj(x, y, 0); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
+  else { const p = proj(0, 0, 0); ctx.arc(p[0], p[1], Math.max(2.5 * u, 6 * scale), 0, 7); }
+  ctx.fill();
+}
+function rotor(st, cx, cy, scale) { const cy_ = Math.cos(st.yaw), sy_ = Math.sin(st.yaw), cp = Math.cos(st.pitch), sp = Math.sin(st.pitch);
+  return (x, y, z) => { const X = cy_ * x + sy_ * z, Z = -sy_ * x + cy_ * z, Y = cp * y - sp * Z; return [cx + X * scale, cy - Y * scale]; }; }
+function scaleBar(ctx, W, H, u, scale, T) {
+  const target = 160 * u / scale, nice = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000].find(v => v >= target * 0.6) || 5000;
+  ctx.strokeStyle = T.ink; ctx.lineWidth = 3 * u; ctx.beginPath(); ctx.moveTo(40 * u, H - 34 * u); ctx.lineTo(40 * u + nice * scale, H - 34 * u); ctx.stroke();
+  ctx.fillStyle = T.ink; ctx.font = `${Math.round(16 * u)}px ${SANS}`; ctx.textAlign = 'left'; ctx.fillText(`${nice} µm`, 40 * u, H - 44 * u);
+}
+function citeLine(ctx, W, H, u, T, text) { ctx.fillStyle = T.mute; ctx.font = `${Math.round(14 * u)}px ${SANS}`; ctx.textAlign = 'right'; ctx.fillText(text, W - 24 * u, H - 18 * u, W * 0.64); ctx.textAlign = 'left'; }
+
+function drawSingle(ctx, W, H, st, c, o) {
+  const T = theme(o.bg), g = geo(c), u = Math.min(W, H) / 1000, off = o.uiTop || 0;
+  ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
+  const top = off + (o.labels || o.title !== 'none' ? 110 * u : 30 * u), bot = 70 * u, avail = H - top - bot;
+  const ax = o.axon && g.hasAxon, rh = ax ? g.rH : g.rHd, ya = ax ? g.y0 : g.y0d, yb = ax ? g.y1 : g.y1d, tilt = Math.abs(Math.sin(st.pitch));
+  const fitH = (yb - ya) * Math.cos(st.pitch) + 2 * rh * tilt;
+  const scale = st.zoom * Math.min(0.92 * W / (2 * rh), 0.94 * avail / Math.max(fitH, 1));
+  const cx = W / 2 + st.panX, cy = top + avail / 2 + st.panY + (ya + yb) / 2 * Math.cos(st.pitch) * scale;
+  strokeCell(ctx, g, rotor(st, cx, cy, scale), scale, T, o, u);
+  if (o.title !== 'none') { const t = o.title === 'custom' ? o.custom : `${c.name}${c.code ? ' · ' + c.code : ''}`;
+    if (t) { ctx.fillStyle = T.ink; ctx.font = `${Math.round(42 * u)}px ${SERIF}`; ctx.fillText(t, 40 * u, off + 62 * u, W - 80 * u); }
+    if (o.labels && o.title === 'name') { ctx.fillStyle = T.mute; ctx.font = `${Math.round(18 * u)}px ${SANS}`; ctx.fillText([c.region, c.species].filter(Boolean).join(' · '), 40 * u, off + 92 * u); } }
+  if (o.labels) {
+    ctx.font = `${Math.round(17 * u)}px ${SANS}`; let y = off + 44 * u;
+    if (o.color === 'dist') { const gw = 200 * u, gx = W - 40 * u - gw; for (let i = 0; i < 100; i++) { ctx.fillStyle = ramp(i / 99); ctx.fillRect(gx + i * gw / 100, y - 10 * u, gw / 100 + 1, 10 * u); }
+      ctx.fillStyle = T.ink; ctx.textAlign = 'right'; ctx.fillText(`path distance 0 → ${Math.round(g.maxd)} µm`, W - 40 * u, y + 22 * u); ctx.textAlign = 'left'; }
+    else [[T.apical, 'apical dendrite', g.types.has(4)], [T.basal, g.types.has(4) ? 'basal dendrite' : 'dendrite', g.types.has(3)], [T.axon, 'axon', ax]].filter(x => x[2]).forEach(([col, l]) => {
+      const tw = ctx.measureText(l).width; ctx.fillStyle = col; ctx.fillRect(W - 40 * u - tw - 30 * u, y - 7 * u, 22 * u, 5 * u); ctx.fillStyle = T.ink; ctx.fillText(l, W - 40 * u - tw, y); y += 26 * u; });
+    scaleBar(ctx, W, H, u, scale, T);
+  }
+  citeLine(ctx, W, H, u, T, 'Source: ' + c.cite);
+}
+function drawLineup(ctx, W, H, st, cells, o) {
+  const T = theme(o.bg), u = Math.min(W, H) / 1000, off = o.uiTop || 0; ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
+  if (!cells.length) { ctx.fillStyle = T.mute; ctx.font = `${Math.round(20 * u)}px ${SANS}`; ctx.fillText('No cells match the filters.', 40 * u, off + 80 * u); return; }
+  const gs = cells.map(geo), ax = o.axon;
+  const widths = gs.map(g => 2 * (ax && g.hasAxon ? g.rH : g.rHd)), ya = Math.min(...gs.map(g => ax && g.hasAxon ? g.y0 : g.y0d)), yb = Math.max(...gs.map(g => ax && g.hasAxon ? g.y1 : g.y1d));
+  const gap = 0.12 * Math.max(...widths), totalW = widths.reduce((a, b) => a + b, 0) + gap * (cells.length - 1);
+  const top = off + (o.title !== 'none' ? 100 * u : 30 * u), bot = 160 * u, avail = H - top - bot;
+  const scale = st.zoom * Math.min(0.94 * W / totalW, 0.94 * avail / (yb - ya));
+  if (o.title !== 'none') { const t = o.title === 'custom' ? o.custom : `${cells.length} neurons at one scale`; if (t) { ctx.fillStyle = T.ink; ctx.font = `${Math.round(40 * u)}px ${SERIF}`; ctx.fillText(t, 40 * u, off + 60 * u, W - 80 * u); } }
+  let x = W / 2 - totalW * scale / 2 + st.panX; const baseY = top + avail / 2 + st.panY + (ya + yb) / 2 * scale;
+  cells.forEach((c, i) => {
+    const cx = x + widths[i] * scale / 2; strokeCell(ctx, gs[i], rotor(st, cx, baseY, scale), scale, T, o, u);
+    if (o.labels || o.title !== 'none') { ctx.textAlign = 'center'; ctx.fillStyle = T.ink; ctx.font = `${Math.round(15 * u)}px ${SANS}`; ctx.fillText(c.name.replace(/\s*\(.*\)$/, ''), cx, H - bot + 34 * u, widths[i] * scale + gap * scale * .9);
+      ctx.fillStyle = T.mute; ctx.font = `${Math.round(12.5 * u)}px ${SANS}`; ctx.fillText([c.region, c.species].filter(Boolean).join(' · '), cx, H - bot + 54 * u, widths[i] * scale + gap * scale * .9);
+      ctx.fillText(shortCite(c), cx, H - bot + 72 * u, widths[i] * scale + gap * scale * .9); ctx.textAlign = 'left'; }
+    x += (widths[i] + gap) * scale;
+  });
+  if (o.labels) scaleBar(ctx, W, H, u, scale, T);
+  citeLine(ctx, W, H, u, T, 'Sources: listed under each cell · full references in the Neuron Morphology Atlas');
+}
+function shortCite(c) { const m = c.cite.match(/^([^(·]+?)\s*\((\d{4})\)/); if (m) return `${m[1].split(/,| &/)[0].trim()}${/,|&/.test(m[1]) ? ' et al.' : ''} ${m[2]}`; return c.cite.split('·')[0].trim(); }
+
+/* ---------- state ---------- */
+let cur = CELLS[0], st = null, spin = false, recording = false;
+const cv = $('#cv'), stage = $('#stage');
+const filtered = () => {
+  const q = $('#q').value.trim().toLowerCase();
+  return CELLS.filter(c => (!P.sys || c.system === P.sys) && (!P.grp || c.group === P.grp) && (!P.onlyList || P.list.includes(c.id)) &&
+    (!q || [c.name, c.code, c.region, c.species, c.group, c.layer, c.cite].join(' ').toLowerCase().includes(q)));
+};
+const lineupCells = () => { const L = P.list.map(id => CELLS.find(c => c.id === id)).filter(Boolean); return (L.length ? L : filtered()).slice(0, 10); };
+function resetView() { st = { yaw: 0, pitch: (P.tilt || 0) * Math.PI / 180, zoom: 1, panX: 0, panY: 0 }; }
+function render() {
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const tools = $('#tools'), o = Object.assign({}, P, { uiTop: tools.offsetTop + tools.offsetHeight + 2 });
+  P.view === 'lineup' ? drawLineup(ctx, W, H, st, lineupCells(), o) : drawSingle(ctx, W, H, st, cur, o);
+}
+function choose(id, keepPitch) {
+  const c = CELLS.find(x => x.id === id); if (!c) return; cur = c; const p = st && st.pitch; resetView(); if (keepPitch && p !== undefined) st.pitch = p;
+  document.querySelectorAll('.item').forEach(b => b.setAttribute('aria-current', b.dataset.id === id));
+  const it = document.querySelector(`.item[data-id="${CSS.escape(id)}"]`); if (it) it.scrollIntoView({ block: 'nearest' });
+  try { history.replaceState(null, '', '#' + id); } catch (e) {}
+  syncStar(); card(); render();
+}
+
+/* ---------- rail ---------- */
+const SYS = [...new Set(CELLS.map(c => c.system))], GRP = [...new Set(CELLS.map(c => c.group))];
+function chips() {
+  $('#chips-sys').innerHTML = [['', 'All systems'], ...SYS.map(s => [s, s])].map(([v, l]) => `<button type="button" class="chip" data-sys="${esc(v)}" aria-pressed="${P.sys === v}">${esc(l)}</button>`).join('');
+  $('#chips-grp').innerHTML = [['', 'All cell types'], ...GRP.map(s => [s, s])].map(([v, l]) => `<button type="button" class="chip" data-grp="${esc(v)}" aria-pressed="${P.grp === v}">${esc(l)}</button>`).join('');
+  $('#only-list').setAttribute('aria-pressed', P.onlyList);
+}
+let thumbObs = null;
+function list() {
+  const F = filtered(), byReg = new Map();
+  F.forEach(c => { const k = `${c.system === 'Hippocampal formation' ? '' : '~'}${c.region}`; if (!byReg.has(k)) byReg.set(k, []); byReg.get(k).push(c); });
+  const ORDER = ['Dentate gyrus', 'CA3', 'CA2', 'CA1', 'Subiculum', 'Entorhinal cortex', 'Medial septum'];
+  const rank = k => k.startsWith('~') ? 100 : (ORDER.indexOf(k) + 1 || 50);
+  $('#list').innerHTML = [...byReg.entries()].sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].replace('~', '').localeCompare(b[0].replace('~', ''))).map(([k, cs]) => `<div class="grp">${esc(k.replace(/^~/, ''))}</div>` + cs.map(c =>
+    `<button type="button" class="item" data-id="${esc(c.id)}" aria-current="${c.id === cur.id}"><canvas width="104" height="104" data-thumb="${esc(c.id)}" aria-hidden="true"></canvas><span><b>${esc(c.name)}</b><small>${esc([c.code, c.species].filter(Boolean).join(' · '))}</small></span><span class="star ${P.list.includes(c.id) ? 'on' : ''}" data-star="${esc(c.id)}" role="button" aria-label="${P.list.includes(c.id) ? 'Remove from' : 'Add to'} my list" tabindex="0">${P.list.includes(c.id) ? '★' : '☆'}</span></button>`).join('')).join('') || '<p class="muted" style="padding:12px">No neurons match. Clear the search or filters.</p>';
+  $('#count').textContent = `${F.length} of ${CELLS.length} reconstructions`;
+  if (thumbObs) thumbObs.disconnect();
+  thumbObs = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { thumb(e.target); thumbObs.unobserve(e.target); } }), { root: $('#list'), rootMargin: '200px' }) : null;
+  document.querySelectorAll('[data-thumb]').forEach(t => thumbObs ? thumbObs.observe(t) : thumb(t));
+}
+function thumb(el) {
+  const c = CELLS.find(x => x.id === el.dataset.thumb); if (!c) return; const g = geo(c), ctx = el.getContext('2d'), W = el.width, H = el.height;
+  const T = theme('auto'); ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
+  const rh = g.rH, ya = g.y0, yb = g.y1, scale = Math.min(0.9 * W / (2 * rh), 0.9 * H / (yb - ya)), proj = rotor({ yaw: 0, pitch: 0 }, W / 2, H / 2 + (ya + yb) / 2 * scale, scale);
+  const step = Math.max(1, Math.floor(g.seg.length / 2500));
+  ctx.lineCap = 'round';
+  for (const [ty, col] of [[2, T.axon], [3, T.basal], [4, T.apical]]) { ctx.strokeStyle = col; ctx.lineWidth = ty === 2 ? 0.5 : 0.9; ctx.beginPath(); for (let i = 0; i < g.seg.length; i += step) { const s = g.seg[i]; if (s[7] !== ty) continue; const a = proj(s[0], s[1], s[2]), b = proj(s[3], s[4], s[5]); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); } ctx.stroke(); }
+}
+
+/* ---------- specimen card ---------- */
+function card() {
+  const c = cur, s = c.stats, sh = c.sholl, mx = Math.max(1, ...sh[2]);
+  const pts = sh[2].map((n, i) => `${(i / Math.max(1, sh[2].length - 1) * 300).toFixed(1)},${(110 - n / mx * 100).toFixed(1)}`).join(' ');
+  $('#card').innerHTML = `<p class="kicker">${esc(c.system)} · ${esc(c.region)}</p><h2>${esc(c.name)}</h2><p class="code">${esc([c.code, c.species].filter(Boolean).join(' · '))}</p>
+    ${c.layer ? `<div><p class="lbl">Where it sits</p><p>${esc(c.layer)}</p></div>` : ''}
+    ${c.role ? `<div><p class="lbl">Why it matters</p><p>${esc(c.role)}</p></div>` : ''}
+    <div><p class="lbl">Measured from this tracing</p><div class="stats">
+      <div><b>${fmtN(s.dendrite_um)}</b><span>dendrite µm${s.apical_um ? ` (${fmtN(s.apical_um)} apical)` : ''}</span></div>
+      <div><b>${fmtN(s.dend_area_um2)}</b><span>dendritic membrane µm²</span></div>
+      <div><b>${s.branch}</b><span>dendritic branch points</span></div>
+      <div><b>${s.tips}</b><span>dendritic tips</span></div>
+      <div><b>${fmtN(s.maxpath_um)}</b><span>longest dendritic path µm</span></div>
+      <div><b>${s.axon_um ? fmtN(s.axon_um) : '—'}</b><span>traced axon µm</span></div>
+      <div><b>${s.extent_um.map(fmtN).join(' × ')}</b><span>extent x × y × z µm</span></div>
+      <div><b>${(s.dend_area_um2 * 1e-2).toFixed(0)}</b><span>pF at 1 µF/cm², no spines</span></div></div></div>
+    <div><p class="lbl">Sholl profile · dendrites</p><svg class="sholl" viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="Sholl profile: dendritic crossings against distance from the soma, peak ${mx}">
+      <polyline points="0,110 ${pts} 300,110" fill="var(--hl)" stroke="none"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+      <line x1="0" y1="110" x2="300" y2="110" stroke="var(--line)"/></svg>
+      <p class="muted">Peak ${mx} crossings · shells every ${sh[1]} µm out to ${fmtN(sh[0] + sh[1] * (sh[2].length - 1))} µm</p></div>
+    ${c.how ? `<div><p class="lbl">How it was obtained</p><p class="muted" style="font-size:13px">${esc(c.how)}</p></div>` : ''}
+    <div class="src"><p class="lbl">Source</p><p>${esc(c.cite)}</p>${c.note ? `<p class="muted" style="margin-top:4px">${esc(c.note)}</p>` : ''}<p style="margin-top:6px">${c.links.map(([l, h]) => `<a href="${esc(h)}" target="_blank" rel="noopener">${esc(l)} ↗</a>`).join('')}</p></div>
+    <p class="muted">Data exported from the Little Neural Guide’s Neuron studio. Diameters and completeness follow the original tracing.</p>`;
+}
+
+/* ---------- controls ---------- */
+function syncControls() {
+  $('#o-color').value = P.color; $('#o-labels').checked = P.labels; $('#o-title').value = P.title; $('#o-custom').value = P.custom; $('#o-custom').hidden = P.title !== 'custom';
+  $('#o-axon').checked = P.axon; $('#o-bg').value = P.bg; $('#o-tilt').value = P.tilt; $('#o-size').value = P.size; $('#o-dur').value = String(P.dur);
+  $('#v-single').setAttribute('aria-pressed', P.view === 'single'); $('#v-lineup').setAttribute('aria-pressed', P.view === 'lineup'); $('#t-star').hidden = P.view === 'lineup';
+}
+function syncStar() { const on = P.list.includes(cur.id); $('#t-star').setAttribute('aria-pressed', on); $('#t-star').textContent = `${on ? '★' : '☆'} List${P.list.length ? ` (${P.list.length})` : ''}`; }
+function toggleList(id) { const i = P.list.indexOf(id); i >= 0 ? P.list.splice(i, 1) : P.list.push(id); save(); syncStar(); list(); if (P.view === 'lineup') render(); }
+function setView(v) { P.view = v; save(); syncControls(); resetView(); render(); }
+document.querySelectorAll('.pop select, .pop input').forEach(el => el.addEventListener('input', () => {
+  P.color = $('#o-color').value; P.labels = $('#o-labels').checked; P.title = $('#o-title').value; P.custom = $('#o-custom').value; P.axon = $('#o-axon').checked; P.bg = $('#o-bg').value;
+  P.size = $('#o-size').value; P.dur = +$('#o-dur').value; const nt = +$('#o-tilt').value; if (nt !== P.tilt) { st.pitch = nt * Math.PI / 180; P.tilt = nt; }
+  $('#o-custom').hidden = P.title !== 'custom'; save(); render();
+}));
+$('#chips-sys').addEventListener('click', e => { const b = e.target.closest('[data-sys]'); if (!b) return; P.sys = b.dataset.sys; save(); chips(); list(); if (P.view === 'lineup') render(); });
+$('#chips-grp').addEventListener('click', e => { const b = e.target.closest('[data-grp]'); if (!b) return; P.grp = b.dataset.grp; save(); chips(); list(); if (P.view === 'lineup') render(); });
+$('#only-list').addEventListener('click', () => { P.onlyList = !P.onlyList; save(); chips(); list(); if (P.view === 'lineup') render(); });
+$('#q').addEventListener('input', () => { list(); if (P.view === 'lineup') render(); });
+$('#list').addEventListener('click', e => { const s = e.target.closest('[data-star]'); if (s) { e.stopPropagation(); toggleList(s.dataset.star); return; } const b = e.target.closest('.item'); if (b) { if (P.view === 'lineup') setView('single'); choose(b.dataset.id); } });
+$('#list').addEventListener('keydown', e => { const s = e.target.closest('[data-star]'); if (s && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); toggleList(s.dataset.star); } });
+$('#v-single').addEventListener('click', () => setView('single')); $('#v-lineup').addEventListener('click', () => setView('lineup'));
+$('#t-star').addEventListener('click', () => toggleList(cur.id));
+$('#t-spin').addEventListener('click', () => toggleSpin());
+$('#t-fs').addEventListener('click', () => focusMode());
+$('#h-keys').addEventListener('click', () => { $('#keys').hidden = !$('#keys').hidden; });
+$('#keys').addEventListener('click', () => { $('#keys').hidden = true; });
+$('#b-png').addEventListener('click', snapshot); $('#b-rec').addEventListener('click', record);
+function toggleSpin(v) { spin = v === undefined ? !spin : v; $('#t-spin').setAttribute('aria-pressed', spin); }
+function step(d) { const ids = P.list.length ? P.list : filtered().map(c => c.id); if (!ids.length) return; let i = ids.indexOf(cur.id); i = i < 0 ? 0 : (i + d + ids.length) % ids.length; choose(ids[i], true); }
+function focusMode() {
+  const on = !stage.classList.contains('focus'); stage.classList.toggle('focus', on); $('#t-fs').textContent = on ? '✕ Exit full screen' : '⛶ Full screen';
+  try { if (on && stage.requestFullscreen && !document.fullscreenElement) stage.requestFullscreen().catch(() => {}); else if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
+  setTimeout(render, 60);
+}
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && stage.classList.contains('focus')) { stage.classList.remove('focus'); $('#t-fs').textContent = '⛶ Full screen'; } setTimeout(render, 60); });
+
+/* pointer: rotate / pan / pinch */
+const pts = new Map(); let pinch0 = 0, zoom0 = 1;
+cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY, e.shiftKey]); if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch0 = Math.hypot(a[0] - b[0], a[1] - b[1]); zoom0 = st.zoom; } document.querySelectorAll('.tools details[open]').forEach(d => d.open = false); });
+cv.addEventListener('pointermove', e => { const p = pts.get(e.pointerId); if (!p) return;
+  if (pts.size === 2) { pts.set(e.pointerId, [e.clientX, e.clientY, p[2]]); const [a, b] = [...pts.values()]; if (pinch0) st.zoom = Math.max(.3, Math.min(14, zoom0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch0)); st.panX += (e.clientX - p[0]) / 2; st.panY += (e.clientY - p[1]) / 2; }
+  else if (p[2] || e.shiftKey) { st.panX += e.clientX - p[0]; st.panY += e.clientY - p[1]; }
+  else { st.yaw += (e.clientX - p[0]) * .01; st.pitch = Math.max(-1.5, Math.min(1.5, st.pitch + (e.clientY - p[1]) * .01)); }
+  pts.set(e.pointerId, [e.clientX, e.clientY, p[2]]); render(); });
+const up = e => { pts.delete(e.pointerId); pinch0 = 0; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+cv.addEventListener('wheel', e => { e.preventDefault(); st.zoom = Math.max(.3, Math.min(14, st.zoom * (e.deltaY < 0 ? 1.1 : .91))); render(); }, { passive: false });
+let idleT = 0; const wake = () => { stage.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => { if (!document.querySelector('.tools details[open]') && $('#keys').hidden) stage.classList.add('idle'); }, 2800); };
+stage.addEventListener('pointermove', wake); stage.addEventListener('pointerdown', wake);
+setTimeout(() => $('#hint').classList.add('fade'), 4500);
+
+document.addEventListener('keydown', e => {
+  if (/INPUT|SELECT|TEXTAREA/.test((e.target || {}).tagName || '') && e.key !== 'Escape') return; if (recording) return;
+  const k = e.key, sel = (id, v) => { const el = $(id); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); };
+  if (k === 'Escape') { const d = document.querySelector('.tools details[open]'); if (d) d.open = false; else if (!$('#keys').hidden) $('#keys').hidden = true; else if (stage.classList.contains('focus')) focusMode(); return; }
+  if (k === ' ') { e.preventDefault(); toggleSpin(); }
+  else if (k === 'ArrowRight' || k === 'PageDown') { e.preventDefault(); if (P.view === 'single') step(1); }
+  else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); if (P.view === 'single') step(-1); }
+  else if (k === 'p' || k === 'P') toggleList(cur.id);
+  else if (k === 'l' || k === 'L') { const c = $('#o-labels'); c.checked = !c.checked; c.dispatchEvent(new Event('input', { bubbles: true })); }
+  else if (k === 't' || k === 'T') sel('#o-title', { name: P.custom ? 'custom' : 'none', custom: 'none', none: 'name' }[P.title]);
+  else if (k === 'c' || k === 'C') sel('#o-color', P.color === 'type' ? 'dist' : 'type');
+  else if (k === 'b' || k === 'B') sel('#o-bg', { auto: 'dark', dark: 'light', light: 'auto' }[P.bg]);
+  else if (k === '+' || k === '=') { st.zoom = Math.min(14, st.zoom * 1.15); render(); } else if (k === '-' || k === '_') { st.zoom = Math.max(.3, st.zoom / 1.15); render(); }
+  else if (k === '0') { resetView(); render(); }
+  else if (k === 'v' || k === 'V') setView(P.view === 'single' ? 'lineup' : 'single');
+  else if (k === 'f' || k === 'F') focusMode();
+  else if (k === 'r' || k === 'R') record(); else if (k === 's' || k === 'S') snapshot();
+  else if (k === '?') $('#keys').hidden = !$('#keys').hidden;
+  wake();
+});
+
+/* ---------- saving: the artifact downloads capability ---------- */
+let DL; const getDl = () => DL !== undefined ? Promise.resolve(DL) : (window.claude && window.claude.use ? window.claude.use('downloads').then(d => (DL = d)).catch(() => (DL = null)) : Promise.resolve(DL = null));
+async function offer(name, blob) { const d = await getDl(); if (!d) return 'unavailable'; try { await d.save({ filename: name, data: blob }); return 'saved'; } catch (err) { return err && err.code === 'declined' ? 'declined' : err && err.code === 'rate_limited' ? 'busy' : 'unavailable'; } }
+const status = (h, ms) => { const s = $('#status'); s.innerHTML = h; s.hidden = !h; if (ms) setTimeout(() => { if (s.innerHTML === h) s.hidden = true; }, ms); };
+const resultMsg = (r, name) => r === 'saved' ? `Saved ${esc(name)}.` : r === 'declined' ? 'Not saved.' : r === 'busy' ? 'A save prompt is already open. Try again in a moment.' : 'Saving files is not available in this view. Open the atlas in claude.ai to save.';
+const fileBase = () => (P.view === 'lineup' ? 'neuron-lineup' : (cur.code || cur.id)).replace(/[^\w.-]+/g, '_').replace(/^_+|_+$/g, '') || 'neuron';
+function offscreen() { const [W, H] = P.size.split('x').map(Number); const c = document.createElement('canvas'); c.width = W; c.height = H; return c; }
+function paint(ctx, W, H, s) { const o = Object.assign({}, P, { bg: P.bg === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light') : P.bg });
+  P.view === 'lineup' ? drawLineup(ctx, W, H, s, lineupCells(), o) : drawSingle(ctx, W, H, s, cur, o); }
+async function snapshot() {
+  const c = offscreen(); paint(c.getContext('2d'), c.width, c.height, st);
+  c.toBlob(async b => { if (!b) return; const name = fileBase() + '.png'; status(resultMsg(await offer(name, b), name), 3500); }, 'image/png');
+}
+function mime() { if (typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) return '';
+  return ['video/mp4;codecs=avc1.640028', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find(t => { try { return MediaRecorder.isTypeSupported(t); } catch (e) { return false; } }) || ''; }
+$('#fmt').textContent = mime() ? (mime().includes('mp4') ? 'MP4 (H.264)' : 'WebM') : 'not supported in this browser';
+async function record() {
+  const type = mime(); if (!type) { status('This browser cannot record video. Chrome, Edge, Safari and Firefox can.', 4000); return; }
+  document.querySelectorAll('.tools details[open]').forEach(d => d.open = false);
+  const c = offscreen(), ctx = c.getContext('2d'), stream = c.captureStream(30), W = c.width, H = c.height;
+  let rec; try { rec = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: Math.round(Math.min(40e6, W * H * 30 * .12)) }); } catch (e) { rec = new MediaRecorder(stream); }
+  const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); }; const stopped = new Promise(r => rec.onstop = r);
+  const s0 = { ...st }, dur = P.dur * 1000; recording = true; toggleSpin(false);
+  paint(ctx, W, H, s0); rec.start(250); const t0 = performance.now();
+  await new Promise(res => { const tick = now => { const f = Math.min(1, (now - t0) / dur), sv = { ...s0, yaw: s0.yaw + f * 2 * Math.PI }; paint(ctx, W, H, sv); st.yaw = sv.yaw; render(); status(`● Recording ${Math.round(f * 100)}%`); f < 1 ? requestAnimationFrame(tick) : res(); }; requestAnimationFrame(tick); });
+  await new Promise(r => setTimeout(r, 120)); rec.stop(); await stopped; stream.getTracks().forEach(t => t.stop()); recording = false; st.yaw = s0.yaw; render();
+  const ext = type.includes('mp4') ? 'mp4' : 'webm', blob = new Blob(chunks, { type: type.split(';')[0] }), name = `${fileBase()}-rotation.${ext}`;
+  status(`<b>Video ready</b> · ${W}×${H} · ${P.dur} s · ${(blob.size / 1048576).toFixed(1)} MB <button type="button" class="go" id="b-save">Save video</button><button type="button" id="b-discard">Discard</button>`);
+  $('#b-save').onclick = async () => status(resultMsg(await offer(name, blob), name), 4500); $('#b-discard').onclick = () => status('');
+}
+
+/* ---------- loop, resize, start ---------- */
+(function loop() { if (spin && !recording) { st.yaw += .006; render(); } requestAnimationFrame(loop); })();
+new ResizeObserver(() => render()).observe(stage);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { render(); document.querySelectorAll('[data-thumb]').forEach(thumb); });
+new MutationObserver(() => { render(); document.querySelectorAll('[data-thumb]').forEach(thumb); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+const start = (location.hash || '').slice(1); resetView(); chips(); syncControls();
+cur = CELLS.find(c => c.id === start) || CELLS[0]; list(); choose(cur.id);
+window.addEventListener('hashchange', () => { const id = location.hash.slice(1); if (id && id !== cur.id && CELLS.some(c => c.id === id)) choose(id); });
+})();
+</script>
+
+</body></html>

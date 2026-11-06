@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: TNT (no chemical release)
+tool: giant-fiber
+kind: genetic
+what: Tetanus toxin light chain blocks GF chemical release.
+expected_size: complete block in the model
+references:
+- allen2006
+ops:
+- control: '#gfmChem'
+  set: false

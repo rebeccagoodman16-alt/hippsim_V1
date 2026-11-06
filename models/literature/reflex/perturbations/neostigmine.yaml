@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: Neostigmine
+tool: reflex
+kind: pharmacology
+what: Acetylcholinesterase blocked.
+expected_size: complete block in the model
+references: []
+ops:
+- control: '#rxNeo'
+  set: true

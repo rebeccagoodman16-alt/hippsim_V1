@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: 'XE991: M-current block'
+tool: interleaved-resonance
+kind: pharmacology
+what: 'Kv7/M channels blocked: g_KM = 0.'
+expected_size: complete block in the model
+references:
+- golomb2006
+ops:
+- control: '#irp-gM'
+  set: 0

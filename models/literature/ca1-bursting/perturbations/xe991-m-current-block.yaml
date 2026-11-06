@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: 'XE991: M-current block'
+tool: ca1-bursting
+kind: pharmacology
+what: Kv7/M channels blocked; Golomb et al. test this by setting g_M = 0.
+expected_size: complete block in the model
+references:
+- golomb2006
+ops:
+- control: '#gy-gZ'
+  set: 0

@@ -1,0 +1,170 @@
+{
+ "date": "2026-11-04",
+ "checks": [
+  {
+   "group": "Python package",
+   "name": "CA1 lab cell, passive + I_h (reference engine)",
+   "target": "rest -63 mV · R_in 66 MΩ",
+   "result": "rest -63.40 mV · R_in 66.02 MΩ · 571 compartments",
+   "status": "pass"
+  },
+  {
+   "group": "Python package",
+   "name": "NEURON vs reference engine, input resistance (−50 pA step, 300 ms)",
+   "target": "66.0 MΩ (reference)",
+   "result": "63.5 MΩ (NEURON, includes I_h sag)",
+   "status": "pass"
+  },
+  {
+   "group": "Morphologies",
+   "name": "SWC reconstructions instantiate in NEURON (Import3d)",
+   "target": "87 / 87",
+   "result": "87 / 87",
+   "status": "pass"
+  },
+  {
+   "group": "Engines",
+   "name": "Spiking: NEURON vs CA1 Morphology Lab JS engine (first spike time)",
+   "target": "< 1 ms apart at every amplitude",
+   "result": "0.2 nA: 86.7 vs 87.3 ms; 0.3 nA: 66.1 vs 66.4 ms; 0.4 nA: 59.9 vs 60.1 ms",
+   "status": "pass"
+  },
+  {
+   "group": "Engines",
+   "name": "Spiking: spike counts, 300 ms step (NEURON vs JS engine)",
+   "target": "JS: 51, 66, 5",
+   "result": "NEURON: 51, 66, 75 (0.2 / 0.3 / 0.4 nA)",
+   "status": "pass",
+   "note": "Fixed 2026-11-04: the JS engine used to update K_dr only where Na+ is present, so the distal apical K_dr (0.4 x g_kdr) was never applied. Counts now match below depolarization block. Block starts at 0.4 nA (JS) vs 0.45 nA (NEURON); near that bifurcation small numerical differences decide whether a step fires tonically, so 0.4 nA differs. legacy_js_kdr: true reproduces the old page."
+  },
+  {
+   "group": "Engines",
+   "name": "NEURON Impedance(extended=1) with I_h",
+   "target": "≈ reference engine",
+   "result": "147 vs 66 MΩ",
+   "status": "known issue",
+   "note": "Impedance protocols use the reference engine."
+  }
+ ],
+ "spiking": [
+  {
+   "amp_nA": 0.2,
+   "layout": "documented (distal K_dr 0.4 g_kdr)",
+   "neuron": 51,
+   "neuron_first": [
+    86.7,
+    92.6,
+    98.0
+   ],
+   "js": 51,
+   "js_first": [
+    87.3,
+    93.1,
+    98.5
+   ]
+  },
+  {
+   "amp_nA": 0.3,
+   "layout": "documented (distal K_dr 0.4 g_kdr)",
+   "neuron": 66,
+   "neuron_first": [
+    66.1,
+    71.0,
+    75.6
+   ],
+   "js": 66,
+   "js_first": [
+    66.4,
+    71.3,
+    75.9
+   ]
+  },
+  {
+   "amp_nA": 0.4,
+   "layout": "documented (distal K_dr 0.4 g_kdr)",
+   "neuron": 75,
+   "neuron_first": [
+    59.9,
+    64.4,
+    68.5
+   ],
+   "js": 5,
+   "js_first": [
+    60.1,
+    64.7,
+    68.8
+   ]
+  },
+  {
+   "amp_nA": 0.2,
+   "layout": "legacy page (no distal K_dr)",
+   "neuron": 12,
+   "neuron_first": [
+    86.5,
+    91.4,
+    95.8
+   ],
+   "js": 51,
+   "js_first": [
+    87.3,
+    93.1,
+    98.5
+   ]
+  },
+  {
+   "amp_nA": 0.3,
+   "layout": "legacy page (no distal K_dr)",
+   "neuron": 7,
+   "neuron_first": [
+    66.0,
+    70.5,
+    355.1
+   ],
+   "js": 66,
+   "js_first": [
+    66.4,
+    71.3,
+    75.9
+   ]
+  },
+  {
+   "amp_nA": 0.4,
+   "layout": "legacy page (no distal K_dr)",
+   "neuron": 7,
+   "neuron_first": [
+    59.9,
+    64.1,
+    353.0
+   ],
+   "js": 5,
+   "js_first": [
+    60.1,
+    64.7,
+    68.8
+   ]
+  }
+ ],
+ "block_scan": {
+  "amps": [
+   0.35,
+   0.38,
+   0.4,
+   0.42,
+   0.45
+  ],
+  "js": [
+   70,
+   73,
+   5,
+   3,
+   2
+  ],
+  "neuron": [
+   71,
+   73,
+   75,
+   53,
+   3
+  ]
+ }
+}

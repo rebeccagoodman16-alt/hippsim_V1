@@ -1,0 +1,981 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Neurodynamics Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a "scale ladder" nav (channel → network → population → learning) over a bench of controls + instrument plots */
+:root{
+  --bg:#eef1f5; --panel:#f8fafc; --ink:#18202d; --muted:#5b6678; --rule:#d3d9e2; --grid:#e1e6ed;
+  --accent:#2a55c9; --t2:#c24a17; --t3:#0e8467; --t4:#8a3fb0;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141c; --panel:#161d28; --ink:#dde4ee; --muted:#93a0b4; --rule:#2a3444; --grid:#1f2835;
+  --accent:#7fa2ff; --t2:#ff8a57; --t3:#3fd3a6; --t4:#c792ea; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141c; --panel:#161d28; --ink:#dde4ee; --muted:#93a0b4; --rule:#2a3444; --grid:#1f2835;
+  --accent:#7fa2ff; --t2:#ff8a57; --t3:#3fd3a6; --t4:#c792ea; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 56px;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(30px,5vw,46px);font-weight:700;letter-spacing:-.02em}
+h2{font-size:26px;font-weight:700;letter-spacing:-.01em}
+h3{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+p{margin:0}
+.lede{max-width:66ch;color:var(--muted);font-size:16px}
+header{display:flex;flex-direction:column;gap:10px}
+.eyebrow{font:600 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+
+/* scale ladder */
+.ladder{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--panel)}
+.ladder button{all:unset;cursor:pointer;padding:12px 14px 13px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--rule);position:relative;min-width:0}
+.ladder button:last-child{border-right:0}
+.ladder button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+.ladder .sc{font:600 10.5px var(--f-mono);color:var(--muted);letter-spacing:.06em}
+.ladder .nm{font:700 15px var(--f-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ladder .lv{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ladder button[aria-selected="true"]{background:var(--bg)}
+.ladder button[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--accent)}
+.ladder button[aria-selected="true"] .nm{color:var(--accent)}
+.ladder button:hover .nm{color:var(--accent)}
+@media (max-width:760px){.ladder{grid-template-columns:repeat(5,minmax(132px,1fr));overflow-x:auto}}
+
+/* module */
+.module{display:flex;flex-direction:column;gap:18px}
+.mhead{display:flex;flex-direction:column;gap:6px}
+.mhead p{max-width:72ch;color:var(--muted)}
+.bench{display:grid;grid-template-columns:270px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:820px){.bench{grid-template-columns:minmax(0,1fr)}}
+.controls{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.sl{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:baseline;font-size:13.5px}
+.sl output{font:600 12.5px var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+.sl input{grid-column:1/-1;width:100%;accent-color:var(--accent);margin:4px 0 0}
+.sl small{grid-column:1/-1;color:var(--muted);font-size:11.5px}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.btn{font:600 12.5px var(--f-body);padding:7px 11px;border-radius:7px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);color:var(--panel);border-color:var(--accent)}
+.btn.primary:hover{color:var(--panel);filter:brightness(1.08)}
+.btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--panel)}
+select{font:13px var(--f-body);padding:6px 8px;border-radius:7px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);width:100%}
+.readout{font:12.5px/1.6 var(--f-mono);font-variant-numeric:tabular-nums;border-top:1px dashed var(--rule);padding-top:12px;display:grid;grid-template-columns:auto 1fr;gap:2px 12px}
+.readout dt{color:var(--muted)} .readout dd{margin:0;text-align:right}
+.chip{display:inline-block;padding:1px 8px;border-radius:99px;font:600 11px var(--f-mono);border:1px solid currentColor}
+.figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.figs .wide{grid-column:1/-1}
+@media (max-width:640px){.figs{grid-template-columns:minmax(0,1fr)}}
+figure{margin:0;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px 12px 8px;display:flex;flex-direction:column;gap:4px;min-width:0}
+figcaption{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+figcaption .key{display:flex;gap:10px;text-transform:none;letter-spacing:0;font-weight:400}
+figcaption .key i{display:inline-block;width:10px;height:3px;vertical-align:middle;margin-right:4px;border-radius:2px}
+canvas{width:100%;display:block;touch-action:manipulation}
+.h220{height:220px}.h260{height:260px}.h180{height:180px}.h320{height:320px}.sq{aspect-ratio:1/1;max-width:100%;height:auto}
+.below{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
+@media (max-width:820px){.below{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.eq{overflow-x:auto;font-size:14px}
+.eq mjx-container{margin:6px 0 !important}
+.try ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.try li::marker{font:600 12px var(--f-mono);color:var(--accent)}
+details.code{background:var(--panel);border:1px solid var(--rule);border-radius:10px}
+details.code summary{cursor:pointer;padding:12px 16px;font:600 13px var(--f-mono);color:var(--accent)}
+details.code pre{margin:0;padding:0 16px 16px;overflow-x:auto;font:12.5px/1.55 var(--f-mono);color:var(--ink)}
+.note{font-size:12.5px;color:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:720px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td code{font:12px var(--f-mono)}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'},startup:{typeset:true}};
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Interactive course · 5 levels of abstraction</span>
+  <h1>Neurodynamics Lab</h1>
+  <p class="lede">Run, perturb and break five canonical models, from ion channels to backprop. Each level throws away detail from the one before it. Every plot is simulated live in your browser, and each level ends with experiments to try and the equivalent Python.</p>
+</header>
+
+<nav class="ladder" role="tablist" aria-label="Model levels">
+  <button role="tab" data-tab="hh" aria-selected="true"><span class="sc">1 · µm, 0.01 ms</span><span class="nm">Hodgkin–Huxley</span><span class="lv">Biophysical neuron</span></button>
+  <button role="tab" data-tab="brunel" aria-selected="false"><span class="sc">2 · 10³ cells, ms</span><span class="nm">Brunel network</span><span class="lv">Spiking E–I circuit</span></button>
+  <button role="tab" data-tab="wc" aria-selected="false"><span class="sc">3 · populations, 10 ms</span><span class="nm">Wilson–Cowan</span><span class="lv">Mean field + dynamics</span></button>
+  <button role="tab" data-tab="stdp" aria-selected="false"><span class="sc">4 · synapses, minutes</span><span class="nm">STDP</span><span class="lv">Biological learning</span></button>
+  <button role="tab" data-tab="mlp" aria-selected="false"><span class="sc">5 · abstract units</span><span class="nm">Neural network</span><span class="lv">Machine learning</span></button>
+</nav>
+
+<!-- ============ 1. HH ============ -->
+<section class="module" id="hh" role="tabpanel">
+  <div class="mhead"><h2>Hodgkin–Huxley neuron</h2>
+  <p>Four coupled ODEs: voltage plus three gating variables. The spike is a voltage-gated race: fast Na⁺ activation (m) wins first, then slow Na⁺ inactivation (h) and K⁺ activation (n) pull the membrane back.</p></div>
+  <div class="bench">
+    <aside class="controls">
+      <label class="sl" for="hhI"><span>Step current I<sub>ext</sub></span><output id="hhIo"></output><input id="hhI" type="range" min="0" max="40" step="0.5" value="10"><small>µA/cm², applied 10–90 ms</small></label>
+      <label class="sl" for="hhNa"><span>Na⁺ conductance</span><output id="hhNao"></output><input id="hhNa" type="range" min="0" max="1.5" step="0.05" value="1"><small>× 120 mS/cm² · lower = TTX block</small></label>
+      <label class="sl" for="hhK"><span>K⁺ conductance</span><output id="hhKo"></output><input id="hhK" type="range" min="0.2" max="1.5" step="0.05" value="1"><small>× 36 mS/cm² · lower = TEA block</small></label>
+      <div class="row"><button class="btn" data-hh="2.2">Threshold</button><button class="btn" data-hh="6.5">Onset</button><button class="btn" data-hh="10">Tonic</button><button class="btn" data-hh="35">Block</button></div>
+      <dl class="readout"><dt>spikes</dt><dd id="hhN">–</dd><dt>rate (step)</dt><dd id="hhR">–</dd><dt>peak V</dt><dd id="hhP">–</dd></dl>
+    </aside>
+    <div class="figs">
+      <figure class="wide"><figcaption>Membrane potential V(t) <span class="key">mV vs ms</span></figcaption><canvas id="hhV" class="h220"></canvas></figure>
+      <figure><figcaption>Gating variables <span class="key"><span><i style="background:var(--accent)"></i>m</span><span><i style="background:var(--t2)"></i>h</span><span><i style="background:var(--t3)"></i>n</span></span></figcaption><canvas id="hhG" class="h180"></canvas></figure>
+      <figure><figcaption>f–I curve <span class="key">Hz vs µA/cm²</span></figcaption><canvas id="hhFI" class="h180"></canvas></figure>
+    </div>
+  </div>
+  <div class="below">
+    <div class="card eq"><h3>Equations</h3>
+      \[C_m\frac{dV}{dt}=I_{ext}-\bar g_{Na}m^3h\,(V-E_{Na})-\bar g_K n^4(V-E_K)-g_L(V-E_L)\]
+      \[\frac{dx}{dt}=\alpha_x(V)(1-x)-\beta_x(V)\,x,\qquad x\in\{m,h,n\}\]
+      <p class="note">Integrated with forward Euler, \(\Delta t = 0.01\) ms. Squid-axon constants, \(E_{Na}=50,\ E_K=-77\) mV.</p>
+    </div>
+    <div class="card try"><h3>Try this</h3><ol>
+      <li>Read the f–I curve: firing jumps from 0 to ~60 Hz. That discontinuity is a <b>subcritical Hopf</b> (type II excitability). There is no arbitrarily slow firing.</li>
+      <li>Push I<sub>ext</sub> to ~35. Firing stops: <b>depolarization block</b>, as Na⁺ channels stay inactivated (watch h sit low).</li>
+      <li>Drop K⁺ to 0.4×. Spikes broaden and repolarization fails. Relevant to Aβ-linked K⁺ channel changes in AD hyperexcitability.</li>
+    </ol></div>
+  </div>
+  <details class="code"><summary>Same model in Python (Brian2)</summary><pre><code>from brian2 import *
+
+Cm = 1*uF/cm**2
+gNa, gK, gL = 120*msiemens/cm**2, 36*msiemens/cm**2, 0.3*msiemens/cm**2
+ENa, EK, EL = 50*mV, -77*mV, -54.387*mV
+
+eqs = '''
+dv/dt = (I - gNa*m**3*h*(v-ENa) - gK*n**4*(v-EK) - gL*(v-EL)) / Cm : volt
+dm/dt = am*(1-m) - bm*m : 1
+dh/dt = ah*(1-h) - bh*h : 1
+dn/dt = an*(1-n) - bn*n : 1
+am = 0.1/mV*(v+40*mV) / (1-exp(-(v+40*mV)/(10*mV))) / ms : Hz
+bm = 4*exp(-(v+65*mV)/(18*mV)) / ms : Hz
+ah = 0.07*exp(-(v+65*mV)/(20*mV)) / ms : Hz
+bh = 1 / (1+exp(-(v+35*mV)/(10*mV))) / ms : Hz
+an = 0.01/mV*(v+55*mV) / (1-exp(-(v+55*mV)/(10*mV))) / ms : Hz
+bn = 0.125*exp(-(v+65*mV)/(80*mV)) / ms : Hz
+I : amp/meter**2
+'''
+G = NeuronGroup(1, eqs, method='exponential_euler',
+                threshold='v > 0*mV', refractory='v > 0*mV')
+G.v, G.m, G.h, G.n = -65*mV, 0.053, 0.596, 0.318
+mon = StateMonitor(G, ['v', 'm', 'h', 'n'], record=0)
+run(10*ms); G.I = 10*uA/cm**2; run(80*ms); G.I = 0*uA/cm**2; run(10*ms)</code></pre></details>
+</section>
+
+<!-- ============ 2. Brunel ============ -->
+<section class="module" id="brunel" role="tabpanel" hidden>
+  <div class="mhead"><h2>Brunel sparse E–I network</h2>
+  <p>Drop the channels: each cell is a leaky integrate-and-fire unit. 800 excitatory and 200 inhibitory neurons, random sparse coupling, Poisson drive. Two knobs, relative inhibition <i>g</i> and external drive η, move the network between four dynamical regimes.</p></div>
+  <div class="bench">
+    <aside class="controls">
+      <label class="sl" for="brG"><span>Relative inhibition g</span><output id="brGo"></output><input id="brG" type="range" min="2" max="8" step="0.1" value="5"><small>J<sub>I</sub> = −g·J<sub>E</sub>; balance near g = 4</small></label>
+      <label class="sl" for="brEta"><span>External drive ν<sub>ext</sub>/ν<sub>thr</sub></span><output id="brEtao"></output><input id="brEta" type="range" min="0.5" max="4" step="0.05" value="2"></label>
+      <div class="row"><button class="btn" data-br="3,2">SR</button><button class="btn" data-br="5,2">AI</button><button class="btn" data-br="6,4">SI fast</button><button class="btn" data-br="4.5,0.9">SI slow</button></div>
+      <button class="btn primary" id="brRun">Run 400 ms</button>
+      <dl class="readout"><dt>mean rate</dt><dd id="brRate">–</dd><dt>CV(ISI)</dt><dd id="brCV">–</dd><dt>synchrony χ</dt><dd id="brChi">–</dd><dt>regime (est.)</dt><dd id="brReg">–</dd></dl>
+    </aside>
+    <div class="figs">
+      <figure class="wide"><figcaption>Raster: 80 E + 20 I neurons <span class="key"><span><i style="background:var(--accent)"></i>E</span><span><i style="background:var(--t2)"></i>I</span></span></figcaption><canvas id="brRas" class="h220"></canvas></figure>
+      <figure><figcaption>Population rate <span class="key">Hz, 1 ms bins</span></figcaption><canvas id="brPop" class="h180"></canvas></figure>
+      <figure><figcaption>Brunel (2000) regime map <span class="key">η vs g</span></figcaption><canvas id="brMap" class="h180"></canvas></figure>
+    </div>
+  </div>
+  <div class="below">
+    <div class="card eq"><h3>Equations</h3>
+      \[\tau\frac{dV_i}{dt}=-V_i+\tau\sum_j J_{ij}\sum_k\delta\!\left(t-t_j^k-D\right)\]
+      \[J_{ij}\in\{J,\,-gJ\},\quad V_i\ge\theta\Rightarrow V_i\to V_r,\quad \nu_{thr}=\frac{\theta}{J\,C_E\,\tau}\]
+      <p class="note">\(\tau=20\) ms, \(\theta=20\) mV, \(V_r=10\) mV, \(D=1.5\) ms, \(J=0.5\) mV, \(C_E=200,\ C_I=50\). Synchrony \(\chi^2=\sigma^2_{\bar V}/\langle\sigma^2_{V_i}\rangle\). This is a small network, so regime boundaries shift from the paper's \(N=12{,}500\).</p>
+    </div>
+    <div class="card try"><h3>Try this</h3><ol>
+      <li>Click <b>SR</b> then <b>AI</b>. Same drive; inhibition-dominance alone turns lockstep firing (CV ≈ 0) into Poisson-like irregularity (CV ≈ 1).</li>
+      <li>Sweep g from 3 to 6 at η = 2 and note where CV crosses 0.5: that is the balanced-state transition.</li>
+      <li>AD link: a loss of interneuron efficacy ≈ lowering g. Watch the rate climb as the circuit drifts into hyperexcitability.</li>
+    </ol></div>
+  </div>
+  <details class="code"><summary>Same model in Python (Brian2)</summary><pre><code>from brian2 import *
+
+NE, NI = 800, 200
+CE, CI = 200, 50
+tau, theta, Vr, D, J = 20*ms, 20*mV, 10*mV, 1.5*ms, 0.5*mV
+g, eta = 5.0, 2.0
+nu_thr = theta / (J * CE * tau)
+
+G = NeuronGroup(NE + NI, 'dv/dt = -v/tau : volt (unless refractory)',
+                threshold='v > theta', reset='v = Vr',
+                refractory=2*ms, method='exact')
+G.v = 'rand() * theta'
+
+SE = Synapses(G[:NE], G, on_pre='v_post += J', delay=D)
+SE.connect(p=CE / NE)          # Brunel uses fixed in-degree; p approximates it
+SI = Synapses(G[NE:], G, on_pre='v_post += -g*J', delay=D)
+SI.connect(p=CI / NI)
+ext = PoissonInput(G, 'v', N=CE, rate=eta * nu_thr, weight=J)
+
+spikes = SpikeMonitor(G)
+rate = PopulationRateMonitor(G)
+run(400*ms)</code></pre></details>
+</section>
+
+<!-- ============ 3. Wilson–Cowan ============ -->
+<section class="module" id="wc" role="tabpanel" hidden>
+  <div class="mhead"><h2>Wilson–Cowan mean field</h2>
+  <p>Average the spikes away: two variables, E and I, are the active fractions of each population. Now the full geometry is visible. Nullclines, fixed points, a limit cycle, and the Hopf bifurcation where oscillations are born. Click the phase plane to launch a trajectory.</p></div>
+  <div class="bench">
+    <aside class="controls">
+      <label class="sl" for="wcP"><span>External drive to E, P</span><output id="wcPo"></output><input id="wcP" type="range" min="-0.5" max="3" step="0.01" value="1.25"></label>
+      <label class="sl" for="wcEE"><span>Recurrent excitation w<sub>EE</sub></span><output id="wcEEo"></output><input id="wcEE" type="range" min="8" max="24" step="0.1" value="16"></label>
+      <label class="sl" for="wcEI"><span>Inhibition onto E, w<sub>EI</sub></span><output id="wcEIo"></output><input id="wcEI" type="range" min="4" max="20" step="0.1" value="12"></label>
+      <label class="sl" for="wcTau"><span>Inhibitory time constant τ<sub>I</sub></span><output id="wcTauo"></output><input id="wcTau" type="range" min="0.3" max="4" step="0.05" value="1"><small>units of τ<sub>E</sub></small></label>
+      <button class="btn" id="wcReset">Reset defaults</button>
+      <div class="readout" id="wcFP" style="display:block"></div>
+    </aside>
+    <div class="figs">
+      <figure><figcaption>Phase plane (click to start) <span class="key"><span><i style="background:var(--accent)"></i>dE/dt=0</span><span><i style="background:var(--t2)"></i>dI/dt=0</span></span></figcaption><canvas id="wcPP" class="sq"></canvas></figure>
+      <figure><figcaption>Bifurcation in P <span class="key">min/max E after transient</span></figcaption><canvas id="wcBif" class="sq"></canvas></figure>
+      <figure class="wide"><figcaption>Time series <span class="key"><span><i style="background:var(--accent)"></i>E</span><span><i style="background:var(--t2)"></i>I</span></span></figcaption><canvas id="wcTS" class="h180"></canvas></figure>
+    </div>
+  </div>
+  <div class="below">
+    <div class="card eq"><h3>Equations</h3>
+      \[\tau_E\dot E=-E+S_E(w_{EE}E-w_{EI}I+P),\qquad \tau_I\dot I=-I+S_I(w_{IE}E-w_{II}I+Q)\]
+      \[S(x)=\frac{1}{1+e^{-a(x-\theta)}}-\frac{1}{1+e^{a\theta}}\]
+      \[\lambda_{1,2}=\tfrac12\left(\operatorname{tr}\mathbf J\pm\sqrt{(\operatorname{tr}\mathbf J)^2-4\det\mathbf J}\right)\]
+      <p class="note">RK4, \(\Delta t=0.05\). Fixed points by bisection along the E-nullcline; Jacobian by central differences. Hopf: \(\operatorname{tr}\mathbf J\) crosses 0 with \(\det\mathbf J&gt;0\).</p>
+    </div>
+    <div class="card try"><h3>Try this</h3><ol>
+      <li>Slide P slowly through ~1.0. The fixed point flips from stable to unstable focus and a limit cycle appears. Compare the readout eigenvalues with the bifurcation plot.</li>
+      <li>Raise τ<sub>I</sub> to 2–3. Slower inhibition gives larger, slower oscillations, the same mechanism behind PING gamma rhythms.</li>
+      <li>Raise w<sub>EE</sub> to ~20 with low P. Multiple fixed points appear (bistability, a working-memory-like "up state"). Click on both sides of the saddle.</li>
+    </ol></div>
+  </div>
+  <details class="code"><summary>Same analysis in Python (NumPy / SciPy)</summary><pre><code>import numpy as np
+from scipy.integrate import solve_ivp
+from scipy.optimize import fsolve
+
+def S(x, a, th):
+    return 1/(1 + np.exp(-a*(x - th))) - 1/(1 + np.exp(a*th))
+
+p = dict(wEE=16, wEI=12, wIE=15, wII=3, aE=1.3, thE=4, aI=2, thI=3.7,
+         P=1.25, Q=0.0, tauE=1.0, tauI=1.0)
+
+def rhs(t, z, p):
+    E, I = z
+    dE = (-E + S(p['wEE']*E - p['wEI']*I + p['P'], p['aE'], p['thE'])) / p['tauE']
+    dI = (-I + S(p['wIE']*E - p['wII']*I + p['Q'], p['aI'], p['thI'])) / p['tauI']
+    return [dE, dI]
+
+sol = solve_ivp(rhs, (0, 100), [0.1, 0.05], args=(p,), max_step=0.05)
+
+# fixed point + linear stability
+fp = fsolve(lambda z: rhs(0, z, p), [0.2, 0.1])
+h = 1e-6
+J = np.column_stack([(np.array(rhs(0, fp + h*e, p)) - np.array(rhs(0, fp - h*e, p))) / (2*h)
+                     for e in np.eye(2)])
+print(fp, np.linalg.eigvals(J))</code></pre></details>
+</section>
+
+<!-- ============ 4. STDP ============ -->
+<section class="module" id="stdp" role="tabpanel" hidden>
+  <div class="mhead"><h2>Spike-timing-dependent plasticity</h2>
+  <p>Now the weights move. One LIF neuron receives 100 Poisson inputs at 10 Hz; inputs 1–50 share correlated spikes. Pre-before-post potentiates, post-before-pre depresses. With depression slightly stronger, inputs compete and the correlated group takes over the neuron.</p></div>
+  <div class="bench">
+    <aside class="controls">
+      <label class="sl" for="stC"><span>Input correlation c (group A)</span><output id="stCo"></output><input id="stC" type="range" min="0" max="0.6" step="0.01" value="0.2"></label>
+      <label class="sl" for="stRatio"><span>Depression/potentiation A<sub>−</sub>/A<sub>+</sub></span><output id="stRatioo"></output><input id="stRatio" type="range" min="0.8" max="1.5" step="0.01" value="1.2"></label>
+      <label class="sl" for="stTau"><span>STDP window τ</span><output id="stTauo"></output><input id="stTau" type="range" min="5" max="50" step="1" value="20"><small>ms, τ<sub>+</sub> = τ<sub>−</sub></small></label>
+      <div class="row"><button class="btn primary" id="stGo">Train</button><button class="btn" id="stReset">Reset weights</button></div>
+      <dl class="readout"><dt>simulated</dt><dd id="stT">0 s</dd><dt>post rate</dt><dd id="stR">–</dd><dt>⟨w⟩ A / B</dt><dd id="stW">–</dd></dl>
+    </aside>
+    <div class="figs">
+      <figure><figcaption>Learning window ΔW(Δt) <span class="key">Δt = t<sub>post</sub> − t<sub>pre</sub></span></figcaption><canvas id="stWin" class="h220"></canvas></figure>
+      <figure><figcaption>Synaptic weights <span class="key"><span><i style="background:var(--accent)"></i>A correlated</span><span><i style="background:var(--t3)"></i>B independent</span></span></figcaption><canvas id="stBars" class="h220"></canvas></figure>
+      <figure class="wide"><figcaption>Learning dynamics <span class="key"><span><i style="background:var(--accent)"></i>⟨w⟩ A</span><span><i style="background:var(--t3)"></i>⟨w⟩ B</span><span><i style="background:var(--t2)"></i>post rate</span></span></figcaption><canvas id="stHist" class="h180"></canvas></figure>
+    </div>
+  </div>
+  <div class="below">
+    <div class="card eq"><h3>Equations</h3>
+      \[\Delta w=\begin{cases}A_+\,e^{-\Delta t/\tau_+}, & \Delta t&gt;0\\ -A_-\,e^{\Delta t/\tau_-}, & \Delta t&lt;0\end{cases}\qquad 0\le w\le w_{max}\]
+      \[\dot x_i=-\frac{x_i}{\tau_+}+\sum_k\delta(t-t_i^k),\qquad \dot y=-\frac{y}{\tau_-}+\sum_k\delta(t-t_{post}^k)\]
+      <p class="note">All-to-all pairing via traces: on post spike \(w_i \mathrel{+}= A_+x_i\), on pre spike \(w_i \mathrel{-}= A_-y\). Additive rule with hard bounds, after Song, Miller &amp; Abbott (2000).</p>
+    </div>
+    <div class="card try"><h3>Try this</h3><ol>
+      <li>Set c = 0 and train. With no structure to find, depression wins and the output rate falls, a homeostatic effect of the rule itself.</li>
+      <li>Lower A<sub>−</sub>/A<sub>+</sub> below 1. Everything potentiates to w<sub>max</sub>: runaway Hebbian excitation, no selectivity.</li>
+      <li>Compare with the MLP tab: here the "error signal" is purely local timing, not a backpropagated gradient.</li>
+    </ol></div>
+  </div>
+  <details class="code"><summary>Same model in Python (Brian2)</summary><pre><code>from brian2 import *
+
+N, wmax, tau = 100, 0.06, 20*ms
+Apre = 0.005 * wmax
+Apost = -Apre * 1.2            # A-/A+ ratio
+
+inputs = PoissonGroup(N, rates=10*Hz)   # swap in correlated trains for group A
+post = NeuronGroup(1, 'dv/dt = -v/(20*ms) : 1', threshold='v > 1', reset='v = 0')
+
+S = Synapses(inputs, post,
+    '''w : 1
+       dapre/dt = -apre/tau : 1 (event-driven)
+       dapost/dt = -apost/tau : 1 (event-driven)''',
+    on_pre='''v_post += w
+              apre += Apre
+              w = clip(w + apost, 0, wmax)''',
+    on_post='''apost += Apost
+               w = clip(w + apre, 0, wmax)''')
+S.connect()
+S.w = 'wmax * (0.4 + 0.2*rand())'
+wmon = StateMonitor(S, 'w', record=True, dt=1*second)
+run(300*second)</code></pre></details>
+</section>
+
+<!-- ============ 5. MLP ============ -->
+<section class="module" id="mlp" role="tabpanel" hidden>
+  <div class="mhead"><h2>Artificial neural network</h2>
+  <p>The final abstraction: units are smooth functions, time disappears, and learning is gradient descent on a global loss. Train a multilayer perceptron with backprop and Adam, and watch the decision boundary bend to fit the data.</p></div>
+  <div class="bench">
+    <aside class="controls">
+      <div class="row" id="mlpData"><button class="btn" data-ds="spiral" aria-pressed="true">Spiral</button><button class="btn" data-ds="circles" aria-pressed="false">Circles</button><button class="btn" data-ds="moons" aria-pressed="false">Moons</button><button class="btn" data-ds="xor" aria-pressed="false">XOR</button></div>
+      <label class="sl" for="mlpW"><span>Hidden width</span><output id="mlpWo"></output><input id="mlpW" type="range" min="2" max="24" step="1" value="12"></label>
+      <label class="sl" for="mlpD"><span>Hidden layers</span><output id="mlpDo"></output><input id="mlpD" type="range" min="1" max="3" step="1" value="2"></label>
+      <label class="sl" for="mlpLr"><span>Learning rate (log₁₀)</span><output id="mlpLro"></output><input id="mlpLr" type="range" min="-3.5" max="-0.5" step="0.1" value="-1.7"></label>
+      <label class="sl" for="mlpN"><span>Label noise σ</span><output id="mlpNo"></output><input id="mlpN" type="range" min="0" max="0.25" step="0.01" value="0.05"></label>
+      <label class="sl" for="mlpAct"><span>Activation φ</span><select id="mlpAct"><option value="tanh">tanh</option><option value="relu">ReLU</option></select></label>
+      <div class="row"><button class="btn primary" id="mlpGo">Train</button><button class="btn" id="mlpReset">Re-initialize</button></div>
+      <dl class="readout"><dt>epoch</dt><dd id="mlpE">0</dd><dt>loss (BCE)</dt><dd id="mlpL">–</dd><dt>accuracy</dt><dd id="mlpA">–</dd><dt>parameters</dt><dd id="mlpP">–</dd></dl>
+    </aside>
+    <div class="figs">
+      <figure><figcaption>Decision surface P(y=1 | x) <span class="key"><span><i style="background:var(--t2)"></i>class 0</span><span><i style="background:var(--accent)"></i>class 1</span></span></figcaption><canvas id="mlpB" class="sq"></canvas></figure>
+      <figure><figcaption>Training loss <span class="key">log scale vs epoch</span></figcaption><canvas id="mlpLc" class="sq"></canvas></figure>
+    </div>
+  </div>
+  <div class="below">
+    <div class="card eq"><h3>Equations</h3>
+      \[\hat y=\sigma\!\big(W_L\,\phi(\cdots\phi(W_1\mathbf x+\mathbf b_1)\cdots)+b_L\big)\]
+      \[\mathcal L=-\frac1N\sum_{n}\big[y_n\log\hat y_n+(1-y_n)\log(1-\hat y_n)\big]\]
+      \[\boldsymbol\delta^{(l)}=\big(W^{(l+1)\top}\boldsymbol\delta^{(l+1)}\big)\odot\phi'(\mathbf z^{(l)}),\qquad \frac{\partial\mathcal L}{\partial W^{(l)}}=\boldsymbol\delta^{(l)}\mathbf a^{(l-1)\top}\]
+      <p class="note">Full-batch Adam (\(\beta_1=0.9,\ \beta_2=0.999\)), 300 points. Note \(\boldsymbol\delta\) needs the transposed forward weights, the "weight transport problem" that makes backprop biologically implausible.</p>
+    </div>
+    <div class="card try"><h3>Try this</h3><ol>
+      <li>Spiral with width 2: it cannot be solved. Raise width or depth until it can, and count the parameters you needed.</li>
+      <li>Switch to ReLU and watch the boundary become piecewise linear. Each kink is a hidden unit switching on.</li>
+      <li>Set lr to −0.5 (≈0.3). Loss oscillates or diverges, the same stability argument as \(\Delta t\) in an ODE integrator.</li>
+    </ol></div>
+  </div>
+  <details class="code"><summary>Same model in Python (PyTorch)</summary><pre><code>import torch
+import torch.nn as nn
+
+def make_mlp(width=12, depth=2, act=nn.Tanh):
+    """Build 2 -> [width]*depth -> 1 MLP; outputs logits."""
+    layers, d = [], 2
+    for _ in range(depth):
+        layers += [nn.Linear(d, width), act()]
+        d = width
+    return nn.Sequential(*layers, nn.Linear(d, 1))
+
+model = make_mlp()
+opt = torch.optim.Adam(model.parameters(), lr=10**-1.7)
+loss_fn = nn.BCEWithLogitsLoss()          # sigmoid + BCE, numerically stable
+
+for epoch in range(2000):                  # X: (N, 2) float, y: (N,) float
+    opt.zero_grad()
+    loss = loss_fn(model(X).squeeze(-1), y)
+    loss.backward()                        # autograd does the δ recursion
+    opt.step()</code></pre></details>
+</section>
+
+<section class="module" aria-labelledby="mapH">
+  <div class="mhead"><h2 id="mapH">What each level keeps and drops</h2>
+  <p>Pick the coarsest level that still contains the mechanism you care about. Multiscale models link them: fit level 3 to the statistics of level 2, then perturb level 1 parameters and propagate upward.</p></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Level</th><th>State per unit</th><th>Keeps</th><th>Drops</th><th>Python tools</th><th>Next model to study</th></tr></thead>
+    <tbody>
+      <tr><td>1 · Biophysical</td><td>V, gates, (compartments)</td><td>Channel kinetics, dendrites, pharmacology</td><td>Network scale</td><td><code>brian2</code>, <code>NEURON</code>, <code>jaxley</code></td><td>Pinsky–Rinzel two-compartment CA3/CA1</td></tr>
+      <tr><td>2 · Spiking network</td><td>V, spike times</td><td>Spike timing, delays, sparse connectivity</td><td>Channels, morphology</td><td><code>brian2</code>, <code>NEST</code>, <code>NetPyNE</code></td><td>AdEx / Izhikevich cells; PING gamma</td></tr>
+      <tr><td>3 · Mean field</td><td>Population rate</td><td>Bifurcations, oscillations, stability</td><td>Individual spikes, fluctuations</td><td><code>scipy</code>, <code>PyDSTool</code>, <code>neurolib</code></td><td>Fokker–Planck LIF, next-gen neural mass (Montbrió)</td></tr>
+      <tr><td>4 · Plasticity</td><td>Weights + traces</td><td>Local, unsupervised learning</td><td>Task-level objectives</td><td><code>brian2</code>, <code>NEST</code></td><td>Triplet STDP, BCM, synaptic scaling</td></tr>
+      <tr><td>5 · Machine learning</td><td>Activations</td><td>Optimization of a global objective</td><td>Time, spikes, biology</td><td><code>torch</code>, <code>jax</code>, <code>snntorch</code></td><td>RNNs trained on tasks; surrogate-gradient SNNs</td></tr>
+    </tbody></table></div>
+</section>
+</div>
+
+<script>
+/* ===================== SIMULATION CORE (pure functions) ===================== */
+
+/* ---------- 1. Hodgkin–Huxley (squid axon, V rest ≈ -65 mV) ---------- */
+const HH = {
+  C: 1, gNa: 120, gK: 36, gL: 0.3, ENa: 50, EK: -77, EL: -54.387,
+  am: V => { const x = V + 40; return Math.abs(x) < 1e-6 ? 1 : 0.1 * x / (1 - Math.exp(-x / 10)); },
+  bm: V => 4 * Math.exp(-(V + 65) / 18),
+  ah: V => 0.07 * Math.exp(-(V + 65) / 20),
+  bh: V => 1 / (1 + Math.exp(-(V + 35) / 10)),
+  an: V => { const x = V + 55; return Math.abs(x) < 1e-6 ? 0.1 : 0.01 * x / (1 - Math.exp(-x / 10)); },
+  bn: V => 0.125 * Math.exp(-(V + 65) / 80),
+};
+
+/** Simulate HH with a current step. Returns downsampled traces + spike times. */
+function simHH({ I = 10, gNaS = 1, gKS = 1, T = 100, dt = 0.01, on = 10, off = 90, every = 10 } = {}) {
+  let V = -65, m = 0.0529, h = 0.5961, n = 0.3177;
+  const steps = Math.round(T / dt), out = { t: [], V: [], m: [], h: [], n: [], spikes: [] };
+  const gNa = HH.gNa * gNaS, gK = HH.gK * gKS;
+  for (let k = 0; k <= steps; k++) {
+    const t = k * dt, Iext = (t >= on && t < off) ? I : 0;
+    if (k % every === 0) { out.t.push(t); out.V.push(V); out.m.push(m); out.h.push(h); out.n.push(n); }
+    const INa = gNa * m * m * m * h * (V - HH.ENa), IK = gK * n * n * n * n * (V - HH.EK), IL = HH.gL * (V - HH.EL);
+    const Vn = V + dt * (Iext - INa - IK - IL) / HH.C;
+    m += dt * (HH.am(V) * (1 - m) - HH.bm(V) * m);
+    h += dt * (HH.ah(V) * (1 - h) - HH.bh(V) * h);
+    n += dt * (HH.an(V) * (1 - n) - HH.bn(V) * n);
+    if (V < 0 && Vn >= 0) out.spikes.push(t);
+    V = Vn;
+  }
+  return out;
+}
+
+/** f–I curve: steady firing rate (Hz) vs constant current. */
+function fiCurve({ gNaS = 1, gKS = 1, Imax = 30, dI = 1 } = {}) {
+  const I = [], f = [];
+  for (let i = 0; i <= Imax + 1e-9; i += dI) {
+    const r = simHH({ I: i, gNaS, gKS, T: 300, dt: 0.02, on: 0, off: 1e9, every: 1e9 });
+    const n = r.spikes.filter(s => s >= 50).length;
+    I.push(i); f.push(n / 0.25);
+  }
+  return { I, f };
+}
+
+/* ---------- 2. Brunel (2000) sparse E–I network of LIF neurons ---------- */
+function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function simBrunel({ g = 5, eta = 2, NE = 800, NI = 200, eps = 0.25, J = 0.5, D = 1.5, T = 400, dt = 0.1, seed = 7 } = {}) {
+  const rnd = mulberry(seed), N = NE + NI, CE = Math.round(eps * NE), CI = Math.round(eps * NI);
+  const tau = 20, theta = 20, Vr = 10, tref = 2;
+  const nuThr = theta / (J * CE * tau);                // per ms
+  const lam = eta * nuThr * CE * dt, L = Math.exp(-lam); // Poisson mean per step (external)
+  // fixed in-degree connectivity → outgoing adjacency (CSR)
+  const pre = new Int32Array(N * (CE + CI));
+  for (let i = 0; i < N; i++) {
+    for (let c = 0; c < CE; c++) pre[i * (CE + CI) + c] = Math.floor(rnd() * NE);
+    for (let c = 0; c < CI; c++) pre[i * (CE + CI) + CE + c] = NE + Math.floor(rnd() * NI);
+  }
+  const deg = new Int32Array(N + 1);
+  for (let k = 0; k < pre.length; k++) deg[pre[k] + 1]++;
+  for (let j = 0; j < N; j++) deg[j + 1] += deg[j];
+  const post = new Int32Array(pre.length), fill = deg.slice(0, N);
+  for (let i = 0; i < N; i++) for (let c = 0; c < CE + CI; c++) { const j = pre[i * (CE + CI) + c]; post[fill[j]++] = i; }
+
+  const dly = Math.round(D / dt), R = dly + 1, buf = new Float32Array(R * N);
+  const V = new Float32Array(N), ref = new Float32Array(N), decay = Math.exp(-dt / tau);
+  for (let i = 0; i < N; i++) V[i] = rnd() * theta;
+  const st = [], sid = [], steps = Math.round(T / dt), t0 = 100;
+  let sPop = 0, sPop2 = 0, nS = 0; const sI = new Float64Array(N), sI2 = new Float64Array(N);
+  for (let k = 0; k < steps; k++) {
+    const slot = k % R, t = k * dt; let vbar = 0;
+    for (let i = 0; i < N; i++) {
+      const syn = buf[slot * N + i]; buf[slot * N + i] = 0;
+      if (ref[i] > 0) { ref[i] -= dt; }
+      else {
+        let p = 1, c = -1; do { c++; p *= rnd(); } while (p > L);   // Poisson external spikes
+        V[i] = V[i] * decay + syn + c * J;
+        if (V[i] >= theta) {
+          V[i] = Vr; ref[i] = tref; st.push(t); sid.push(i);
+          const w = i < NE ? J : -g * J, tgt = ((k + dly) % R) * N;
+          for (let q = deg[i]; q < deg[i + 1]; q++) buf[tgt + post[q]] += w;
+        }
+      }
+      if (t >= t0) { sI[i] += V[i]; sI2[i] += V[i] * V[i]; vbar += V[i]; }
+    }
+    if (t >= t0) { vbar /= N; sPop += vbar; sPop2 += vbar * vbar; nS++; }
+  }
+  // metrics: rate, CV(ISI), synchrony χ (Golomb 2007)
+  let varI = 0; for (let i = 0; i < N; i++) { const m = sI[i] / nS; varI += sI2[i] / nS - m * m; } varI /= N;
+  const mp = sPop / nS, varP = sPop2 / nS - mp * mp, chi = Math.sqrt(Math.max(0, varP) / varI);
+  const last = new Float64Array(N).fill(-1), isiS = new Float64Array(N), isiS2 = new Float64Array(N), isiN = new Int32Array(N);
+  let nAfter = 0;
+  for (let s = 0; s < st.length; s++) {
+    if (st[s] < t0) continue; nAfter++;
+    const i = sid[s]; if (last[i] >= 0) { const d = st[s] - last[i]; isiS[i] += d; isiS2[i] += d * d; isiN[i]++; } last[i] = st[s];
+  }
+  let cv = 0, cvN = 0;
+  for (let i = 0; i < N; i++) if (isiN[i] >= 2) { const m = isiS[i] / isiN[i], v = isiS2[i] / isiN[i] - m * m; cv += Math.sqrt(Math.max(v, 0)) / m; cvN++; }
+  return { st, sid, NE, NI, T, rate: nAfter / N / ((T - t0) / 1000), cv: cvN ? cv / cvN : NaN, chi };
+}
+
+/* ---------- 3. Wilson–Cowan (1972) E–I population model ---------- */
+const WCdef = { wEE: 16, wEI: 12, wIE: 15, wII: 3, aE: 1.3, thE: 4, aI: 2, thI: 3.7, P: 1.25, Q: 0, tauE: 1, tauI: 1 };
+const sig = (x, a, th) => 1 / (1 + Math.exp(-a * (x - th))) - 1 / (1 + Math.exp(a * th));
+const sigInv = (y, a, th) => { const c = 1 / (1 + Math.exp(a * th)), z = y + c; return th - Math.log(1 / z - 1) / a; };
+function wcRHS(E, I, p) {
+  return [(-E + sig(p.wEE * E - p.wEI * I + p.P, p.aE, p.thE)) / p.tauE,
+          (-I + sig(p.wIE * E - p.wII * I + p.Q, p.aI, p.thI)) / p.tauI];
+}
+function wcRun(p, E0, I0, T = 60, dt = 0.05) {
+  const t = [0], E = [E0], I = [I0]; let e = E0, i = I0;
+  for (let k = 1; k <= T / dt; k++) {
+    const k1 = wcRHS(e, i, p), k2 = wcRHS(e + dt / 2 * k1[0], i + dt / 2 * k1[1], p);
+    const k3 = wcRHS(e + dt / 2 * k2[0], i + dt / 2 * k2[1], p), k4 = wcRHS(e + dt * k3[0], i + dt * k3[1], p);
+    e += dt / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]); i += dt / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
+    t.push(k * dt); E.push(e); I.push(i);
+  }
+  return { t, E, I };
+}
+/** Nullclines as parametric curves. */
+function wcNullclines(p) {
+  const cE = 1 / (1 + Math.exp(p.aE * p.thE)), cI = 1 / (1 + Math.exp(p.aI * p.thI)), eN = [], iN = [];
+  const eMax = 1 - cE, iMax = 1 - cI;
+  for (let k = 1; k < 600; k++) { const E = k / 600 * eMax; eN.push([E, (p.wEE * E + p.P - sigInv(E, p.aE, p.thE)) / p.wEI]); }
+  for (let k = 1; k < 600; k++) { const I = k / 600 * iMax; iN.push([(sigInv(I, p.aI, p.thI) + p.wII * I - p.Q) / p.wIE, I]); }
+  return { eN, iN };
+}
+/** Fixed points (intersections) + linear stability. */
+function wcFixed(p) {
+  const cE = 1 / (1 + Math.exp(p.aE * p.thE)), eMax = 1 - cE, fps = [];
+  const Ifrom = E => (p.wEE * E + p.P - sigInv(E, p.aE, p.thE)) / p.wEI;
+  const res = E => wcRHS(E, Ifrom(E), p)[1];             // on E-nullcline, zero of dI/dt
+  const M = 4000; let prevE = eMax / M, prev = res(prevE);
+  for (let k = 2; k < M; k++) {
+    const E = k / M * eMax, r = res(E);
+    if (isFinite(r) && isFinite(prev) && Math.sign(r) !== Math.sign(prev)) {
+      let a = prevE, b = E, fa = prev;
+      for (let it = 0; it < 60; it++) { const m = (a + b) / 2, fm = res(m); if (Math.sign(fm) === Math.sign(fa)) { a = m; fa = fm; } else b = m; }
+      const e = (a + b) / 2, i = Ifrom(e), h = 1e-6;
+      const fx1 = wcRHS(e + h, i, p), fx0 = wcRHS(e - h, i, p), fy1 = wcRHS(e, i + h, p), fy0 = wcRHS(e, i - h, p);
+      const J = [[(fx1[0] - fx0[0]) / 2 / h, (fy1[0] - fy0[0]) / 2 / h], [(fx1[1] - fx0[1]) / 2 / h, (fy1[1] - fy0[1]) / 2 / h]];
+      const tr = J[0][0] + J[1][1], det = J[0][0] * J[1][1] - J[0][1] * J[1][0], disc = tr * tr - 4 * det;
+      let type;
+      if (det < 0) type = 'saddle';
+      else if (disc < 0) type = tr < 0 ? 'stable focus' : 'unstable focus';
+      else type = tr < 0 ? 'stable node' : 'unstable node';
+      const lam = disc < 0 ? [`${(tr / 2).toFixed(2)} ± ${(Math.sqrt(-disc) / 2).toFixed(2)}i`] : [((tr + Math.sqrt(disc)) / 2).toFixed(2), ((tr - Math.sqrt(disc)) / 2).toFixed(2)];
+      fps.push({ E: e, I: i, tr, det, type, lam });
+    }
+    prevE = E; prev = r;
+  }
+  return fps;
+}
+/** Bifurcation sweep over P: min/max of E after transient. */
+function wcBif(p, P0 = -0.5, P1 = 3, n = 90) {
+  const P = [], lo = [], hi = [];
+  for (let k = 0; k < n; k++) {
+    const q = { ...p, P: P0 + (P1 - P0) * k / (n - 1) }, r = wcRun(q, 0.1, 0.05, 150, 0.05);
+    const tail = r.E.slice(r.E.length * 0.5 | 0);
+    P.push(q.P); lo.push(Math.min(...tail)); hi.push(Math.max(...tail));
+  }
+  return { P, lo, hi };
+}
+
+/* ---------- 4. STDP: competitive Hebbian learning (Song, Miller & Abbott 2000) ---------- */
+function makeSTDP({ N = 100, rate = 10, c = 0.2, ratio = 1.2, tau = 20, Ap = 0.005, wmax = 0.06, seed = 3 } = {}) {
+  const rnd = mulberry(seed), w = new Float64Array(N);
+  for (let i = 0; i < N; i++) w[i] = wmax * (0.4 + 0.2 * rnd());
+  return { N, rate, c, ratio, tau, Ap, wmax, rnd, w, x: new Float64Array(N), y: 0, V: 0, t: 0, nPost: 0, hist: { t: [0], wA: [mean(w, 0, N / 2)], wB: [mean(w, N / 2, N)], r: [0] } };
+}
+function mean(a, s, e) { let z = 0; for (let i = s; i < e; i++) z += a[i]; return z / (e - s); }
+/** Advance the STDP model by `secs` seconds (dt = 1 ms). */
+function stepSTDP(S, secs) {
+  const dt = 1, p = S.rate * dt / 1000, half = S.N / 2, dec = Math.exp(-dt / S.tau), vdec = Math.exp(-dt / 20), Am = S.Ap * S.ratio;
+  const steps = Math.round(secs * 1000);
+  for (let k = 0; k < steps; k++) {
+    S.y *= dec; const ref = S.rnd() < p; let input = 0;
+    for (let i = 0; i < S.N; i++) {
+      S.x[i] *= dec;
+      const spk = i < half ? ((ref && S.rnd() < S.c) || S.rnd() < p * (1 - S.c)) : S.rnd() < p;
+      if (spk) {
+        input += S.w[i]; S.x[i] += 1;
+        S.w[i] = Math.max(0, S.w[i] - Am * S.y * S.wmax);       // pre after post → depress
+      }
+    }
+    S.V = S.V * vdec + input;
+    if (S.V >= 1) {
+      S.V = 0; S.y += 1; S.nPost++;
+      for (let i = 0; i < S.N; i++) S.w[i] = Math.min(S.wmax, S.w[i] + S.Ap * S.x[i] * S.wmax); // pre before post → potentiate
+    }
+    S.t += dt;
+    if (S.t % 1000 === 0) {
+      S.hist.t.push(S.t / 1000); S.hist.wA.push(mean(S.w, 0, half)); S.hist.wB.push(mean(S.w, half, S.N)); S.hist.r.push(S.nPost); S.nPost = 0;
+    }
+  }
+}
+
+/* ---------- 5. Multilayer perceptron with backprop + Adam ---------- */
+function makeData(kind, n = 300, noise = 0.1, seed = 11) {
+  const rnd = mulberry(seed), gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd());
+  const X = [], y = [];
+  for (let k = 0; k < n; k++) {
+    let a, b, c;
+    if (kind === 'spiral') {
+      c = k % 2; const r = (k >> 1) / (n / 2), th = 1.75 * r * 2 * Math.PI + c * Math.PI;
+      a = 0.9 * r * Math.sin(th); b = 0.9 * r * Math.cos(th);
+    } else if (kind === 'circles') {
+      c = k % 2; const r = c ? 0.35 * Math.sqrt(rnd()) : 0.6 + 0.3 * rnd(), th = 2 * Math.PI * rnd();
+      a = r * Math.cos(th); b = r * Math.sin(th);
+    } else if (kind === 'moons') {
+      c = k % 2; const th = Math.PI * rnd();
+      a = c ? 1 - Math.cos(th) : Math.cos(th); b = c ? 0.5 - Math.sin(th) : Math.sin(th);
+      a = (a - 0.5) * 0.75; b = (b - 0.25) * 0.75;
+    } else { // xor
+      a = rnd() * 2 - 1; b = rnd() * 2 - 1; c = a * b > 0 ? 1 : 0;
+    }
+    X.push([a + noise * gauss(), b + noise * gauss()]); y.push(c);
+  }
+  return { X, y };
+}
+function makeMLP(sizes, act = 'tanh', seed = 5) {
+  const rnd = mulberry(seed), gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd());
+  const L = [];
+  for (let l = 0; l < sizes.length - 1; l++) {
+    const fi = sizes[l], fo = sizes[l + 1], sc = act === 'relu' && l < sizes.length - 2 ? Math.sqrt(2 / fi) : Math.sqrt(1 / fi);
+    const W = new Float64Array(fo * fi).map(() => gauss() * sc), b = new Float64Array(fo);
+    L.push({ fi, fo, W, b, gW: new Float64Array(fo * fi), gb: new Float64Array(fo), mW: new Float64Array(fo * fi), vW: new Float64Array(fo * fi), mb: new Float64Array(fo), vb: new Float64Array(fo) });
+  }
+  return { L, act, step: 0 };
+}
+const actF = { tanh: x => Math.tanh(x), relu: x => x > 0 ? x : 0 };
+const actD = { tanh: (x, a) => 1 - a * a, relu: x => x > 0 ? 1 : 0 };
+function forward(net, x, keep) {
+  let a = x; const zs = [], as = [x];
+  net.L.forEach((ly, l) => {
+    const z = new Float64Array(ly.fo);
+    for (let o = 0; o < ly.fo; o++) { let s = ly.b[o]; for (let i = 0; i < ly.fi; i++) s += ly.W[o * ly.fi + i] * a[i]; z[o] = s; }
+    a = l === net.L.length - 1 ? z.map(v => 1 / (1 + Math.exp(-v))) : z.map(actF[net.act]);
+    if (keep) { zs.push(z); as.push(a); }
+  });
+  return keep ? { zs, as } : a[0];
+}
+/** One full-batch epoch of BCE + Adam. Returns {loss, acc}. */
+function trainEpoch(net, data, lr = 0.03) {
+  const { X, y } = data, n = X.length; let loss = 0, acc = 0;
+  net.L.forEach(ly => { ly.gW.fill(0); ly.gb.fill(0); });
+  for (let k = 0; k < n; k++) {
+    const { zs, as } = forward(net, X[k], true), yh = Math.min(Math.max(as[as.length - 1][0], 1e-7), 1 - 1e-7);
+    loss += -(y[k] * Math.log(yh) + (1 - y[k]) * Math.log(1 - yh)); acc += (yh > 0.5) === (y[k] === 1);
+    let d = new Float64Array([yh - y[k]]);                       // dL/dz for sigmoid+BCE
+    for (let l = net.L.length - 1; l >= 0; l--) {
+      const ly = net.L[l], ain = as[l];
+      for (let o = 0; o < ly.fo; o++) { ly.gb[o] += d[o]; for (let i = 0; i < ly.fi; i++) ly.gW[o * ly.fi + i] += d[o] * ain[i]; }
+      if (l > 0) {
+        const nd = new Float64Array(ly.fi);
+        for (let i = 0; i < ly.fi; i++) { let s = 0; for (let o = 0; o < ly.fo; o++) s += ly.W[o * ly.fi + i] * d[o]; nd[i] = s * actD[net.act](zs[l - 1][i], ain[i]); }
+        d = nd;
+      }
+    }
+  }
+  net.step++; const b1 = 0.9, b2 = 0.999, c1 = 1 - b1 ** net.step, c2 = 1 - b2 ** net.step;
+  const upd = (P, G, M, Vv) => { for (let j = 0; j < P.length; j++) { const g = G[j] / n; M[j] = b1 * M[j] + (1 - b1) * g; Vv[j] = b2 * Vv[j] + (1 - b2) * g * g; P[j] -= lr * (M[j] / c1) / (Math.sqrt(Vv[j] / c2) + 1e-8); } };
+  net.L.forEach(ly => { upd(ly.W, ly.gW, ly.mW, ly.vW); upd(ly.b, ly.gb, ly.mb, ly.vb); });
+  return { loss: loss / n, acc: acc / n };
+}
+
+if (typeof module !== 'undefined') module.exports = { simHH, fiCurve, simBrunel, WCdef, wcRun, wcFixed, wcBif, wcNullclines, makeSTDP, stepSTDP, makeData, makeMLP, trainEpoch };
+
+</script>
+<script>
+/* ======================= UI + PLOTTING LAYER ======================= */
+const $ = id => document.getElementById(id);
+const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/** Prepare a HiDPI canvas; returns ctx and CSS-pixel size. */
+function prep(cv) {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  return { ctx, w, h };
+}
+function niceTicks(a, b, n = 5) {
+  const span = b - a, step0 = span / n, mag = 10 ** Math.floor(Math.log10(step0)), r = step0 / mag;
+  const step = (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag, out = [];
+  for (let v = Math.ceil(a / step - 1e-9) * step; v <= b + 1e-9; v += step) out.push(+v.toFixed(10));
+  return out;
+}
+/** Draw axes + grid; returns mapping functions. */
+function axes(cv, { xlim, ylim, xlabel = '', ylabel = '', logy = false, yticks, xticks }) {
+  const { ctx, w, h } = prep(cv), L = 44, R = 10, T = 8, B = 28;
+  const ty = v => logy ? Math.log10(v) : v, y0 = ty(ylim[0]), y1 = ty(ylim[1]);
+  const X = x => L + (x - xlim[0]) / (xlim[1] - xlim[0]) * (w - L - R);
+  const Y = y => T + (1 - (ty(y) - y0) / (y1 - y0)) * (h - T - B);
+  ctx.font = `10.5px ${tok('--f-mono')}`; ctx.lineWidth = 1;
+  const xt = xticks || niceTicks(xlim[0], xlim[1], Math.max(3, Math.floor((w - L) / 70)));
+  const yt = yticks || (logy ? niceTicks(y0, y1, 4).filter(Number.isInteger).map(e => 10 ** e) : niceTicks(ylim[0], ylim[1], Math.max(3, Math.floor(h / 45))));
+  ctx.strokeStyle = tok('--grid'); ctx.fillStyle = tok('--muted');
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  xt.forEach(v => { const x = X(v); ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, h - B); ctx.stroke(); ctx.fillText(fmt(v), x, h - B + 5); });
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  yt.forEach(v => { const y = Y(v); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(w - R, y); ctx.stroke(); ctx.fillText(logy ? '1e' + Math.round(Math.log10(v)) : fmt(v), L - 6, y); });
+  ctx.strokeStyle = tok('--rule'); ctx.strokeRect(L + .5, T + .5, w - L - R - 1, h - T - B - 1);
+  ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; if (xlabel) ctx.fillText(xlabel, w - R, h - 1);
+  if (ylabel) { ctx.save(); ctx.translate(10, T); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.fillText(ylabel, 0, -8); ctx.restore(); }
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T, w - L - R, h - T - B); ctx.clip();
+  return { ctx, X, Y, w, h, L, R, T, B, done: () => ctx.restore() };
+}
+const fmt = v => Math.abs(v) >= 1000 ? (v / 1000) + 'k' : (Math.round(v * 1000) / 1000).toString();
+function line(ax, xs, ys, color, width = 1.6) {
+  const { ctx, X, Y } = ax; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = 'round'; ctx.beginPath();
+  let started = false;
+  for (let i = 0; i < xs.length; i++) { const y = ys[i]; if (!isFinite(y)) { started = false; continue; } const px = X(xs[i]), py = Y(y); started ? ctx.lineTo(px, py) : ctx.moveTo(px, py); started = true; }
+  ctx.stroke();
+}
+const debounce = (f, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
+function bindSlider(id, fmtOut, onInput) {
+  const el = $(id), out = $(id + 'o'), upd = () => { out.textContent = fmtOut(+el.value); };
+  el.addEventListener('input', () => { upd(); onInput && onInput(+el.value); }); upd(); return el;
+}
+const redraws = {};   // tab → redraw fn (on resize / theme change)
+
+/* ---------------- 1. HH ---------------- */
+const hhState = { fi: null };
+function hhRun() {
+  const I = +$('hhI').value, gNaS = +$('hhNa').value, gKS = +$('hhK').value, r = simHH({ I, gNaS, gKS });
+  hhState.r = r; hhDraw();
+  $('hhN').textContent = r.spikes.length; $('hhR').textContent = (r.spikes.length / 0.08).toFixed(0) + ' Hz';
+  $('hhP').textContent = Math.max(...r.V).toFixed(1) + ' mV';
+}
+const hhFI = debounce(() => { hhState.fi = fiCurve({ gNaS: +$('hhNa').value, gKS: +$('hhK').value, Imax: 40, dI: 1 }); hhDraw(); }, 200);
+function hhDraw() {
+  const r = hhState.r; if (!r) return;
+  let a = axes($('hhV'), { xlim: [0, 100], ylim: [-90, 60], xlabel: 'ms', ylabel: 'mV' });
+  a.ctx.fillStyle = tok('--grid'); a.ctx.globalAlpha = .6; a.ctx.fillRect(a.X(10), a.T, a.X(90) - a.X(10), a.h - a.T - a.B); a.ctx.globalAlpha = 1;
+  line(a, r.t, r.V, tok('--accent'), 1.8); a.done();
+  a = axes($('hhG'), { xlim: [0, 100], ylim: [0, 1], xlabel: 'ms' });
+  line(a, r.t, r.m, tok('--accent')); line(a, r.t, r.h, tok('--t2')); line(a, r.t, r.n, tok('--t3')); a.done();
+  const fi = hhState.fi; a = axes($('hhFI'), { xlim: [0, 40], ylim: [0, 160], xlabel: 'µA/cm²', ylabel: 'Hz' });
+  if (fi) {
+    line(a, fi.I, fi.f, tok('--t4'), 1.8);
+    a.ctx.fillStyle = tok('--t4'); fi.I.forEach((x, i) => { a.ctx.beginPath(); a.ctx.arc(a.X(x), a.Y(fi.f[i]), 2.2, 0, 7); a.ctx.fill(); });
+  }
+  const I = +$('hhI').value; a.ctx.strokeStyle = tok('--accent'); a.ctx.setLineDash([4, 3]); a.ctx.beginPath(); a.ctx.moveTo(a.X(I), a.T); a.ctx.lineTo(a.X(I), a.h - a.B); a.ctx.stroke(); a.ctx.setLineDash([]);
+  a.done();
+}
+function hhInit() {
+  bindSlider('hhI', v => v.toFixed(1), hhRun);
+  bindSlider('hhNa', v => v.toFixed(2) + '×', () => { hhRun(); hhFI(); });
+  bindSlider('hhK', v => v.toFixed(2) + '×', () => { hhRun(); hhFI(); });
+  document.querySelectorAll('[data-hh]').forEach(b => b.addEventListener('click', () => { $('hhI').value = b.dataset.hh; $('hhI').dispatchEvent(new Event('input')); }));
+  hhRun(); hhFI(); redraws.hh = hhDraw;
+}
+
+/* ---------------- 2. Brunel ---------------- */
+const brState = {};
+const regimes = [{ g: 3, eta: 2, n: 'SR' }, { g: 5, eta: 2, n: 'AI' }, { g: 6, eta: 4, n: 'SI fast' }, { g: 4.5, eta: 0.9, n: 'SI slow' }];
+function brRun() {
+  $('brRun').textContent = 'Running…';
+  requestAnimationFrame(() => setTimeout(() => {
+    const g = +$('brG').value, eta = +$('brEta').value, r = simBrunel({ g, eta });
+    brState.r = r; $('brRun').textContent = 'Run 400 ms';
+    $('brRate').textContent = r.rate.toFixed(1) + ' Hz'; $('brCV').textContent = isNaN(r.cv) ? '–' : r.cv.toFixed(2); $('brChi').textContent = r.chi.toFixed(2);
+    const reg = r.rate > 250 && r.cv < 0.3 ? ['synchronous regular', '--t2'] : r.cv > 0.6 && r.chi < 0.35 ? ['asynchronous irregular', '--t3'] : r.cv > 0.5 ? ['synchronous irregular', '--t4'] : ['regular / mixed', '--muted'];
+    $('brReg').innerHTML = `<span class="chip" style="color:var(${reg[1]})">${reg[0]}</span>`;
+    brDraw();
+  }, 0));
+}
+const brAuto = debounce(brRun, 300);
+function brDraw() {
+  const r = brState.r;
+  let a = axes($('brRas'), { xlim: [0, 400], ylim: [0, 100], xlabel: 'ms', yticks: [0, 80, 100] });
+  if (r) {
+    const { ctx } = a, cE = tok('--accent'), cI = tok('--t2');
+    for (let s = 0; s < r.st.length; s++) {
+      const i = r.sid[s]; let row;
+      if (i < 80) { row = i; ctx.fillStyle = cE; } else if (i >= r.NE && i < r.NE + 20) { row = 80 + i - r.NE; ctx.fillStyle = cI; } else continue;
+      ctx.fillRect(a.X(r.st[s]) - .6, a.Y(row + 1), 1.4, Math.max(1.5, a.Y(row) - a.Y(row + 1) - .6));
+    }
+  }
+  a.done();
+  if (r) {
+    const bins = new Float64Array(400); r.st.forEach(t => bins[Math.min(399, t | 0)]++);
+    const N = r.NE + r.NI, y = [...bins].map(c => c / N / 0.001), x = [...bins.keys()].map(k => k + 0.5);
+    a = axes($('brPop'), { xlim: [0, 400], ylim: [0, Math.max(50, Math.ceil(Math.max(...y) / 50) * 50)], xlabel: 'ms', ylabel: 'Hz' });
+    line(a, x, y, tok('--accent'), 1.2); a.done();
+  } else axes($('brPop'), { xlim: [0, 400], ylim: [0, 100], xlabel: 'ms' }).done();
+  a = axes($('brMap'), { xlim: [2, 8], ylim: [0.5, 4], xlabel: 'g', ylabel: 'η' });
+  a.ctx.strokeStyle = tok('--muted'); a.ctx.setLineDash([3, 3]); a.ctx.beginPath(); a.ctx.moveTo(a.X(4), a.T); a.ctx.lineTo(a.X(4), a.h - a.B); a.ctx.stroke(); a.ctx.setLineDash([]);
+  a.ctx.font = `600 10.5px ${tok('--f-mono')}`; a.ctx.textAlign = 'left'; a.ctx.textBaseline = 'middle';
+  regimes.forEach(p => { a.ctx.fillStyle = tok('--muted'); a.ctx.beginPath(); a.ctx.arc(a.X(p.g), a.Y(p.eta), 3, 0, 7); a.ctx.fill(); a.ctx.fillText(p.n, a.X(p.g) + 6, a.Y(p.eta)); });
+  a.ctx.fillStyle = tok('--muted'); a.ctx.fillText('exc-dominated', a.X(2.1), a.Y(3.75)); a.ctx.textAlign = 'right'; a.ctx.fillText('inh-dominated', a.X(7.9), a.Y(3.75));
+  a.ctx.fillStyle = tok('--accent'); a.ctx.beginPath(); a.ctx.arc(a.X(+$('brG').value), a.Y(+$('brEta').value), 5.5, 0, 7); a.ctx.fill();
+  a.done();
+}
+function brInit() {
+  bindSlider('brG', v => v.toFixed(1), () => { brDraw(); brAuto(); });
+  bindSlider('brEta', v => v.toFixed(2), () => { brDraw(); brAuto(); });
+  document.querySelectorAll('[data-br]').forEach(b => b.addEventListener('click', () => {
+    const [g, e] = b.dataset.br.split(','); $('brG').value = g; $('brEta').value = e;
+    $('brGo').textContent = (+g).toFixed(1); $('brEtao').textContent = (+e).toFixed(2); brDraw(); brRun();
+  }));
+  $('brRun').addEventListener('click', brRun); brDraw(); brRun(); redraws.brunel = brDraw;
+}
+
+/* ---------------- 3. Wilson–Cowan ---------------- */
+const wcState = { E0: 0.1, I0: 0.05 };
+const wcParams = () => ({ ...WCdef, P: +$('wcP').value, wEE: +$('wcEE').value, wEI: +$('wcEI').value, tauI: +$('wcTau').value });
+function wcUpdate(bif) {
+  const p = wcParams();
+  wcState.p = p; wcState.nc = wcNullclines(p); wcState.fp = wcFixed(p); wcState.traj = wcRun(p, wcState.E0, wcState.I0, 60);
+  if (bif || !wcState.bif) wcState.bif = wcBif(p);
+  const col = t => t.startsWith('stable') ? '--t3' : t === 'saddle' ? '--t4' : '--t2';
+  $('wcFP').innerHTML = '<div style="color:var(--muted);margin-bottom:4px">fixed points</div>' + (wcState.fp.map(f =>
+    `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span>(${f.E.toFixed(3)}, ${f.I.toFixed(3)})</span><span class="chip" style="color:var(${col(f.type)})">${f.type}</span></div><div style="color:var(--muted);margin-bottom:6px">λ = ${f.lam.join(', ')}</div>`).join('') || '<div>none found</div>');
+  wcDraw();
+}
+const wcBifLater = debounce(() => wcUpdate(true), 250);
+function wcDraw() {
+  const s = wcState; if (!s.p) return;
+  const lim = [-0.02, 0.6];
+  let a = axes($('wcPP'), { xlim: lim, ylim: lim, xlabel: 'E', ylabel: 'I' });
+  const { ctx } = a; ctx.strokeStyle = tok('--muted'); ctx.globalAlpha = .45; ctx.lineWidth = 1;
+  for (let i = 0; i <= 14; i++) for (let j = 0; j <= 14; j++) {            // direction field
+    const E = lim[0] + (i + .5) / 15 * (lim[1] - lim[0]), I = lim[0] + (j + .5) / 15 * (lim[1] - lim[0]), d = wcRHS(E, I, s.p);
+    const px = a.X(E), py = a.Y(I), vx = d[0], vy = -d[1], m = Math.hypot(vx, vy) || 1, l = 7;
+    ctx.beginPath(); ctx.moveTo(px - vx / m * l / 2, py - vy / m * l / 2); ctx.lineTo(px + vx / m * l / 2, py + vy / m * l / 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(px + vx / m * l / 2, py + vy / m * l / 2, 1.1, 0, 7); ctx.fillStyle = tok('--muted'); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  line(a, s.nc.eN.map(p => p[0]), s.nc.eN.map(p => p[1]), tok('--accent'), 2);
+  line(a, s.nc.iN.map(p => p[0]), s.nc.iN.map(p => p[1]), tok('--t2'), 2);
+  line(a, s.traj.E, s.traj.I, tok('--ink'), 1.3);
+  ctx.fillStyle = tok('--ink'); ctx.beginPath(); ctx.arc(a.X(s.E0), a.Y(s.I0), 3.5, 0, 7); ctx.fill();
+  s.fp.forEach(f => {
+    const c = f.type.startsWith('stable') ? tok('--t3') : f.type === 'saddle' ? tok('--t4') : tok('--t2');
+    ctx.beginPath(); ctx.arc(a.X(f.E), a.Y(f.I), 5.5, 0, 7); ctx.fillStyle = f.type.startsWith('stable') ? c : tok('--panel'); ctx.fill(); ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.stroke();
+  });
+  s.ax = a; a.done();
+  a = axes($('wcBif'), { xlim: [-0.5, 3], ylim: [0, 0.6], xlabel: 'P', ylabel: 'E' });
+  line(a, s.bif.P, s.bif.hi, tok('--accent'), 2); line(a, s.bif.P, s.bif.lo, tok('--accent'), 2);
+  a.ctx.fillStyle = tok('--accent'); a.ctx.globalAlpha = .12; a.ctx.beginPath();
+  s.bif.P.forEach((p, i) => i ? a.ctx.lineTo(a.X(p), a.Y(s.bif.hi[i])) : a.ctx.moveTo(a.X(p), a.Y(s.bif.hi[i])));
+  for (let i = s.bif.P.length - 1; i >= 0; i--) a.ctx.lineTo(a.X(s.bif.P[i]), a.Y(s.bif.lo[i])); a.ctx.fill(); a.ctx.globalAlpha = 1;
+  a.ctx.strokeStyle = tok('--t2'); a.ctx.setLineDash([4, 3]); a.ctx.beginPath(); a.ctx.moveTo(a.X(s.p.P), a.T); a.ctx.lineTo(a.X(s.p.P), a.h - a.B); a.ctx.stroke(); a.ctx.setLineDash([]);
+  a.done();
+  a = axes($('wcTS'), { xlim: [0, 60], ylim: [0, 0.6], xlabel: 'time (τ_E)' });
+  line(a, s.traj.t, s.traj.E, tok('--accent'), 1.8); line(a, s.traj.t, s.traj.I, tok('--t2'), 1.8); a.done();
+}
+function wcInit() {
+  bindSlider('wcP', v => v.toFixed(2), () => wcUpdate(false));
+  ['wcEE', 'wcEI', 'wcTau'].forEach(id => bindSlider(id, v => v.toFixed(id === 'wcTau' ? 2 : 1), () => { wcUpdate(false); wcBifLater(); }));
+  $('wcPP').addEventListener('click', e => {
+    const s = wcState, r = e.target.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, a = s.ax, lim = [-0.02, 0.6];
+    s.E0 = lim[0] + (x - a.L) / (a.w - a.L - a.R) * (lim[1] - lim[0]); s.I0 = lim[0] + (1 - (y - a.T) / (a.h - a.T - a.B)) * (lim[1] - lim[0]);
+    s.E0 = Math.max(0, Math.min(.98, s.E0)); s.I0 = Math.max(0, Math.min(.98, s.I0));
+    s.traj = wcRun(s.p, s.E0, s.I0, 60); wcDraw();
+  });
+  $('wcReset').addEventListener('click', () => {
+    [['wcP', 1.25], ['wcEE', 16], ['wcEI', 12], ['wcTau', 1]].forEach(([id, v]) => { $(id).value = v; $(id + 'o').textContent = (+v).toFixed(id === 'wcP' || id === 'wcTau' ? 2 : 1); });
+    wcState.E0 = 0.1; wcState.I0 = 0.05; wcUpdate(true);
+  });
+  wcUpdate(true); redraws.wc = wcDraw;
+}
+
+/* ---------------- 4. STDP ---------------- */
+const stState = { running: false };
+function stNew() { stState.S = makeSTDP({ c: +$('stC').value, ratio: +$('stRatio').value, tau: +$('stTau').value }); stDraw(); }
+function stSync() { const S = stState.S; S.c = +$('stC').value; S.ratio = +$('stRatio').value; S.tau = +$('stTau').value; stDraw(); }
+function stDraw() {
+  const S = stState.S; if (!S) return;
+  let a = axes($('stWin'), { xlim: [-100, 100], ylim: [-1.6, 1.2], xlabel: 'Δt (ms)', ylabel: 'ΔW / A₊' });
+  const xs = [], yp = [], yn = [];
+  for (let t = -100; t <= 100; t += 0.5) { xs.push(t); yp.push(t > 0 ? Math.exp(-t / S.tau) : NaN); yn.push(t < 0 ? -S.ratio * Math.exp(t / S.tau) : NaN); }
+  a.ctx.strokeStyle = tok('--muted'); a.ctx.beginPath(); a.ctx.moveTo(a.X(-100), a.Y(0)); a.ctx.lineTo(a.X(100), a.Y(0)); a.ctx.stroke();
+  line(a, xs, yp, tok('--t3'), 2.2); line(a, xs, yn, tok('--t2'), 2.2);
+  a.ctx.font = `10.5px ${tok('--f-mono')}`; a.ctx.fillStyle = tok('--muted'); a.ctx.textAlign = 'left'; a.ctx.fillText('LTP: pre → post', a.X(8), a.Y(1.05));
+  a.ctx.textAlign = 'right'; a.ctx.fillText('LTD: post → pre', a.X(-8), a.Y(-1.45)); a.done();
+  a = axes($('stBars'), { xlim: [0, 100], ylim: [0, 1], xlabel: 'input #', ylabel: 'w / w_max' });
+  const bw = (a.X(1) - a.X(0));
+  for (let i = 0; i < S.N; i++) { a.ctx.fillStyle = i < S.N / 2 ? tok('--accent') : tok('--t3'); const v = S.w[i] / S.wmax; a.ctx.fillRect(a.X(i) + .5, a.Y(v), Math.max(1, bw - 1), a.Y(0) - a.Y(v)); }
+  a.done();
+  const H = S.hist, tmax = Math.max(60, Math.ceil(H.t[H.t.length - 1] / 60) * 60);
+  a = axes($('stHist'), { xlim: [0, tmax], ylim: [0, 1], xlabel: 'simulated time (s)', ylabel: 'w / w_max' });
+  line(a, H.t, H.wA.map(v => v / S.wmax), tok('--accent'), 2); line(a, H.t, H.wB.map(v => v / S.wmax), tok('--t3'), 2);
+  const rm = Math.max(40, ...H.r); line(a, H.t, H.r.map((v, i) => i ? v / rm : NaN), tok('--t2'), 1.2); a.done();
+  $('stT').textContent = (S.t / 1000).toFixed(0) + ' s'; $('stR').textContent = H.t.length > 1 ? H.r[H.r.length - 1] + ' Hz' : '–';
+  $('stW').textContent = `${(H.wA.at(-1) / S.wmax).toFixed(2)} / ${(H.wB.at(-1) / S.wmax).toFixed(2)}`;
+}
+function stLoop() {
+  if (!stState.running) return;
+  stepSTDP(stState.S, 2); stDraw();
+  if (stState.S.t >= 600000) { stToggle(false); return; }
+  requestAnimationFrame(stLoop);
+}
+function stToggle(on) { stState.running = on; $('stGo').textContent = on ? 'Pause' : 'Train'; if (on) requestAnimationFrame(stLoop); }
+function stInit() {
+  bindSlider('stC', v => v.toFixed(2), stSync); bindSlider('stRatio', v => v.toFixed(2), stSync); bindSlider('stTau', v => v + ' ms', stSync);
+  $('stGo').addEventListener('click', () => stToggle(!stState.running));
+  $('stReset').addEventListener('click', () => { stToggle(false); stNew(); });
+  stNew(); redraws.stdp = stDraw;
+}
+
+/* ---------------- 5. MLP ---------------- */
+const mlState = { ds: 'spiral', running: false, hist: [] };
+function mlNew(newData) {
+  if (newData || !mlState.data) mlState.data = makeData(mlState.ds, 300, +$('mlpN').value);
+  const w = +$('mlpW').value, d = +$('mlpD').value, sizes = [2, ...Array(d).fill(w), 1];
+  mlState.net = makeMLP(sizes, $('mlpAct').value, (Math.random() * 1e6) | 0); mlState.hist = []; mlState.epoch = 0;
+  $('mlpP').textContent = mlState.net.L.reduce((s, l) => s + l.fi * l.fo + l.fo, 0);
+  $('mlpE').textContent = 0; $('mlpL').textContent = '–'; $('mlpA').textContent = '–'; mlDraw();
+}
+function hexRGB(c) { const d = document.createElement('canvas').getContext('2d'); d.fillStyle = c; const h = d.fillStyle; return h.startsWith('#') ? [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) : [128, 128, 128]; }
+function mlDraw() {
+  const { net, data } = mlState, cv = $('mlpB'), { ctx, w, h } = prep(cv), G = 64, lim = 1.2;
+  const off = mlState.off || (mlState.off = document.createElement('canvas')); off.width = off.height = G;
+  const octx = off.getContext('2d'), img = octx.createImageData(G, G), c0 = hexRGB(tok('--t2')), c1 = hexRGB(tok('--accent')), bg = hexRGB(tok('--panel'));
+  for (let j = 0; j < G; j++) for (let i = 0; i < G; i++) {
+    const x = -lim + (i + .5) / G * 2 * lim, y = lim - (j + .5) / G * 2 * lim, p = forward(net, [x, y]);
+    const c = p > .5 ? c1 : c0, s = Math.abs(p - .5) * 2 * 0.55, k = (j * G + i) * 4;
+    for (let ch = 0; ch < 3; ch++) img.data[k + ch] = bg[ch] * (1 - s) + c[ch] * s; img.data[k + 3] = 255;
+  }
+  octx.putImageData(img, 0, 0); ctx.imageSmoothingEnabled = true; ctx.drawImage(off, 0, 0, w, h);
+  const X = x => (x + lim) / (2 * lim) * w, Y = y => (lim - y) / (2 * lim) * h;
+  data.X.forEach((p, k) => { ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), 3.2, 0, 7); ctx.fillStyle = data.y[k] ? tok('--accent') : tok('--t2'); ctx.fill(); ctx.strokeStyle = tok('--panel'); ctx.lineWidth = 1; ctx.stroke(); });
+  const H = mlState.hist, a = axes($('mlpLc'), { xlim: [0, Math.max(200, Math.ceil(H.length / 200) * 200)], ylim: [1e-3, 1], logy: true, xlabel: 'epoch', ylabel: 'loss' });
+  line(a, H.map((_, i) => i + 1), H.map(v => Math.max(v, 1e-3)), tok('--accent'), 1.8); a.done();
+}
+function mlLoop() {
+  if (!mlState.running) return;
+  const lr = 10 ** +$('mlpLr').value; let r;
+  const t0 = performance.now();
+  do { r = trainEpoch(mlState.net, mlState.data, lr); mlState.hist.push(r.loss); mlState.epoch++; } while (performance.now() - t0 < 14);
+  $('mlpE').textContent = mlState.epoch; $('mlpL').textContent = r.loss.toFixed(4); $('mlpA').textContent = (r.acc * 100).toFixed(1) + '%';
+  mlDraw();
+  if (mlState.epoch >= 5000 || !isFinite(r.loss)) { mlToggle(false); return; }
+  requestAnimationFrame(mlLoop);
+}
+function mlToggle(on) { mlState.running = on; $('mlpGo').textContent = on ? 'Pause' : 'Train'; if (on) requestAnimationFrame(mlLoop); }
+function mlInit() {
+  bindSlider('mlpW', v => v, () => mlNew(false)); bindSlider('mlpD', v => v, () => mlNew(false));
+  bindSlider('mlpLr', v => (10 ** v).toPrecision(2)); bindSlider('mlpN', v => v.toFixed(2), () => mlNew(true));
+  $('mlpAct').addEventListener('change', () => mlNew(false));
+  document.querySelectorAll('[data-ds]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-ds]').forEach(x => x.setAttribute('aria-pressed', x === b)); mlState.ds = b.dataset.ds; mlNew(true);
+  }));
+  $('mlpGo').addEventListener('click', () => mlToggle(!mlState.running));
+  $('mlpReset').addEventListener('click', () => mlNew(false));
+  mlNew(true); redraws.mlp = mlDraw;
+}
+
+/* ---------------- tabs, lazy init, theme/resize redraw ---------------- */
+const inits = { hh: hhInit, brunel: brInit, wc: wcInit, stdp: stInit, mlp: mlInit }, ready = {};
+let current = 'hh';
+function show(tab) {
+  if (!inits[tab]) tab = 'hh';
+  current = tab;
+  document.querySelectorAll('.ladder button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  Object.keys(inits).forEach(k => $(k).hidden = k !== tab);
+  if (tab !== 'stdp' && stState.running) stToggle(false);
+  if (tab !== 'mlp' && mlState.running) mlToggle(false);
+  if (!ready[tab]) { inits[tab](); ready[tab] = true; } else redraws[tab] && redraws[tab]();
+  try { localStorage.setItem('ndl-tab', tab); } catch (e) {}
+}
+document.querySelectorAll('.ladder button').forEach(b => b.addEventListener('click', () => { show(b.dataset.tab); history.replaceState(null, '', '#' + b.dataset.tab); }));
+let start = location.hash.slice(1); if (!inits[start]) { try { start = localStorage.getItem('ndl-tab') || 'hh'; } catch (e) { start = 'hh'; } }
+show(start);
+const redrawNow = debounce(() => redraws[current] && redraws[current](), 120);
+window.addEventListener('resize', redrawNow);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redrawNow);
+new MutationObserver(redrawNow).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+</script>
+
+</body></html>

@@ -1,0 +1,42 @@
+{
+ "studio": [
+  "modellab.js",
+  "morph.js",
+  "morph2.js",
+  "neuronviewer.js",
+  "ngstudio.js",
+  "realbio.js",
+  "router.js",
+  "wb-core.js"
+ ],
+ "ca1-neuron": [
+  "modellab.js",
+  "morph.js",
+  "morph2.js",
+  "realbio.js",
+  "router.js",
+  "neuronviewer.js"
+ ],
+ "circuit": [
+  "modellab.js",
+  "realbio.js",
+  "morph.js",
+  "morph2.js",
+  "router.js",
+  "neuronviewer.js"
+ ],
+ "lab-models": [
+  "modellab.js",
+  "morph.js",
+  "morph2.js",
+  "realbio.js",
+  "router.js",
+  "neuronviewer.js"
+ ],
+ "other-systems": [
+  "gfdata.js",
+  "modellab.js",
+  "realbio.js",
+  "router.js"
+ ]
+}

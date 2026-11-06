@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: 'ZD7288: I_h block'
+tool: research-morphology
+kind: pharmacology
+what: HCN density × 0 everywhere on the tree.
+expected_size: complete block in the model
+references:
+- magee1998
+ops:
+- control: '#rmc-hS'
+  set: 0

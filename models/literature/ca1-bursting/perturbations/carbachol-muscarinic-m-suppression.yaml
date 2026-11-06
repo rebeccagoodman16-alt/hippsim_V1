@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: 'Carbachol: muscarinic M suppression'
+tool: ca1-bursting
+kind: pharmacology
+what: Muscarinic activation closes Kv7 channels; partial suppression.
+expected_size: 70% reduction, illustrative
+references:
+- golomb2006
+ops:
+- control: '#gy-gZ'
+  set: 0.3

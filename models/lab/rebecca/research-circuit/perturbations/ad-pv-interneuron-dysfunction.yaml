@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: AD · PV interneuron dysfunction
+tool: research-circuit
+kind: disease
+what: Reduced Nav1.1 in PV cells weakens perisomatic inhibition (Verret et al. 2012).
+expected_size: PV → PYR halved, illustrative
+references:
+- verret2012
+ops:
+- control: '#ns-gpe'
+  set: 0.006

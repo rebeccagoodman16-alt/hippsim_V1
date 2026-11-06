@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: Myasthenia gravis
+tool: reflex
+kind: disease
+what: Fewer acetylcholine receptors.
+expected_size: complete block in the model
+references: []
+ops:
+- control: '#rxMG'
+  set: true

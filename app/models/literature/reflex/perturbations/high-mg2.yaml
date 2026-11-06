@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: High Mg²⁺
+tool: reflex
+kind: physiology
+what: Mg²⁺ competes with Ca²⁺ and lowers release.
+expected_size: 6 mM, illustrative
+references: []
+ops:
+- control: '#rxMg'
+  set: 6

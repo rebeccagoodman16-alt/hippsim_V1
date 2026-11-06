@@ -1,0 +1,7 @@
+{
+ "_about": "Corrections to DOIs inherited from the Guide's atlas data. Checked against OpenAlex / Crossref, 5 Nov 2026. Applied by export_guide_morphologies.py (catalog) and hs-morph-extra.js (in the app).",
+ "10.3389/fncel.2016.00280": {"doi": "10.7554/eLife.16553", "why": "wrong paper (a microglia study); ModelDB 195667 is Eyal et al. (2016) eLife 5:e16553"},
+ "10.2139/ssrn.3330557": {"doi": "10.1016/j.cell.2019.07.042", "why": "preprint; published as Winnubst et al. (2019) Cell 179:268-281"},
+ "10.1101/675280": {"doi": "10.1038/s41586-021-03941-1", "why": "preprint; published as Peng et al. (2021) Nature 598:174-181"},
+ "10.1101/2023.06.05.543757": {"doi": "10.7554/eLife.97769", "why": "preprint; published as Takemura et al. (2024) eLife 13:RP97769"}
+}

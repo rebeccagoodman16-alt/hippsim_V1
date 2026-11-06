@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: TEA 50%
+tool: action-potential
+kind: pharmacology
+what: Half the K⁺ channels blocked.
+expected_size: 50%
+references:
+- hodgkin1952
+ops:
+- control: '#apTEA'
+  set: 50

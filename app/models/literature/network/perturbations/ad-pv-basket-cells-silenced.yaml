@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: AD · PV basket cells silenced
+tool: network
+kind: disease
+what: Extreme case of PV dysfunction (Verret et al. 2012).
+expected_size: complete silencing, illustrative
+references:
+- verret2012
+ops:
+- control: '#nfPV'
+  set: false

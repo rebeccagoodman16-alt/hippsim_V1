@@ -1,0 +1,3151 @@
+units: um
+swc_types:
+  1: soma
+  2: axon
+  3: basal/dendrite
+  4: apical
+n_cells: 87
+cells:
+  ca1-a:
+    file: hippocampal_formation/ca1/ca1-a.swc
+    name: CA1 pyramidal cell
+    code: mpg141209_A
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; basal dendrites in oriens, apical dendrite through radiatum to lacunosum-moleculare
+    species: Rat
+    how: Filled during whole-cell recording in hippocampal slices, imaged and traced in Neurolucida, with the layer boundaries traced too.
+    role: Main output of the hippocampus. Integrates CA3 input (Schaffer collaterals, middle dendrites) with entorhinal input (distal tuft) and
+      projects to subiculum and entorhinal cortex.
+    cite: Migliore et al. (2018) PLoS Comput Biol 14:e1006423 · ModelDB 244688
+    note: Data-driven multicompartment models; ion-channel densities optimised to each cell’s recordings
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/244688
+    morphometrics:
+      dendrite_um: 8940
+      dend_area_um2: 22313
+      branch: 78
+      tips: 84
+      maxpath_um: 787
+      apical_um: 4864
+      basal_um: 4076
+      axon_um: 1490
+      axon_branch: 18
+      extent_um:
+      - 393.0
+      - 692.0
+      - 336.0
+    n_samples: 2563
+    provenance: literature
+  ca1-b:
+    file: hippocampal_formation/ca1/ca1-b.swc
+    name: CA1 pyramidal cell
+    code: mpg141208_B
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: As above
+    species: Rat
+    how: 'As above: slice recording, fill and Neurolucida tracing with traced layer boundaries.'
+    role: 'A second CA1 pyramidal cell: real neurons of one type vary a lot in shape, which is why models are fitted per cell.'
+    cite: Migliore et al. (2018) PLoS Comput Biol 14:e1006423 · ModelDB 244688
+    note: Same workflow; compare how two cells of one type differ in branching
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/244688
+    morphometrics:
+      dendrite_um: 7337
+      dend_area_um2: 19096
+      branch: 68
+      tips: 73
+      maxpath_um: 739
+      apical_um: 5201
+      basal_um: 2136
+      axon_um: 2210
+      axon_branch: 18
+      extent_um:
+      - 614.0
+      - 780.0
+      - 360.0
+    n_samples: 2215
+    provenance: literature
+  ca3-cell1zr:
+    file: hippocampal_formation/ca3/ca3-cell1zr.swc
+    name: CA3b pyramidal cell
+    code: cell1zr
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale of CA3b; thorny excrescences on proximal apical dendrites receive mossy-fibre boutons in stratum lucidum
+    species: Rat
+    how: Recorded in acute hippocampal slices, filled and reconstructed; used to build a compartmental model of CA3b firing classes.
+    role: Receives mossy fibres from dentate granule cells and dense recurrent collaterals from other CA3 cells (thought to support pattern completion),
+      and sends Schaffer collaterals to CA1.
+    cite: Hemond et al. (2008) Hippocampus 18:411–424 · ModelDB 101629
+    note: Explains regular-spiking vs bursting CA3b cells with K⁺ channel densities
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/101629
+    morphometrics:
+      dendrite_um: 12248
+      dend_area_um2: 30452
+      branch: 63
+      tips: 70
+      maxpath_um: 710
+      apical_um: 7403
+      basal_um: 4845
+      axon_um: 94
+      axon_branch: 0
+      extent_um:
+      - 317.0
+      - 776.0
+      - 266.0
+    n_samples: 2002
+    provenance: literature
+  gc-3319201:
+    file: hippocampal_formation/dentate_gyrus/gc-3319201.swc
+    name: Dentate granule cell
+    code: '3319201'
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in the granule cell layer; dendrites fan out through the molecular layer toward the hippocampal fissure
+    species: Rat
+    how: Reconstructed in the Claiborne lab (Claiborne archive on NeuroMorpho.Org). Only the dendrites are traced; the axon in the model package
+      was added by the modellers, so it is hidden here.
+    role: First stage of the trisynaptic loop. Receives perforant-path input from entorhinal layer II, fires very sparsely, and drives CA3 through
+      powerful mossy-fibre synapses.
+    cite: Beining et al. (2017) eLife 6:e26517 (T2N) · ModelDB 231862
+    note: Granule-cell model built with the TREES toolbox and T2N, validated against rat and mouse data
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/231862
+    morphometrics:
+      dendrite_um: 4662
+      dend_area_um2: 25376
+      branch: 18
+      tips: 20
+      maxpath_um: 506
+      apical_um: 0
+      basal_um: 4662
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 513.0
+      - 354.0
+      - 229.0
+    n_samples: 1241
+    provenance: literature
+  gc-0306:
+    file: hippocampal_formation/dentate_gyrus/gc-0306.swc
+    name: Mature dentate granule cell
+    code: '03.06'
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Granule cell layer and molecular layer
+    species: Rat
+    how: Labelled with an AAV-GFP vector, imaged and reconstructed in Beining et al. (2017). The model’s axon was added by the modellers and is
+      hidden here.
+    role: 'A second granule cell, from a different lab and labelling method: compare dendritic length and branching with the Claiborne cell.'
+    cite: Beining et al. (2017) eLife 6:e26517 (T2N) · ModelDB 231862
+    note: Same granule-cell model applied across reconstructions
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/231862
+    morphometrics:
+      dendrite_um: 1995
+      dend_area_um2: 6358
+      branch: 8
+      tips: 9
+      maxpath_um: 355
+      apical_um: 0
+      basal_um: 1995
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 241.0
+      - 317.0
+      - 96.0
+    n_samples: 519
+    provenance: literature
+  ca1-jarsky:
+    file: hippocampal_formation/ca1/ca1-jarsky.swc
+    name: CA1 pyramidal cell
+    code: Jarsky 2005 cell
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Basal dendrites in oriens; apical trunk, obliques and tuft through radiatum into lacunosum-moleculare
+    species: Rat
+    how: 'Reconstructed CA1 pyramidal neuron from the Spruston lab used in Jarsky et al. (2005). The package adds a separate model axon (not shown).
+      Dendrites only here: the apical tree is the dendA5 subtree in the model files.'
+    role: 'Classic cell for the gating question: does distal entorhinal input matter on its own, or only when paired with CA3 input?'
+    cite: Jarsky, Roxin, Kath & Spruston (2005) Nat Neurosci 8:1667–1676 · ModelDB 116084
+    note: Shows that perforant-path dendritic spikes in the tuft reach the soma only when Schaffer input “gates” them
+    links: &id001
+    - label: ModelDB
+      url: https://modeldb.science/116084
+    morphometrics: &id002
+      dendrite_um: 9737
+      dend_area_um2: 20259
+      branch: 74
+      tips: 79
+      maxpath_um: 837
+      apical_um: 5470
+      basal_um: 4267
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 270.0
+      - 793.0
+      - 78.0
+    n_samples: 2359
+    provenance: literature
+  ca1-5038804:
+    file: hippocampal_formation/ca1/ca1-5038804.swc
+    name: CA1 pyramidal cell
+    code: n5038804
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Oriens, radiatum and lacunosum-moleculare; many oblique branches off the apical trunk
+    species: Rat
+    how: Reconstruction from the Duke–Southampton archive (Turner lab; distributed via L-Neuron / NeuroMorpho.Org), used by Migliore et al. (2005).
+      In the model file the apical trunk and tuft are named “user5” and the obliques “apical_dendrite”; both are shown as apical here. Only a
+      short axon stub is traced.
+    role: 'Many obliques: a good cell for seeing how branch points load the trunk and attenuate signals.'
+    cite: Migliore, Ferrante & Ascoli (2005) J Neurophysiol 94:4145–4155 · ModelDB 55035
+    note: Back- and forward-propagation of action potentials in oblique dendrites depends on local branch geometry and channels
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/55035
+    morphometrics:
+      dendrite_um: 11874
+      dend_area_um2: 56591
+      branch: 84
+      tips: 87
+      maxpath_um: 652
+      apical_um: 7742
+      basal_um: 4132
+      axon_um: 97
+      axon_branch: 0
+      extent_um:
+      - 288.0
+      - 766.0
+      - 183.0
+    n_samples: 2248
+    provenance: literature
+  gc-sh1:
+    file: hippocampal_formation/dentate_gyrus/gc-sh1.swc
+    name: Dentate granule cell
+    code: cell 1 (Schmidt-Hieber)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Granule cell layer; dendrites through the molecular layer
+    species: Rat
+    how: Filled with biocytin during whole-cell recording in hippocampal slices and reconstructed (Schmidt-Hieber, Jonas & Bischofberger 2007).
+      Dendrites only; section 0 is the soma.
+    role: 'Fitted cable model: a good check on how much perforant-path EPSPs shrink before reaching a granule-cell soma.'
+    cite: Schmidt-Hieber, Jonas & Bischofberger (2007) J Neurosci 27:8430–8441 · ModelDB 95960
+    note: 'Passive cable models fitted to dual soma–dendrite recordings: strong dendritic attenuation, coincidence detection in the soma'
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/95960
+    morphometrics:
+      dendrite_um: 1989
+      dend_area_um2: 5369
+      branch: 16
+      tips: 18
+      maxpath_um: 250
+      apical_um: 0
+      basal_um: 1989
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 210.0
+      - 274.0
+      - 99.0
+    n_samples: 645
+    provenance: literature
+  gc-sh6:
+    file: hippocampal_formation/dentate_gyrus/gc-sh6.swc
+    name: Dentate granule cell
+    code: cell 6 (Schmidt-Hieber)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Granule cell layer, molecular layer; proximal mossy-fibre axon
+    species: Rat
+    how: As cell 1, but here the proximal axon was traced too (15 axon sections, the start of the mossy fibre).
+    role: Shows where the mossy-fibre axon leaves the soma, heading toward the hilus and CA3.
+    cite: Schmidt-Hieber, Jonas & Bischofberger (2007) J Neurosci 27:8430–8441 · ModelDB 95960
+    note: Same model family
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/95960
+    morphometrics:
+      dendrite_um: 1413
+      dend_area_um2: 4278
+      branch: 7
+      tips: 9
+      maxpath_um: 216
+      apical_um: 0
+      basal_um: 1413
+      axon_um: 821
+      axon_branch: 7
+      extent_um:
+      - 309.0
+      - 351.0
+      - 187.0
+    n_samples: 723
+    provenance: literature
+  bcdg-1:
+    file: hippocampal_formation/dentate_gyrus/bcdg-1.swc
+    name: DG fast-spiking basket cell
+    code: BC1 (Nörenberg)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Soma at the granule cell layer / hilus border; “apical” dendrites into the molecular layer, “basal” into the hilus; axon in the granule
+      cell layer
+    species: Rat
+    how: Recorded and filled in hippocampal slices, traced in Neurolucida, imported with NEURON’s Import3D (Nörenberg et al. 2010). Axon fully
+      traced (1302 sections).
+    role: Perisomatic inhibition of granule cells. Its dense axon in the granule cell layer is the “basket” around granule somata.
+    cite: Nörenberg, Hu, Vida, Bartos & Jonas (2010) PNAS 107:894–899 · ModelDB 140789
+    note: 'Detailed passive models: thick proximal and thin distal dendrites with non-uniform cable properties speed up activation'
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/140789
+    morphometrics:
+      dendrite_um: 1633
+      dend_area_um2: 7089
+      branch: 99
+      tips: 104
+      maxpath_um: 288
+      apical_um: 1403
+      basal_um: 230
+      axon_um: 23586
+      axon_branch: 649
+      extent_um:
+      - 594.0
+      - 497.0
+      - 127.0
+    n_samples: 9261
+    provenance: literature
+  pvb-1:
+    file: hippocampal_formation/ca3/pvb-1.swc
+    name: PV fast-spiking basket cell
+    code: Somogyi_1
+    region: CA3
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Soma near stratum pyramidale; dendrites radial across layers; axon forms baskets around pyramidal cell somata
+    species: Rat
+    how: Recorded and labelled in vivo by Tukker et al. (2013), reconstructed, and shared through NeuroMorpho.Org. The model authors used the
+      axon of one reconstruction (B13a) for all five models, so the axons shown are shared.
+    role: Perisomatic inhibition of pyramidal cells; paces gamma oscillations and controls spike timing. Reduced PV-cell function is reported
+      in some AD mouse models (Verret et al., 2012).
+    cite: Tzilivaki, Kastellakis & Poirazi (2019) Nat Commun 10:3664 · ModelDB 237595
+    note: Shows that FS basket-cell dendrites integrate inputs non-linearly (“two-stage integrators”)
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/237595
+    morphometrics:
+      dendrite_um: 9869
+      dend_area_um2: 25376
+      branch: 105
+      tips: 111
+      maxpath_um: 798
+      apical_um: 0
+      basal_um: 9869
+      axon_um: 22433
+      axon_branch: 439
+      extent_um:
+      - 986.0
+      - 768.0
+      - 518.0
+    n_samples: 6324
+    provenance: literature
+  pvb-4:
+    file: hippocampal_formation/ca3/pvb-4.swc
+    name: PV fast-spiking basket cell
+    code: Somogyi_4
+    region: CA3
+    system: Hippocampal formation
+    group: Interneurons
+    layer: As above
+    species: Rat
+    how: As above (Tukker et al., 2013, via NeuroMorpho.Org; shared axon B13a).
+    role: 'Compare its dendrites with Somogyi_1: same class, different shape.'
+    cite: Tzilivaki, Kastellakis & Poirazi (2019) Nat Commun 10:3664 · ModelDB 237595
+    note: Second hippocampal FS basket-cell reconstruction from the same model package
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/237595
+    morphometrics:
+      dendrite_um: 8256
+      dend_area_um2: 19268
+      branch: 97
+      tips: 103
+      maxpath_um: 864
+      apical_um: 0
+      basal_um: 8256
+      axon_um: 22290
+      axon_branch: 435
+      extent_um:
+      - 986.0
+      - 690.0
+      - 1043.0
+    n_samples: 6090
+    provenance: literature
+  olm-starfish:
+    file: hippocampal_formation/ca1/olm-starfish.swc
+    name: O-LM interneuron
+    code: “Starfish”
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Soma and horizontal dendrites in stratum oriens; axon ascends to stratum lacunosum-moleculare
+    species: Mouse
+    how: Reconstructed O-LM cell from earlier work; electrophysiology from mouse O-LM cells (Lawrence et al., 2006). The reconstructions are not
+      the same cells as the recordings.
+    role: 'Feedback inhibition onto the distal tuft of pyramidal cells, where entorhinal input arrives: O-LM cells gate cortical input and are
+      linked to theta rhythm.'
+    cite: Sekulic et al. (2015) Front Synaptic Neurosci 7:2 · ModelDB 182797
+    note: Tests where h-channels sit in O-LM dendrites using multicompartment models
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/182797
+    morphometrics:
+      dendrite_um: 1315
+      dend_area_um2: 6411
+      branch: 19
+      tips: 25
+      maxpath_um: 165
+      apical_um: 0
+      basal_um: 1315
+      axon_um: 9533
+      axon_branch: 96
+      extent_um:
+      - 595.0
+      - 679.0
+      - 26.0
+    n_samples: 1650
+    provenance: literature
+  olm-richy:
+    file: hippocampal_formation/ca1/olm-richy.swc
+    name: O-LM interneuron
+    code: “Richy” (axon truncated)
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Stratum oriens
+    species: Mouse
+    how: As above. The axon of this reconstruction is truncated.
+    role: 'Dendrites only: compare the horizontal oriens dendrites with the full Starfish reconstruction.'
+    cite: Sekulic et al. (2015) Front Synaptic Neurosci 7:2 · ModelDB 182797
+    note: Second O-LM model cell
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/182797
+    morphometrics:
+      dendrite_um: 2010
+      dend_area_um2: 12547
+      branch: 19
+      tips: 32
+      maxpath_um: 294
+      apical_um: 0
+      basal_um: 2010
+      axon_um: 426
+      axon_branch: 1
+      extent_um:
+      - 361.0
+      - 472.0
+      - 25.0
+    n_samples: 592
+    provenance: literature
+  ca1-i1:
+    file: hippocampal_formation/ca1/ca1-i1.swc
+    name: CA1 interneuron
+    code: 060314AM2 (cNAC)
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: CA1; dense local axon
+    species: Rat
+    how: Slice recording, fill and Neurolucida tracing.
+    role: Classified by firing pattern (e-type) rather than morphological type in the model paper. Most of its tracing is axon, typical of local
+      interneurons.
+    cite: Migliore et al. (2018) PLoS Comput Biol 14:e1006423 · ModelDB 244688
+    note: Modelled as a continuous non-accommodating (cNAC) firing type
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/244688
+    morphometrics:
+      dendrite_um: 8797
+      dend_area_um2: 19006
+      branch: 62
+      tips: 71
+      maxpath_um: 425
+      apical_um: 0
+      basal_um: 8797
+      axon_um: 19038
+      axon_branch: 318
+      extent_um:
+      - 715.0
+      - 574.0
+      - 232.0
+    n_samples: 5733
+    provenance: literature
+  ca1-i2:
+    file: hippocampal_formation/ca1/ca1-i2.swc
+    name: CA1 interneuron
+    code: 011023HP2 (bAC)
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: CA1
+    species: Rat
+    how: Slice recording, fill and Neurolucida tracing.
+    role: 'E-type classification: bursting accommodating.'
+    cite: Migliore et al. (2018) PLoS Comput Biol 14:e1006423 · ModelDB 244688
+    note: Modelled as bursting accommodating (bAC)
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/244688
+    morphometrics:
+      dendrite_um: 3680
+      dend_area_um2: 14399
+      branch: 23
+      tips: 25
+      maxpath_um: 467
+      apical_um: 0
+      basal_um: 3680
+      axon_um: 30733
+      axon_branch: 492
+      extent_um:
+      - 1124.0
+      - 639.0
+      - 237.0
+    n_samples: 6439
+    provenance: literature
+  int-971114B:
+    file: hippocampal_formation/ca1/int-971114B.swc
+    name: CA1 interneuron
+    code: 971114B (bAC)
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: CA1
+    species: Rat
+    how: Slice recording, fill and Neurolucida tracing.
+    role: 'Another bAC interneuron: compare axon extent with 011023HP2.'
+    cite: Migliore et al. (2018) PLoS Comput Biol 14:e1006423 · ModelDB 244688
+    note: Bursting accommodating model
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/244688
+    morphometrics:
+      dendrite_um: 4679
+      dend_area_um2: 16054
+      branch: 40
+      tips: 45
+      maxpath_um: 426
+      apical_um: 0
+      basal_um: 4679
+      axon_um: 37662
+      axon_branch: 500
+      extent_um:
+      - 1058.0
+      - 576.0
+      - 303.0
+    n_samples: 7063
+    provenance: literature
+  int-980120A:
+    file: hippocampal_formation/ca1/int-980120A.swc
+    name: CA1 interneuron
+    code: 980120A (cAC)
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: CA1
+    species: Rat
+    how: Slice recording, fill and Neurolucida tracing.
+    role: 'E-type: continuous accommodating.'
+    cite: Migliore et al. (2018) PLoS Comput Biol 14:e1006423 · ModelDB 244688
+    note: Continuous accommodating model
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/244688
+    morphometrics:
+      dendrite_um: 4505
+      dend_area_um2: 15599
+      branch: 36
+      tips: 39
+      maxpath_um: 566
+      apical_um: 0
+      basal_um: 4505
+      axon_um: 43568
+      axon_branch: 916
+      extent_um:
+      - 1145.0
+      - 1037.0
+      - 350.0
+    n_samples: 8962
+    provenance: literature
+  int-980513B:
+    file: hippocampal_formation/ca1/int-980513B.swc
+    name: CA1 interneuron
+    code: 980513B (cNAC / cAC)
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: CA1
+    species: Rat
+    how: Slice recording, fill and Neurolucida tracing.
+    role: 'One morphology, two firing-type models: morphology alone does not decide firing pattern.'
+    cite: Migliore et al. (2018) PLoS Comput Biol 14:e1006423 · ModelDB 244688
+    note: Used for both a cNAC and a cAC model
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/244688
+    morphometrics:
+      dendrite_um: 6438
+      dend_area_um2: 19506
+      branch: 48
+      tips: 54
+      maxpath_um: 430
+      apical_um: 0
+      basal_um: 6438
+      axon_um: 57846
+      axon_branch: 693
+      extent_um:
+      - 1421.0
+      - 549.0
+      - 345.0
+    n_samples: 10421
+    provenance: literature
+  aac-nmo-35831:
+    file: hippocampal_formation/ca1/aac-nmo-35831.swc
+    name: Axo-axonic (chandelier) cell
+    code: TF35-Axo-axonic-cell
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Soma in stratum oriens; axon cartridges along the pyramidal layer
+    species: Rat
+    how: 'In vivo labelling; stain: Neurobiotin; adult rat (Sprague-Dawley, Male). Reconstructed in Neurolucida; section thickness 70 µm. Completeness:
+      Dendrites Complete, Axon Moderate. Archive: Klausberger (NeuroMorpho.Org NMO_35831, TF35-Axo-axonic-cell).'
+    role: A real chandelier cell, labelled in vivo in an adult rat (ErbB4+, PV+). Its boutons line up on pyramidal-cell axon initial segments,
+      which is the hippocampal counterpart of the fly GF axo-axonic inputs.
+    cite: Klausberger · NeuroMorpho.Org NMO_35831 · doi:10.1093/cercor/bht316
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=35831
+    - label: Paper (DOI)
+      url: https://doi.org/10.1093/cercor/bht316
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/24275828/
+    morphometrics:
+      dendrite_um: 7056
+      dend_area_um2: 25690
+      branch: 42
+      tips: 46
+      maxpath_um: 965
+      apical_um: 0
+      basal_um: 7056
+      axon_um: 16452
+      axon_branch: 368
+      extent_um:
+      - 516.0
+      - 911.0
+      - 551.0
+    n_samples: 5650
+    provenance: literature
+  aac-nmo-49373:
+    file: hippocampal_formation/ca1/aac-nmo-49373.swc
+    name: Axo-axonic (chandelier) cell
+    code: Axoaxonic_cell
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Stratum oriens; MGE-derived (Nkx2.1-Cre)
+    species: Mouse
+    how: 'In vitro slice preparation; stain: Biocytin, Alexa 555; young mouse (Nkx2.1Cre-RCE, Male/Female). Reconstructed in Neurolucida; section
+      thickness 400 µm. Completeness: Dendrites & Axon Moderate. Archive: McBain (NeuroMorpho.Org NMO_49373, Axoaxonic_cell).'
+    role: Mouse chandelier cell from the MGE lineage. Compare the dense cartridge axon with the rat in-vivo cell.
+    cite: McBain · NeuroMorpho.Org NMO_49373 · doi:10.1523/JNEUROSCI.4166-14.2015
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=49373
+    - label: Paper (DOI)
+      url: https://doi.org/10.1523/JNEUROSCI.4166-14.2015
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/25716860/
+    morphometrics:
+      dendrite_um: 7686
+      dend_area_um2: 43007
+      branch: 26
+      tips: 35
+      maxpath_um: 1061
+      apical_um: 3012
+      basal_um: 4674
+      axon_um: 30610
+      axon_branch: 177
+      extent_um:
+      - 1923.0
+      - 1355.0
+      - 5.0
+    n_samples: 4718
+    provenance: literature
+  aac-nmo-49814:
+    file: hippocampal_formation/ca3/aac-nmo-49814.swc
+    name: Axo-axonic (chandelier) cell
+    code: B10a-1
+    region: CA3
+    system: Hippocampal formation
+    group: Interneurons
+    layer: CA3 pyramidal layer
+    species: Rat
+    how: 'In vivo labelling; stain: Neurobiotin; adult rat (Sprague-Dawley, Male). Reconstructed in Neurolucida; section thickness 70 µm. Completeness:
+      Dendrites Complete, Axon Moderate. Archive: Somogyi (NeuroMorpho.Org NMO_49814, B10a-1).'
+    role: Recorded and labelled in vivo in CA3 (Viney et al. 2013). Axo-axonic cells there fire around theta but are silenced during sharp-wave
+      ripples.
+    cite: Somogyi · NeuroMorpho.Org NMO_49814 · doi:10.1038/nn.3550
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=49814
+    - label: Paper (DOI)
+      url: https://doi.org/10.1038/nn.3550
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/24141313/
+    morphometrics:
+      dendrite_um: 6060
+      dend_area_um2: 11580
+      branch: 45
+      tips: 50
+      maxpath_um: 584
+      apical_um: 0
+      basal_um: 6060
+      axon_um: 2094
+      axon_branch: 21
+      extent_um:
+      - 380.0
+      - 587.0
+      - 499.0
+    n_samples: 1920
+    provenance: literature
+  aac-nmo-252206:
+    file: hippocampal_formation/dentate_gyrus/aac-nmo-252206.swc
+    name: Axo-axonic (chandelier) cell
+    code: Degro_Vidal-cell-38
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Inner molecular layer; axon in the granule cell layer
+    species: Rat
+    how: 'In vitro slice preparation; stain: biocytin; young adult rat (VGAT-Venus, Male/Female). Reconstructed in Simple Neurite Tracer; section
+      thickness 300 µm. Completeness: Dendrites & Axon Complete. Archive: Vida (NeuroMorpho.Org NMO_252206, Degro_Vidal-cell-38).'
+    role: Dentate chandelier cell with a complete axon (Degro et al. 2022). It targets granule-cell axon initial segments.
+    cite: Vida · NeuroMorpho.Org NMO_252206 · doi:10.1002/hipo.23408
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=252206
+    - label: Paper (DOI)
+      url: https://doi.org/10.1002/hipo.23408
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/35171512/
+    morphometrics:
+      dendrite_um: 3271
+      dend_area_um2: 2055
+      branch: 24
+      tips: 30
+      maxpath_um: 280
+      apical_um: 0
+      basal_um: 3271
+      axon_um: 25666
+      axon_branch: 390
+      extent_um:
+      - 679.0
+      - 367.0
+      - 311.0
+    n_samples: 7744
+    provenance: literature
+  int-nmo-125756:
+    file: hippocampal_formation/ca1/int-nmo-125756.swc
+    name: Bistratified interneuron
+    code: PD-S-15-02-2011_Z04
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Stratum oriens; axon in oriens and radiatum (both sides of the pyramidal layer)
+    species: Rat
+    how: 'In vitro slice preparation; stain: biocytin; adult rat (Wistar, Male). Reconstructed in Simple Neurite Tracer; section thickness 300
+      µm. Completeness: Dendrites & Axon Moderate. Archive: Beck (NeuroMorpho.Org NMO_125756, PD-S-15-02-2011_Z04).'
+    role: Bistratified cells inhibit the dendrites that receive CA3 input (oriens and radiatum), in step with the Schaffer collaterals.
+    cite: Beck · NeuroMorpho.Org NMO_125756 · doi:10.1523/JNEUROSCI.2594-18.2019
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=125756
+    - label: Paper (DOI)
+      url: https://doi.org/10.1523/JNEUROSCI.2594-18.2019
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/31519822/
+    morphometrics:
+      dendrite_um: 3818
+      dend_area_um2: 2399
+      branch: 23
+      tips: 26
+      maxpath_um: 763
+      apical_um: 0
+      basal_um: 3818
+      axon_um: 22583
+      axon_branch: 260
+      extent_um:
+      - 717.0
+      - 1190.0
+      - 110.0
+    n_samples: 7210
+    provenance: literature
+  int-nmo-10845:
+    file: hippocampal_formation/dentate_gyrus/int-nmo-10845.swc
+    name: Ivy / neurogliaform cell
+    code: Fig1E
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Dentate hilus
+    species: Mouse
+    how: 'In vitro slice preparation; stain: biocytin; young mouse (C57BL/6, Not reported). Reconstructed in Neurolucida; section thickness 350
+      µm. Completeness: Dendrites & Axon Moderate. Archive: Wadiche (NeuroMorpho.Org NMO_10845, Fig1E).'
+    role: Neurogliaform-family cell with a very dense local axon. These cells release GABA by volume transmission and drive slow GABA-A and GABA-B
+      inhibition.
+    cite: Wadiche · NeuroMorpho.Org NMO_10845 · doi:10.1038/nn.2935
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=10845
+    - label: Paper (DOI)
+      url: https://doi.org/10.1038/nn.2935
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/21983681/
+    morphometrics:
+      dendrite_um: 827
+      dend_area_um2: 2593
+      branch: 8
+      tips: 12
+      maxpath_um: 195
+      apical_um: 0
+      basal_um: 827
+      axon_um: 9555
+      axon_branch: 83
+      extent_um:
+      - 577.0
+      - 519.0
+      - 98.0
+    n_samples: 1660
+    provenance: literature
+  pyr-nmo-112004:
+    file: hippocampal_formation/ca2/pyr-nmo-112004.swc
+    name: CA2 pyramidal cell
+    code: Mouse_CA2_Mc_Cell_1
+    region: CA2
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: CA2 pyramidal layer
+    species: Mouse
+    how: 'In vitro slice preparation; stain: biocytin; young mouse (C57BL/6J, Male/Female). Reconstructed in Imaris; section thickness 300 µm.
+      Completeness: Dendrites Moderate. Archive: Dudek (NeuroMorpho.Org NMO_112004, Mouse_CA2_Mc_Cell_1).'
+    role: CA2 is the small region between CA3 and CA1, important for social memory. Its pyramidal cells resist the plasticity seen in CA1.
+    cite: Dudek · NeuroMorpho.Org NMO_112004 · doi:10.1002/hipo.23012
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=112004
+    - label: Paper (DOI)
+      url: https://doi.org/10.1002/hipo.23012
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/30067288/
+    morphometrics:
+      dendrite_um: 5555
+      dend_area_um2: 59704
+      branch: 71
+      tips: 73
+      maxpath_um: 693
+      apical_um: 5151
+      basal_um: 404
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 376.0
+      - 684.0
+      - 141.0
+    n_samples: 1389
+    provenance: literature
+  pyr-nmo-121507:
+    file: hippocampal_formation/ca1/pyr-nmo-121507.swc
+    name: CA1 projection neuron (whole-brain axon)
+    code: AA0702
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Oriens/alveus border
+    species: Mouse
+    how: 'In vivo labelling; stain: enhanced green fluorescent protein; adult mouse (C57BL/6, Female). Reconstructed in Janelia Workstation-Large
+      Volume Viewer; section thickness 25 µm. Completeness: Dendrites Moderate, Axon Complete. Archive: MouseLight (NeuroMorpho.Org NMO_121507,
+      AA0702).'
+    role: A Janelia MouseLight reconstruction with the complete axon traced across the whole brain. The local view trims the axon to 800 µm; open
+      the whole-brain page to see all of it.
+    cite: MouseLight · NeuroMorpho.Org NMO_121507 · doi:10.1016/j.cell.2019.07.042
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=121507
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cell.2019.07.042
+    morphometrics:
+      dendrite_um: 3259
+      dend_area_um2: 2048
+      branch: 18
+      tips: 27
+      maxpath_um: 556
+      apical_um: 0
+      basal_um: 3259
+      axon_um: 9227
+      axon_branch: 3
+      extent_um:
+      - 2492.0
+      - 4969.0
+      - 2417.0
+    n_samples: 331
+    provenance: literature
+  pyr-nmo-163712:
+    file: hippocampal_formation/ca1/pyr-nmo-163712.swc
+    name: CA1 pyramidal cell (complete axon)
+    code: 18869_5802_x13547_y4406-…
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: CA1 pyramidal layer
+    species: Mouse
+    how: 'In vitro slice preparation; stain: green fluorescent protein; adult mouse (Pvalb-T2A-CreERT2;Ai166, Male/Female). Reconstructed in Vaa3D;
+      section thickness Not applicable µm. Completeness: Dendrites & Axon Complete. Archive: Peng (NeuroMorpho.Org NMO_163712, 18869_5802_x13547_y4406-semi_r).'
+    role: 'SEU–Allen full-morphology reconstruction (Peng et al. 2021): about 100 mm of axon from one cell. Trimmed here to 800 µm.'
+    cite: Peng · NeuroMorpho.Org NMO_163712 · doi:10.1038/s41586-021-03941-1
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=163712
+    - label: Paper (DOI)
+      url: https://doi.org/10.1038/s41586-021-03941-1
+    morphometrics:
+      dendrite_um: 12660
+      dend_area_um2: 7954
+      branch: 109
+      tips: 113
+      maxpath_um: 902
+      apical_um: 6970
+      basal_um: 5690
+      axon_um: 23617
+      axon_branch: 85
+      extent_um:
+      - 1820.0
+      - 1378.0
+      - 1356.0
+    n_samples: 1938
+    provenance: literature
+  pyr-nmo-164632:
+    file: hippocampal_formation/ca3/pyr-nmo-164632.swc
+    name: CA3 pyramidal cell (complete axon)
+    code: 18869_4997_x13063_y4444-…
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: CA3 pyramidal layer
+    species: Mouse
+    how: 'In vitro slice preparation; stain: green fluorescent protein; adult mouse (Pvalb-T2A-CreERT2;Ai166, Male/Female). Reconstructed in Vaa3D;
+      section thickness Not applicable µm. Completeness: Dendrites & Axon Complete. Archive: Peng (NeuroMorpho.Org NMO_164632, 18869_4997_x13063_y4444-semi_r).'
+    role: 'About 130 mm of axon from one CA3 cell: recurrent collaterals plus Schaffer collaterals. Trimmed here to 800 µm.'
+    cite: Peng · NeuroMorpho.Org NMO_164632 · doi:10.1038/s41586-021-03941-1
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=164632
+    - label: Paper (DOI)
+      url: https://doi.org/10.1038/s41586-021-03941-1
+    morphometrics:
+      dendrite_um: 11897
+      dend_area_um2: 7475
+      branch: 88
+      tips: 91
+      maxpath_um: 738
+      apical_um: 7007
+      basal_um: 4890
+      axon_um: 24566
+      axon_branch: 77
+      extent_um:
+      - 2746.0
+      - 1755.0
+      - 694.0
+    n_samples: 1594
+    provenance: literature
+  int-nmo-164347:
+    file: hippocampal_formation/ca1/int-nmo-164347.swc
+    name: CA1 VIP-lineage interneuron (complete)
+    code: 18465_00054-semi_r
+    region: CA1
+    system: Hippocampal formation
+    group: Interneurons
+    layer: CA1 (Vipr2-Cre)
+    species: Mouse
+    how: 'In vitro slice preparation; stain: green fluorescent protein; adult mouse (Vipr2-IRES2-Cre-neo;Ai166, Male/Female). Reconstructed in
+      Vaa3D; section thickness Not applicable µm. Completeness: Dendrites & Axon Complete. Archive: Peng (NeuroMorpho.Org NMO_164347, 18465_00054-semi_r).'
+    role: Complete interneuron from the SEU–Allen whole-brain dataset.
+    cite: Peng · NeuroMorpho.Org NMO_164347 · doi:10.1038/s41586-021-03941-1
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=164347
+    - label: Paper (DOI)
+      url: https://doi.org/10.1038/s41586-021-03941-1
+    morphometrics:
+      dendrite_um: 2752
+      dend_area_um2: 1729
+      branch: 8
+      tips: 12
+      maxpath_um: 382
+      apical_um: 0
+      basal_um: 2752
+      axon_um: 3811
+      axon_branch: 12
+      extent_um:
+      - 1158.0
+      - 1142.0
+      - 695.0
+    n_samples: 312
+    provenance: literature
+  gc-nmo-121654:
+    file: hippocampal_formation/dentate_gyrus/gc-nmo-121654.swc
+    name: Dentate granule cell (complete mossy fibre)
+    code: AA0361
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Granule cell layer
+    species: Mouse
+    how: 'In vivo labelling; stain: enhanced green fluorescent protein; adult mouse (C57BL/6, Female). Reconstructed in Janelia Workstation-Large
+      Volume Viewer; section thickness 25 µm. Completeness: Dendrites Moderate, Axon Complete. Archive: MouseLight (NeuroMorpho.Org NMO_121654,
+      AA0361).'
+    role: MouseLight cell with the full mossy-fibre axon traced into CA3. Place it in the brain on the whole-brain page.
+    cite: MouseLight · NeuroMorpho.Org NMO_121654 · doi:10.1016/j.cell.2019.07.042
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=121654
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cell.2019.07.042
+    morphometrics:
+      dendrite_um: 2054
+      dend_area_um2: 1291
+      branch: 10
+      tips: 11
+      maxpath_um: 293
+      apical_um: 0
+      basal_um: 2054
+      axon_um: 4354
+      axon_branch: 16
+      extent_um:
+      - 485.0
+      - 1590.0
+      - 870.0
+    n_samples: 252
+    provenance: literature
+  pyr-nmo-121817:
+    file: hippocampal_formation/subiculum/pyr-nmo-121817.swc
+    name: Subicular pyramidal cell (whole-brain axon)
+    code: AA0560
+    region: Subiculum
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Subiculum
+    species: Mouse
+    how: 'In vivo labelling; stain: enhanced green fluorescent protein; adult mouse (C57BL/6, Female). Reconstructed in Janelia Workstation-Large
+      Volume Viewer; section thickness 25 µm. Completeness: Dendrites Moderate, Axon Complete. Archive: MouseLight (NeuroMorpho.Org NMO_121817,
+      AA0560).'
+    role: The subiculum is the main output of the hippocampus. This axon (about 60 mm) leaves the hippocampal formation.
+    cite: MouseLight · NeuroMorpho.Org NMO_121817 · doi:10.1016/j.cell.2019.07.042
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=121817
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cell.2019.07.042
+    morphometrics:
+      dendrite_um: 9898
+      dend_area_um2: 6219
+      branch: 70
+      tips: 78
+      maxpath_um: 753
+      apical_um: 0
+      basal_um: 9898
+      axon_um: 13266
+      axon_branch: 31
+      extent_um:
+      - 2097.0
+      - 1511.0
+      - 769.0
+    n_samples: 893
+    provenance: literature
+  pyr-nmo-121938:
+    file: hippocampal_formation/entorhinal_cortex/pyr-nmo-121938.swc
+    name: Lateral entorhinal projection neuron
+    code: AA1002
+    region: Entorhinal cortex
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Lateral entorhinal cortex
+    species: Mouse
+    how: 'In vivo labelling; stain: enhanced green fluorescent protein; adult mouse (C57BL/6, Female). Reconstructed in Janelia Workstation-Large
+      Volume Viewer; section thickness 25 µm. Completeness: Dendrites Moderate, Axon Complete. Archive: MouseLight (NeuroMorpho.Org NMO_121938,
+      AA1002).'
+    role: 'About 290 mm of axon. In the CCF check, 60% of its sampled axon lies in the dentate gyrus and 15% in CA3: this is the perforant path,
+      in a single real cell.'
+    cite: MouseLight · NeuroMorpho.Org NMO_121938 · doi:10.1016/j.cell.2019.07.042
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=121938
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cell.2019.07.042
+    morphometrics:
+      dendrite_um: 11507
+      dend_area_um2: 7230
+      branch: 60
+      tips: 73
+      maxpath_um: 521
+      apical_um: 0
+      basal_um: 11507
+      axon_um: 3530
+      axon_branch: 0
+      extent_um:
+      - 2075.0
+      - 2989.0
+      - 523.0
+    n_samples: 656
+    provenance: literature
+  pyr-nmo-158995:
+    file: hippocampal_formation/entorhinal_cortex/pyr-nmo-158995.swc
+    name: Entorhinal pyramidal cell · wild type
+    code: WT0601-Ect-R-8451-fiber03
+    region: Entorhinal cortex
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Entorhinal cortex (Golgi-Cox)
+    species: Mouse
+    how: 'In vitro slice preparation; stain: Golgi-Cox; adult mouse (C57BL/6, Male). Reconstructed in Amira; section thickness 50 µm. Completeness:
+      Dendrites Complete. Archive: Zhang_Jiang (NeuroMorpho.Org NMO_158995, WT0601-Ect-R-8451-fiber03).'
+    role: Control cell for the 3xTg-AD comparison (Zhang/Jiang lab). Compare dendritic length and branching with the AD-model cell next to it.
+    cite: Zhang_Jiang · NeuroMorpho.Org NMO_158995 · doi:10.7717/peerj.8178
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=158995
+    - label: Paper (DOI)
+      url: https://doi.org/10.7717/peerj.8178
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/31942251/
+    morphometrics:
+      dendrite_um: 634
+      dend_area_um2: 905
+      branch: 8
+      tips: 14
+      maxpath_um: 136
+      apical_um: 135
+      basal_um: 499
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 111.0
+      - 194.0
+      - 31.0
+    n_samples: 168
+    provenance: literature
+  pyr-nmo-158996:
+    file: hippocampal_formation/entorhinal_cortex/pyr-nmo-158996.swc
+    name: Entorhinal pyramidal cell · 3xTg-AD
+    code: AD0602-Ect-L-8511-fiber02
+    region: Entorhinal cortex
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Entorhinal cortex (Golgi-Cox), 3xTg-AD mouse
+    species: Mouse
+    how: 'In vitro slice preparation; stain: Golgi-Cox; adult mouse (3 x Tg-AD, Male). Reconstructed in Amira; section thickness 50 µm. Completeness:
+      Dendrites Complete. Archive: Zhang_Jiang (NeuroMorpho.Org NMO_158996, AD0602-Ect-L-8511-fiber02).'
+    role: From the 3xTg-AD Alzheimer’s mouse model. One pair cannot show a group effect, but it shows the kind of measurement (dendritic length,
+      branch number) used in AD morphology studies.
+    cite: Zhang_Jiang · NeuroMorpho.Org NMO_158996 · doi:10.7717/peerj.8178
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=158996
+    - label: Paper (DOI)
+      url: https://doi.org/10.7717/peerj.8178
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/31942251/
+    morphometrics:
+      dendrite_um: 500
+      dend_area_um2: 1749
+      branch: 2
+      tips: 10
+      maxpath_um: 91
+      apical_um: 90
+      basal_um: 410
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 85.0
+      - 138.0
+      - 34.0
+    n_samples: 142
+    provenance: literature
+  int-nmo-176949:
+    file: hippocampal_formation/entorhinal_cortex/int-nmo-176949.swc
+    name: MEC fast-spiking PV basket cell
+    code: M_F_5
+    region: Entorhinal cortex
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Medial entorhinal cortex, layer 2/3
+    species: Rat
+    how: 'In vitro slice preparation; stain: biocytin; young adult rat (VGAT-Venus, Male/Female). Reconstructed in Simple Neurite Tracer; section
+      thickness 300 µm. Completeness: Dendrites & Axon Moderate. Archive: Barreda (NeuroMorpho.Org NMO_176949, M_F_5).'
+    role: Fast-spiking PV interneuron from MEC layer 2/3, the circuit that holds grid cells. Cells like this provide fast perisomatic inhibition
+      and support gamma rhythms.
+    cite: Barreda · NeuroMorpho.Org NMO_176949 · doi:10.1126/sciadv.abg4693
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=176949
+    - label: Paper (DOI)
+      url: https://doi.org/10.1126/sciadv.abg4693
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/34134979/
+    morphometrics:
+      dendrite_um: 4192
+      dend_area_um2: 2634
+      branch: 214
+      tips: 220
+      maxpath_um: 354
+      apical_um: 0
+      basal_um: 4192
+      axon_um: 13944
+      axon_branch: 257
+      extent_um:
+      - 502.0
+      - 500.0
+      - 282.0
+    n_samples: 5696
+    provenance: literature
+  int-nmo-104696:
+    file: hippocampal_formation/medial_septum/int-nmo-104696.swc
+    name: Medial septum PV / HCN4 neuron
+    code: Unal-Somogyi-2018-D55c
+    region: Medial septum
+    system: Hippocampal formation
+    group: Interneurons
+    layer: Medial septum (dorsal midline)
+    species: Rat
+    how: 'In vivo labelling; stain: horseradish peroxidase + diaminobenzidine; adult rat (Sprague-Dawley, Male). Reconstructed in Neurolucida;
+      section thickness 70 µm. Completeness: Dendrites & Axon Moderate. Archive: Somogyi (NeuroMorpho.Org NMO_104696, Unal-Somogyi-2018-D55c).'
+    role: A GABAergic “theta pacemaker” projection neuron, labelled in vivo. Its axon targets hippocampal interneurons, and HCN4 is the h-channel
+      isoform. This links directly to the resonance lessons.
+    cite: Somogyi · NeuroMorpho.Org NMO_104696 · doi:10.1007/s00429-018-1626-0
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=104696
+    - label: Paper (DOI)
+      url: https://doi.org/10.1007/s00429-018-1626-0
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/29500537/
+    morphometrics:
+      dendrite_um: 7718
+      dend_area_um2: 21529
+      branch: 33
+      tips: 37
+      maxpath_um: 849
+      apical_um: 0
+      basal_um: 7718
+      axon_um: 6014
+      axon_branch: 61
+      extent_um:
+      - 792.0
+      - 2916.0
+      - 1500.0
+    n_samples: 2570
+    provenance: literature
+  tc-nmo-163604:
+    file: beyond_the_hippocampus/thalamus/tc-nmo-163604.swc
+    name: Thalamocortical neuron (VPM, complete axon)
+    code: 18454_01106-semi_f
+    region: Thalamus
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Ventral posteromedial thalamus
+    species: Mouse
+    how: 'In vitro slice preparation; stain: green fluorescent protein; adult mouse (Tnnt1-IRES2-CreERT2;Ai82;Ai140, Male/Female). Reconstructed
+      in Vaa3D; section thickness Not applicable µm. Completeness: Dendrites & Axon Complete. Archive: Peng (NeuroMorpho.Org NMO_163604, 18454_01106-semi_f).'
+    role: Whisker-relay thalamic neuron from the SEU–Allen full-morphology dataset. Its axon targets barrel cortex.
+    cite: Peng · NeuroMorpho.Org NMO_163604 · doi:10.1038/s41586-021-03941-1
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=163604
+    - label: Paper (DOI)
+      url: https://doi.org/10.1038/s41586-021-03941-1
+    morphometrics:
+      dendrite_um: 3141
+      dend_area_um2: 1973
+      branch: 25
+      tips: 32
+      maxpath_um: 205
+      apical_um: 0
+      basal_um: 3141
+      axon_um: 4936
+      axon_branch: 17
+      extent_um:
+      - 1081.0
+      - 1755.0
+      - 1293.0
+    n_samples: 436
+    provenance: literature
+  tc-nmo-121515:
+    file: beyond_the_hippocampus/thalamus/tc-nmo-121515.swc
+    name: Thalamocortical neuron (VPL, whole-brain axon)
+    code: AA0322
+    region: Thalamus
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Ventral posterolateral thalamus
+    species: Mouse
+    how: 'In vivo labelling; stain: enhanced green fluorescent protein; adult mouse (C57BL/6, Female). Reconstructed in Janelia Workstation-Large
+      Volume Viewer; section thickness 25 µm. Completeness: Dendrites Moderate, Axon Complete. Archive: MouseLight (NeuroMorpho.Org NMO_121515,
+      AA0322).'
+    role: MouseLight reconstruction. In the CCF check, 93% of its sampled axon is in isocortex.
+    cite: MouseLight · NeuroMorpho.Org NMO_121515 · doi:10.1016/j.cell.2019.07.042
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=121515
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cell.2019.07.042
+    morphometrics:
+      dendrite_um: 8252
+      dend_area_um2: 5185
+      branch: 72
+      tips: 76
+      maxpath_um: 358
+      apical_um: 0
+      basal_um: 8252
+      axon_um: 3993
+      axon_branch: 0
+      extent_um:
+      - 2257.0
+      - 2231.0
+      - 640.0
+    n_samples: 577
+    provenance: literature
+  ctx-nmo-121510:
+    file: beyond_the_hippocampus/neocortex/ctx-nmo-121510.swc
+    name: M1 layer 2/3 pyramidal cell (whole-brain axon)
+    code: AA0884
+    region: Neocortex
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Primary motor cortex, layer 2/3
+    species: Mouse
+    how: 'In vivo labelling; stain: enhanced green fluorescent protein; adult mouse (C57BL/6, Female). Reconstructed in Janelia Workstation-Large
+      Volume Viewer; section thickness 25 µm. Completeness: Dendrites Moderate, Axon Complete. Archive: MouseLight (NeuroMorpho.Org NMO_121510,
+      AA0884).'
+    role: MouseLight cell projecting across cortex (81%) and into striatum (14%).
+    cite: MouseLight · NeuroMorpho.Org NMO_121510 · doi:10.1016/j.cell.2019.07.042
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=121510
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cell.2019.07.042
+    morphometrics:
+      dendrite_um: 4321
+      dend_area_um2: 2715
+      branch: 28
+      tips: 37
+      maxpath_um: 350
+      apical_um: 0
+      basal_um: 4321
+      axon_um: 9615
+      axon_branch: 21
+      extent_um:
+      - 1336.0
+      - 1193.0
+      - 690.0
+    n_samples: 475
+    provenance: literature
+  ctx-nmo-102401:
+    file: beyond_the_hippocampus/neocortex/ctx-nmo-102401.swc
+    name: Human cortical pyramidal cell (Allen)
+    code: H17-03-011-11-04-05_6509…
+    region: Neocortex
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Human middle temporal gyrus (neurosurgical tissue)
+    species: Human
+    how: 'In vitro slice preparation; stain: biocytin; adult human (Not applicable, Male). Reconstructed in Vaa3D; section thickness 350 µm. Completeness:
+      Dendrites & Axon Moderate. Archive: Allen Cell Types (NeuroMorpho.Org NMO_102401, H17-03-011-11-04-05_650978964_m).'
+    role: 'From the Allen Cell Types Database: a living human neuron recorded in slices from resected tissue, then reconstructed.'
+    cite: Allen Cell Types · NeuroMorpho.Org NMO_102401 · doi:10.1016/j.neuron.2016.10.019
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=102401
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.neuron.2016.10.019
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/27810003/
+    morphometrics:
+      dendrite_um: 11156
+      dend_area_um2: 24446
+      branch: 70
+      tips: 77
+      maxpath_um: 629
+      apical_um: 7323
+      basal_um: 3833
+      axon_um: 9229
+      axon_branch: 35
+      extent_um:
+      - 1077.0
+      - 1335.0
+      - 187.0
+    n_samples: 4840
+    provenance: literature
+  ctx-nmo-102399:
+    file: beyond_the_hippocampus/neocortex/ctx-nmo-102399.swc
+    name: Human cortical interneuron (Allen)
+    code: H17-03-010-11-13-01_6564…
+    region: Neocortex
+    system: Beyond the hippocampus
+    group: Interneurons
+    layer: Human middle temporal gyrus
+    species: Human
+    how: 'In vitro slice preparation; stain: biocytin; adult human (Not applicable, Female). Reconstructed in Vaa3D; section thickness 350 µm.
+      Completeness: Dendrites Complete, Axon Incomplete. Archive: Allen Cell Types (NeuroMorpho.Org NMO_102399, H17-03-010-11-13-01_656411100_m).'
+    role: Allen Cell Types aspiny (inhibitory) human neuron. The axon is incomplete.
+    cite: Allen Cell Types · NeuroMorpho.Org NMO_102399 · doi:10.1016/j.neuron.2016.10.019
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=102399
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.neuron.2016.10.019
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/27810003/
+    morphometrics:
+      dendrite_um: 1058
+      dend_area_um2: 2303
+      branch: 13
+      tips: 15
+      maxpath_um: 216
+      apical_um: 0
+      basal_um: 1058
+      axon_um: 542
+      axon_branch: 2
+      extent_um:
+      - 126.0
+      - 656.0
+      - 54.0
+    n_samples: 419
+    provenance: literature
+  ctx-nmo-102367:
+    file: beyond_the_hippocampus/neocortex/ctx-nmo-102367.swc
+    name: Mouse V1 layer 4 interneuron (Allen)
+    code: Chat-IRES-Cre-neo_Ai14-2…
+    region: Neocortex
+    system: Beyond the hippocampus
+    group: Interneurons
+    layer: Primary visual cortex, layer 4
+    species: Mouse
+    how: 'In vitro slice preparation; stain: biocytin; adult mouse (Chat-IRES-Cre-neo, Female). Reconstructed in Vaa3D; section thickness 350
+      µm. Completeness: Dendrites & Axon Moderate. Archive: Allen Cell Types (NeuroMorpho.Org NMO_102367, Chat-IRES-Cre-neo_Ai14-287662-04-02-01_614444566_m).'
+    role: 'From the Allen Cell Types mouse dataset (Chat-Cre line): patch-clamp recording plus reconstruction, part of a standardised pipeline.'
+    cite: Allen Cell Types · NeuroMorpho.Org NMO_102367 · doi:10.1016/j.neuron.2015.02.022
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=102367
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.neuron.2015.02.022
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/25741722/
+    morphometrics:
+      dendrite_um: 2890
+      dend_area_um2: 5432
+      branch: 28
+      tips: 30
+      maxpath_um: 510
+      apical_um: 0
+      basal_um: 2890
+      axon_um: 1409
+      axon_branch: 26
+      extent_um:
+      - 236.0
+      - 945.0
+      - 70.0
+    n_samples: 1113
+    provenance: literature
+  pc-nmo-10069:
+    file: beyond_the_hippocampus/cerebellum/pc-nmo-10069.swc
+    name: Cerebellar Purkinje cell
+    code: Purkinje-slice-ageP43-6
+    region: Cerebellum
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Purkinje layer; flat fan-shaped dendrite in the molecular layer
+    species: Mouse
+    how: 'In vitro slice preparation; stain: biocytin; young adult mouse (C56BL/6, Not reported). Reconstructed in NeuronStudio; section thickness
+      250 µm. Completeness: Dendrites Complete. Archive: Dusart (NeuroMorpho.Org NMO_10069, Purkinje-slice-ageP43-6).'
+    role: The most elaborate dendrite in the brain, receiving well over 100,000 parallel-fibre synapses (rat estimates are about 150,000–175,000)
+      and input from a single climbing fibre.
+    cite: Dusart · NeuroMorpho.Org NMO_10069 · doi:10.1523/JNEUROSCI.2977-12.2013
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=10069
+    - label: Paper (DOI)
+      url: https://doi.org/10.1523/JNEUROSCI.2977-12.2013
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/23719821/
+    morphometrics:
+      dendrite_um: 6153
+      dend_area_um2: 26227
+      branch: 378
+      tips: 379
+      maxpath_um: 256
+      apical_um: 0
+      basal_um: 6153
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 166.0
+      - 233.0
+      - 14.0
+    n_samples: 2328
+    provenance: literature
+  msn-nmo-10032:
+    file: beyond_the_hippocampus/striatum/msn-nmo-10032.swc
+    name: Medium spiny neuron
+    code: MSN-shell
+    region: Striatum
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Nucleus accumbens shell (Golgi-Cox)
+    species: Rat
+    how: 'In vitro slice preparation; stain: Golgi-Cox; not reported rat (Sprague-Dawley, Male). Reconstructed in Custom; section thickness 90
+      µm. Completeness: Dendrites Complete, Axon Incomplete. Archive: Spiga (NeuroMorpho.Org NMO_10032, MSN-shell).'
+    role: MSNs are GABAergic projection neurons and make up about 95% of striatal neurons. Dendrites only.
+    cite: Spiga · NeuroMorpho.Org NMO_10032 · doi:10.1111/j.1460-9568.2005.04416.x
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=10032
+    - label: Paper (DOI)
+      url: https://doi.org/10.1111/j.1460-9568.2005.04416.x
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/16262671/
+    morphometrics:
+      dendrite_um: 792
+      dend_area_um2: 2045
+      branch: 220
+      tips: 223
+      maxpath_um: 122
+      apical_um: 0
+      basal_um: 792
+      axon_um: 15
+      axon_branch: 0
+      extent_um:
+      - 108.0
+      - 126.0
+      - 24.0
+    n_samples: 915
+    provenance: literature
+  mc-nmo-111356:
+    file: beyond_the_hippocampus/olfactory_bulb/mc-nmo-111356.swc
+    name: Olfactory bulb mitral cell
+    code: TM6
+    region: Olfactory bulb
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Main olfactory bulb; apical tuft in one glomerulus
+    species: Mouse
+    how: 'In vitro slice preparation; stain: biotinylated dextran amine; adult mouse (C57BL/6, Male/Female). Reconstructed in Neurolucida; section
+      thickness 310 µm. Completeness: Dendrites Moderate, Axon Incomplete. Archive: Igarashi (NeuroMorpho.Org NMO_111356, TM6).'
+    role: Its single apical dendrite ends in one glomerulus and its long lateral dendrites run through the external plexiform layer.
+    cite: Igarashi · NeuroMorpho.Org NMO_111356 · doi:10.1038/s41598-018-25740-x
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=111356
+    - label: Paper (DOI)
+      url: https://doi.org/10.1038/s41598-018-25740-x
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/29769664/
+    morphometrics:
+      dendrite_um: 11179
+      dend_area_um2: 106898
+      branch: 12
+      tips: 22
+      maxpath_um: 1101
+      apical_um: 859
+      basal_um: 10320
+      axon_um: 264
+      axon_branch: 0
+      extent_um:
+      - 1306.0
+      - 1693.0
+      - 414.0
+    n_samples: 1611
+    provenance: literature
+  mn-nmo-34000:
+    file: beyond_the_hippocampus/spinal_cord/mn-nmo-34000.swc
+    name: Spinal motoneuron (cat)
+    code: SPLENIUS-SENA331
+    region: Spinal cord
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Cervical spinal cord C3, ventral horn
+    species: Cat
+    how: 'In vivo labelling; stain: Neurobiotin; adult cat (Not reported, Female). Reconstructed in Neurolucida; section thickness 50 µm. Completeness:
+      Dendrites Complete. Archive: Rose (NeuroMorpho.Org NMO_34000, SPLENIUS-SENA331).'
+    role: A very large dendritic tree (about 100 mm) from an in-vivo fill. The classic Rall cable-theory cell type.
+    cite: Rose · NeuroMorpho.Org NMO_34000 · doi:10.1002/cne.23765
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=34000
+    - label: Paper (DOI)
+      url: https://doi.org/10.1002/cne.23765
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/25728799/
+    morphometrics:
+      dendrite_um: 99132
+      dend_area_um2: 567795
+      branch: 552
+      tips: 559
+      maxpath_um: 2510
+      apical_um: 0
+      basal_um: 99132
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 2143.0
+      - 2954.0
+      - 1708.0
+    n_samples: 15762
+    provenance: literature
+  rgc-nmo-102966:
+    file: beyond_the_hippocampus/retina/rgc-nmo-102966.swc
+    name: Direction-selective retinal ganglion cell
+    code: 160427_pair1dsgc
+    region: Retina
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Mouse retina (Sema6 knockout)
+    species: Mouse
+    how: 'In vitro slice preparation; stain: Alexa Fluor 488; adult mouse (Sema6-/-, Male/Female). Reconstructed in Neurolucida; section thickness
+      Not applicable µm. Completeness: Dendrites Moderate. Archive: Feller (NeuroMorpho.Org NMO_102966, 160427_pair1dsgc).'
+    role: 'Flagged: this cell comes from a Sema6 knockout (a developmental-wiring study), so it is not wild type.'
+    cite: Feller · NeuroMorpho.Org NMO_102966 · doi:10.1016/j.cub.2018.03.001
+    links:
+    - label: NeuroMorpho.Org
+      url: https://neuromorpho.org/neuron_info.jsp?neuron_id=102966
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cub.2018.03.001
+    - label: PubMed
+      url: https://pubmed.ncbi.nlm.nih.gov/29606419/
+    morphometrics:
+      dendrite_um: 515
+      dend_area_um2: 324
+      branch: 52
+      tips: 55
+      maxpath_um: 84
+      apical_um: 0
+      basal_um: 515
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 39.0
+      - 45.0
+      - 36.0
+    n_samples: 300
+    provenance: literature
+  fly-754534424:
+    file: beyond_the_hippocampus/drosophila/fly-754534424.swc
+    name: Olfactory projection neuron (DA1, fly)
+    code: hemibrain 754534424
+    region: Drosophila
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Antennal lobe glomerulus DA1 → mushroom-body calyx → lateral horn
+    species: Drosophila melanogaster
+    how: Electron-microscopy connectome (Janelia FlyEM hemibrain v1.x; Scheffer et al. 2020), body 754534424, DA1_lPN_R, cell-body fiber AVM02.
+      Skeleton from the navis example data (8 nm voxels → µm). 646 presynaptic and 2364 postsynaptic sites in the skeleton’s synapse table.
+    role: Carries the pheromone (cVA) channel from antennal-lobe glomerulus DA1 to the mushroom body and lateral horn. In EM there is no soma–dendrite–axon
+      staining, so every branch here is shown as neurite.
+    cite: Janelia FlyEM · doi:10.7554/eLife.57443
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.7554/eLife.57443
+    morphometrics:
+      dendrite_um: 2139
+      dend_area_um2: 4856
+      branch: 696
+      tips: 726
+      maxpath_um: 452
+      apical_um: 0
+      basal_um: 2139
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 150.0
+      - 200.0
+      - 136.0
+    n_samples: 3011
+    provenance: literature
+  fly-722817260:
+    file: beyond_the_hippocampus/drosophila/fly-722817260.swc
+    name: Olfactory projection neuron (DA1, fly)
+    code: hemibrain 722817260
+    region: Drosophila
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Antennal lobe glomerulus DA1 → mushroom-body calyx → lateral horn
+    species: Drosophila melanogaster
+    how: Electron-microscopy connectome (Janelia FlyEM hemibrain v1.x; Scheffer et al. 2020), body 722817260, DA1_lPN_R, cell-body fiber AVM02.
+      Skeleton from the navis example data (8 nm voxels → µm). 701 presynaptic and 2435 postsynaptic sites in the skeleton’s synapse table.
+    role: Carries the pheromone (cVA) channel from antennal-lobe glomerulus DA1 to the mushroom body and lateral horn. In EM there is no soma–dendrite–axon
+      staining, so every branch here is shown as neurite.
+    cite: Janelia FlyEM · doi:10.7554/eLife.57443
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.7554/eLife.57443
+    morphometrics:
+      dendrite_um: 2047
+      dend_area_um2: 4643
+      branch: 633
+      tips: 656
+      maxpath_um: 425
+      apical_um: 0
+      basal_um: 2047
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 149.0
+      - 207.0
+      - 141.0
+    n_samples: 2740
+    provenance: literature
+  mn-cat-vem1:
+    file: beyond_the_hippocampus/spinal_cord/mn-cat-vem1.swc
+    name: Spinal α-motoneuron (lumbar, cat)
+    code: v_e_moto1
+    region: Spinal cord
+    system: Beyond the hippocampus
+    group: Motor neurons
+    layer: Lumbar ventral horn (lamina IX) · triceps surae (calf) motor pool
+    species: Cat
+    how: Intracellular HRP fill in vivo, reconstructed in 3D (NeuroMorpho.Org, Burke archive; Cullheim, Fleshman, Glenn & Burke 1987). Imported
+      from the NEURON files of Balbi et al. 2015 (ModelDB 180370). Axon hillock and initial segment use the package dimensions; the myelinated
+      motor axon is left out. The package gives the soma as a 120 µm placeholder cylinder; it is drawn and modelled here as a 55 µm sphere-equivalent
+      disc, typical for cat α-motoneurons.
+    role: 'A lower motor neuron: its axon leaves the cord in the ventral root and makes one motor unit in a leg muscle. The same cell type drives
+      the quadriceps in the knee jerk and the calf in the ankle jerk, recruits by size (Henneman) as you push harder, and is the cell lost in
+      ALS. Its dendrites (about 80–110 mm in total) take in thousands of synapses, including the Ia afferents of the stretch reflex.'
+    cite: NeuroMorpho.Org via ModelDB 180370 · doi:10.3389/fncom.2015.00015
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.3389/fncom.2015.00015
+    morphometrics:
+      dendrite_um: 78849
+      dend_area_um2: 608823
+      branch: 122
+      tips: 132
+      maxpath_um: 1818
+      apical_um: 0
+      basal_um: 78849
+      axon_um: 102
+      axon_branch: 0
+      extent_um:
+      - 2588.0
+      - 2089.0
+      - 2306.0
+    n_samples: 820
+    provenance: literature
+  mn-cat-vem3:
+    file: beyond_the_hippocampus/spinal_cord/mn-cat-vem3.swc
+    name: Spinal α-motoneuron (lumbar, cat)
+    code: v_e_moto3
+    region: Spinal cord
+    system: Beyond the hippocampus
+    group: Motor neurons
+    layer: Lumbar ventral horn (lamina IX) · triceps surae (calf) motor pool
+    species: Cat
+    how: Intracellular HRP fill in vivo, reconstructed in 3D (NeuroMorpho.Org, Burke archive; Cullheim, Fleshman, Glenn & Burke 1987). Imported
+      from the NEURON files of Balbi et al. 2015 (ModelDB 180370). Axon hillock and initial segment use the package dimensions; the myelinated
+      motor axon is left out. The package gives the soma as a 98 µm placeholder cylinder; it is drawn and modelled here as a 55 µm sphere-equivalent
+      disc, typical for cat α-motoneurons.
+    role: 'A lower motor neuron: its axon leaves the cord in the ventral root and makes one motor unit in a leg muscle. The same cell type drives
+      the quadriceps in the knee jerk and the calf in the ankle jerk, recruits by size (Henneman) as you push harder, and is the cell lost in
+      ALS. Its dendrites (about 80–110 mm in total) take in thousands of synapses, including the Ia afferents of the stretch reflex.'
+    cite: NeuroMorpho.Org via ModelDB 180370 · doi:10.3389/fncom.2015.00015
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.3389/fncom.2015.00015
+    morphometrics:
+      dendrite_um: 113502
+      dend_area_um2: 602747
+      branch: 175
+      tips: 187
+      maxpath_um: 1881
+      apical_um: 0
+      basal_um: 113502
+      axon_um: 102
+      axon_branch: 0
+      extent_um:
+      - 2512.0
+      - 2325.0
+      - 2529.0
+    n_samples: 1146
+    provenance: literature
+  mn-cat-amn1:
+    file: beyond_the_hippocampus/spinal_cord/mn-cat-amn1.swc
+    name: Spinal α-motoneuron (lumbar, cat)
+    code: AlphaMN1
+    region: Spinal cord
+    system: Beyond the hippocampus
+    group: Motor neurons
+    layer: Lumbar ventral horn (lamina IX)
+    species: Cat
+    how: Intracellular fill in vivo, 3D reconstruction from NeuroMorpho.Org. Imported from the NEURON files of Balbi et al. 2015 (ModelDB 180370).
+      Axon hillock and initial segment use the package dimensions; the myelinated motor axon is left out.
+    role: 'A lower motor neuron: its axon leaves the cord in the ventral root and makes one motor unit in a leg muscle. The same cell type drives
+      the quadriceps in the knee jerk and the calf in the ankle jerk, recruits by size (Henneman) as you push harder, and is the cell lost in
+      ALS. Its dendrites (about 80–110 mm in total) take in thousands of synapses, including the Ia afferents of the stretch reflex.'
+    cite: NeuroMorpho.Org via ModelDB 180370 · doi:10.3389/fncom.2015.00015
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.3389/fncom.2015.00015
+    morphometrics:
+      dendrite_um: 89998
+      dend_area_um2: 696356
+      branch: 194
+      tips: 204
+      maxpath_um: 2038
+      apical_um: 0
+      basal_um: 89998
+      axon_um: 108
+      axon_branch: 0
+      extent_um:
+      - 2404.0
+      - 2181.0
+      - 1950.0
+    n_samples: 8666
+    provenance: literature
+  pt-l5b-hay1:
+    file: beyond_the_hippocampus/neocortex/pt-l5b-hay1.swc
+    name: Layer 5 thick-tufted pyramidal cell (pyramidal-tract type)
+    code: Hay 2011 cell1
+    region: Neocortex
+    system: Beyond the hippocampus
+    group: Motor neurons
+    layer: Layer 5b, rat somatosensory cortex
+    species: Rat
+    how: Biocytin fill in an acute slice, 3D reconstruction used by Hay, Hill, Schürmann, Markram & Segev 2011 (ModelDB 139653, cell1).
+    role: The class of cortical neuron whose axon leaves the cortex for the brainstem and spinal cord. In motor cortex these are the corticospinal
+      “upper motor neurons” (the giant human versions are Betz cells); in primates, including humans, some synapse directly on spinal α-motoneurons,
+      which is what makes skilled finger movements possible. This one is from rat sensory cortex, so treat it as a stand-in for the cell type.
+    cite: ModelDB 139653 · doi:10.1371/journal.pcbi.1002107
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.1371/journal.pcbi.1002107
+    morphometrics:
+      dendrite_um: 12202
+      dend_area_um2: 28290
+      branch: 92
+      tips: 101
+      maxpath_um: 1301
+      apical_um: 7220
+      basal_um: 4983
+      axon_um: 45
+      axon_branch: 0
+      extent_um:
+      - 384.0
+      - 1372.0
+      - 149.0
+    n_samples: 3016
+    provenance: literature
+  hum-l23-eyal1:
+    file: beyond_the_hippocampus/neocortex/hum-l23-eyal1.swc
+    name: Human layer 2/3 pyramidal cell
+    code: H41 cell03
+    region: Neocortex
+    system: Beyond the hippocampus
+    group: Pyramidal & principal cells
+    layer: Human temporal cortex, layers 2/3 (tissue from epilepsy surgery)
+    species: Human
+    how: Recorded and biocytin-filled in slices of living human cortex removed during neurosurgery, then reconstructed (Eyal et al. 2016, ModelDB
+      195667).
+    role: Human L2/3 pyramidal cells are larger and have longer, more branched dendrites than rodent ones, and Eyal et al. showed they couple
+      synaptic input to the soma more effectively. Compare it with the rat L5 cell and the CA1 cells.
+    cite: ModelDB 195667 · doi:10.7554/eLife.16553
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.7554/eLife.16553
+    morphometrics:
+      dendrite_um: 15886
+      dend_area_um2: 64781
+      branch: 69
+      tips: 76
+      maxpath_um: 917
+      apical_um: 9379
+      basal_um: 6507
+      axon_um: 225
+      axon_branch: 0
+      extent_um:
+      - 708.0
+      - 998.0
+      - 188.0
+    n_samples: 4260
+    provenance: literature
+  fly-ttmn-l:
+    file: beyond_the_hippocampus/drosophila/fly-ttmn-l.swc
+    name: Tergotrochanteral motor neuron (TTMn, fly)
+    code: FANC TTMn left
+    region: Drosophila
+    system: Beyond the hippocampus
+    group: Fly escape circuit
+    layer: Mesothoracic neuromere (T2), ventral nerve cord
+    species: Drosophila melanogaster
+    how: Electron-microscopy reconstruction in the Female Adult Nerve Cord (FANC; Phelps, Hildebrand, Graham et al. 2021), from the public data
+      release (github.com/htem/GridTape_VNC_paper), nm → µm. The release traces the soma, primary neurite, main branches and the axon to the nerve,
+      not every fine twig; diameters are not in the release, so the main neurite and axon are set to 4 µm and side branches to 1.6 µm (assigned,
+      not measured). The soma size is from the tracing.
+    role: Drives the jump muscle (TTM) in the escape take-off. The giant fiber makes a mixed electrical (ShakB gap junction) and cholinergic synapse
+      onto its dendrite in the mesothoracic neuromere, which is why the jump follows a GF spike within about 0.8 ms.
+    cite: FANC (Phelps et al. 2021) · doi:10.1016/j.cell.2020.12.013
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cell.2020.12.013
+    morphometrics:
+      dendrite_um: 327
+      dend_area_um2: 2811
+      branch: 6
+      tips: 7
+      maxpath_um: 188
+      apical_um: 0
+      basal_um: 327
+      axon_um: 50
+      axon_branch: 0
+      extent_um:
+      - 126.0
+      - 92.0
+      - 48.0
+    n_samples: 117
+    provenance: literature
+  fly-psi-l:
+    file: beyond_the_hippocampus/drosophila/fly-psi-l.swc
+    name: Peripherally synapsing interneuron (PSI, fly)
+    code: FANC PSI left
+    region: Drosophila
+    system: Beyond the hippocampus
+    group: Fly escape circuit
+    layer: Mesothoracic neuromere (T2), ventral nerve cord
+    species: Drosophila melanogaster
+    how: Electron-microscopy reconstruction in the Female Adult Nerve Cord (FANC; Phelps, Hildebrand, Graham et al. 2021), from the public data
+      release (github.com/htem/GridTape_VNC_paper), nm → µm. The release traces the soma, primary neurite, main branches and the axon to the nerve,
+      not every fine twig; diameters are not in the release, so the main neurite and axon are set to 3 µm and side branches to 1.2 µm (assigned,
+      not measured). The soma size is from the tracing.
+    role: 'Relays the giant fiber to the flight-muscle motor neurons: GF → PSI (electrical) → DLM motor neurons (cholinergic). Its name comes
+      from synapsing on motor-neuron axons outside the neuropil, in the nerve.'
+    cite: FANC (Phelps et al. 2021) · doi:10.1016/j.cell.2020.12.013
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cell.2020.12.013
+    morphometrics:
+      dendrite_um: 659
+      dend_area_um2: 4004
+      branch: 18
+      tips: 19
+      maxpath_um: 285
+      apical_um: 0
+      basal_um: 659
+      axon_um: 20
+      axon_branch: 0
+      extent_um:
+      - 240.0
+      - 118.0
+      - 92.0
+    n_samples: 229
+    provenance: literature
+  fly-pdmn-l:
+    file: beyond_the_hippocampus/drosophila/fly-pdmn-l.swc
+    name: Wing motor neuron, PDMN nerve (fly)
+    code: FANC PDMN1 70016
+    region: Drosophila
+    system: Beyond the hippocampus
+    group: Fly escape circuit
+    layer: Mesothoracic neuromere (T2), ventral nerve cord
+    species: Drosophila melanogaster
+    how: Electron-microscopy reconstruction in the Female Adult Nerve Cord (FANC; Phelps, Hildebrand, Graham et al. 2021), from the public data
+      release (github.com/htem/GridTape_VNC_paper), nm → µm. The release traces the soma, primary neurite, main branches and the axon to the nerve,
+      not every fine twig; diameters are not in the release, so the main neurite and axon are set to 3 µm and side branches to 1.2 µm (assigned,
+      not measured). The soma size is from the tracing.
+    role: One of the seven motor neurons in the posterior dorsal mesothoracic nerve, the nerve that carries the DLM (indirect flight muscle) motor
+      neurons that PSI drives. FANC does not say which of the seven this one is, so use it as a DLM-type motor neuron stand-in.
+    cite: FANC (Phelps et al. 2021) · doi:10.1016/j.cell.2020.12.013
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.1016/j.cell.2020.12.013
+    morphometrics:
+      dendrite_um: 681
+      dend_area_um2: 3734
+      branch: 13
+      tips: 14
+      maxpath_um: 225
+      apical_um: 0
+      basal_um: 681
+      axon_um: 22
+      axon_branch: 0
+      extent_um:
+      - 164.0
+      - 89.0
+      - 51.0
+    n_samples: 214
+    provenance: literature
+  fly-gf-manc:
+    file: beyond_the_hippocampus/drosophila/fly-gf-manc.swc
+    name: Giant fiber (DNp01) axon, fly
+    code: MANC body 10000
+    region: Drosophila
+    system: Beyond the hippocampus
+    group: Fly escape circuit
+    layer: Neck connective → mesothoracic neuromere (ventral nerve cord)
+    species: Drosophila melanogaster
+    how: 'Not a tracing. The thoracic part follows the real MANC v1.2.1 synapse positions on GF body 10000 (1,549 synapses from your gf_axo-axonic
+      export): the centreline is the median synapse position in 10 µm steps along their long axis (359 µm). Above it, 300 µm of straight neck
+      connective; the brain (soma and dendrites) is replaced by a small node at the top so the cell can be driven. Axon diameter 10 µm, as in
+      the guide''s calibrated giant fiber model.'
+    role: 'The largest axon in the fly. A looming stimulus fires it, and one spike travels down the neck connective to the thoracic ganglion,
+      where it drives the TTMn (jump) and, through PSI, the DLM flight-muscle motor neurons: the escape take-off. Wire it to the TTMn and PSI
+      in the circuit builder.'
+    cite: MANC v1.2.1 (synapse positions) · doi:10.7554/eLife.97769
+    links:
+    - label: Paper (DOI)
+      url: https://doi.org/10.7554/eLife.97769
+    morphometrics:
+      dendrite_um: 0
+      dend_area_um2: 0
+      branch: 0
+      tips: 0
+      maxpath_um: 0
+      apical_um: 0
+      basal_um: 0
+      axon_um: 653
+      axon_branch: 0
+      extent_um:
+      - 39.0
+      - 640.0
+      - 11.0
+    n_samples: 29
+    provenance: literature
+  ca1-jarsky-lab:
+    file: hippocampal_formation/ca1/ca1-jarsky-lab.swc
+    name: CA1 pyramidal cell
+    code: Jarsky 2005 cell
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Basal dendrites in oriens; apical trunk, obliques and tuft through radiatum into lacunosum-moleculare
+    species: Rat
+    how: 'Reconstructed CA1 pyramidal neuron from the Spruston lab used in Jarsky et al. (2005). The package adds a separate model axon (not shown).
+      Dendrites only here: the apical tree is the dendA5 subtree in the model files.'
+    role: 'Classic cell for the gating question: does distal entorhinal input matter on its own, or only when paired with CA3 input?'
+    cite: Jarsky, Roxin, Kath & Spruston (2005) Nat Neurosci 8:1667–1676 · ModelDB 116084
+    note: Unthinned copy used by the CA1 Morphology Lab; use this for ca1_morph_ih_gradient
+    links: *id001
+    morphometrics: *id002
+    n_samples: 2359
+    provenance: literature
+  ca1-n123:
+    file: hippocampal_formation/ca1/ca1-n123.swc
+    name: CA1 pyramidal cell
+    code: n123 (Pyapali 1998)
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; basal dendrites in oriens; apical trunk, obliques and tuft through radiatum to lacunosum-moleculare
+    species: Rat
+    how: Intracellularly stained and reconstructed by Pyapali et al. (1998), Duke–Southampton archive; this is the copy in the Gómez González
+      et al. (2011) model package, whose authors adjusted some diameters. The short axon in the package is a model initial segment and is hidden
+      here. The classic Poirazi et al. (2003) two-layer-model cell.
+    role: 'One of five classic CA1 cells from the same archive: compare oblique branching and tuft size across cells of one type.'
+    cite: Gómez González, Mel & Poirazi (2011) Front Comput Neurosci 5:44 · ModelDB 144450 · doi:10.3389/fncom.2011.00044
+    note: Tests whether CA1 radial oblique dendrites sum inputs linearly or non-linearly; the answer depends on input timing
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/144450
+    - label: Paper
+      url: https://doi.org/10.3389/fncom.2011.00044
+    morphometrics:
+      dendrite_um: 16078
+      dend_area_um2: 48064
+      branch: 81
+      tips: 87
+      maxpath_um: 1199
+      apical_um: 12002
+      basal_um: 4077
+      axon_um: 669
+      axon_branch: 6
+      extent_um:
+      - 366.0
+      - 682.0
+      - 439.0
+    n_samples: 2502
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 77.3
+      lambda0_um: 254.8
+      lambda100_um: 105.5
+    original: Pyapali, Sik, Penttonen, Buzsáki & Turner (1998) J Comp Neurol 391:335–352 · PMID 9492204
+    axon_hidden: true
+  ca1-n125:
+    file: hippocampal_formation/ca1/ca1-n125.swc
+    name: CA1 pyramidal cell
+    code: n125 (Pyapali 1998)
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; basal dendrites in oriens; apical trunk, obliques and tuft through radiatum to lacunosum-moleculare
+    species: Rat
+    how: Intracellularly stained and reconstructed by Pyapali et al. (1998), Duke–Southampton archive; this is the copy in the Gómez González
+      et al. (2011) model package, whose authors adjusted some diameters. The short axon in the package is a model initial segment and is hidden
+      here.
+    role: 'One of five classic CA1 cells from the same archive: compare oblique branching and tuft size across cells of one type.'
+    cite: Gómez González, Mel & Poirazi (2011) Front Comput Neurosci 5:44 · ModelDB 144450 · doi:10.3389/fncom.2011.00044
+    note: Tests whether CA1 radial oblique dendrites sum inputs linearly or non-linearly; the answer depends on input timing
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/144450
+    - label: Paper
+      url: https://doi.org/10.3389/fncom.2011.00044
+    morphometrics:
+      dendrite_um: 19020
+      dend_area_um2: 91280
+      branch: 90
+      tips: 95
+      maxpath_um: 1546
+      apical_um: 14682
+      basal_um: 4338
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 333.0
+      - 638.0
+      - 305.0
+    n_samples: 3057
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 39.4
+      lambda0_um: 309.5
+      lambda100_um: 143.2
+    original: Pyapali, Sik, Penttonen, Buzsáki & Turner (1998) J Comp Neurol 391:335–352 · PMID 9492204
+    axon_hidden: true
+  ca1-n128:
+    file: hippocampal_formation/ca1/ca1-n128.swc
+    name: CA1 pyramidal cell
+    code: n128 (Pyapali 1998)
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; basal dendrites in oriens; apical trunk, obliques and tuft through radiatum to lacunosum-moleculare
+    species: Rat
+    how: Intracellularly stained and reconstructed by Pyapali et al. (1998), Duke–Southampton archive; this is the copy in the Gómez González
+      et al. (2011) model package, whose authors adjusted some diameters. The short axon in the package is a model initial segment and is hidden
+      here.
+    role: 'One of five classic CA1 cells from the same archive: compare oblique branching and tuft size across cells of one type.'
+    cite: Gómez González, Mel & Poirazi (2011) Front Comput Neurosci 5:44 · ModelDB 144450 · doi:10.3389/fncom.2011.00044
+    note: Tests whether CA1 radial oblique dendrites sum inputs linearly or non-linearly; the answer depends on input timing
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/144450
+    - label: Paper
+      url: https://doi.org/10.3389/fncom.2011.00044
+    morphometrics:
+      dendrite_um: 18888
+      dend_area_um2: 40108
+      branch: 96
+      tips: 100
+      maxpath_um: 1214
+      apical_um: 11771
+      basal_um: 7117
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 420.0
+      - 854.0
+      - 228.0
+    n_samples: 2499
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 78.1
+      lambda0_um: 180.3
+      lambda100_um: 82.6
+    original: Pyapali, Sik, Penttonen, Buzsáki & Turner (1998) J Comp Neurol 391:335–352 · PMID 9492204
+    axon_hidden: true
+  ca1-n129:
+    file: hippocampal_formation/ca1/ca1-n129.swc
+    name: CA1 pyramidal cell
+    code: n129 (Pyapali 1998)
+    region: CA1
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; basal dendrites in oriens; apical trunk, obliques and tuft through radiatum to lacunosum-moleculare
+    species: Rat
+    how: Intracellularly stained and reconstructed by Pyapali et al. (1998), Duke–Southampton archive; this is the copy in the Gómez González
+      et al. (2011) model package, whose authors adjusted some diameters. The short axon in the package is a model initial segment and is hidden
+      here.
+    role: 'One of five classic CA1 cells from the same archive: compare oblique branching and tuft size across cells of one type.'
+    cite: Gómez González, Mel & Poirazi (2011) Front Comput Neurosci 5:44 · ModelDB 144450 · doi:10.3389/fncom.2011.00044
+    note: Tests whether CA1 radial oblique dendrites sum inputs linearly or non-linearly; the answer depends on input timing
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/144450
+    - label: Paper
+      url: https://doi.org/10.3389/fncom.2011.00044
+    morphometrics:
+      dendrite_um: 12709
+      dend_area_um2: 22467
+      branch: 70
+      tips: 75
+      maxpath_um: 1233
+      apical_um: 8776
+      basal_um: 3933
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 469.0
+      - 944.0
+      - 112.0
+    n_samples: 1573
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 94.0
+      lambda0_um: 127.7
+      lambda100_um: 76.8
+    original: Pyapali, Sik, Penttonen, Buzsáki & Turner (1998) J Comp Neurol 391:335–352 · PMID 9492204
+    axon_hidden: true
+  ca3-cell2zr:
+    file: hippocampal_formation/ca3/ca3-cell2zr.swc
+    name: CA3 pyramidal cell
+    code: cell2zr (Barrionuevo archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Barrionuevo lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et
+      al. (2011), oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma
+      it grows (above or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 12273
+      dend_area_um2: 42175
+      branch: 78
+      tips: 83
+      maxpath_um: 790
+      apical_um: 5691
+      basal_um: 6582
+      axon_um: 3217
+      axon_branch: 9
+      extent_um:
+      - 672.0
+      - 791.0
+      - 357.0
+    n_samples: 2594
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 46.8
+      lambda0_um: 182.4
+      lambda100_um: 85.5
+  ca3-cell3zr:
+    file: hippocampal_formation/ca3/ca3-cell3zr.swc
+    name: CA3 pyramidal cell
+    code: cell3zr (Barrionuevo archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Barrionuevo lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et
+      al. (2011), oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma
+      it grows (above or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 9765
+      dend_area_um2: 19816
+      branch: 47
+      tips: 51
+      maxpath_um: 711
+      apical_um: 5733
+      basal_um: 4032
+      axon_um: 1462
+      axon_branch: 6
+      extent_um:
+      - 603.0
+      - 732.0
+      - 386.0
+    n_samples: 1710
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 101.3
+      lambda0_um: 127.1
+      lambda100_um: 64.8
+  ca3-cell4zr:
+    file: hippocampal_formation/ca3/ca3-cell4zr.swc
+    name: CA3 pyramidal cell
+    code: cell4zr (Barrionuevo archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Barrionuevo lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et
+      al. (2011), oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma
+      it grows (above or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 9494
+      dend_area_um2: 18326
+      branch: 59
+      tips: 64
+      maxpath_um: 592
+      apical_um: 5167
+      basal_um: 4327
+      axon_um: 532
+      axon_branch: 0
+      extent_um:
+      - 500.0
+      - 710.0
+      - 194.0
+    n_samples: 1456
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 110.6
+      lambda0_um: 116.4
+      lambda100_um: 59.3
+  ca3-cell5zr:
+    file: hippocampal_formation/ca3/ca3-cell5zr.swc
+    name: CA3 pyramidal cell
+    code: cell5zr (Barrionuevo archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Barrionuevo lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et
+      al. (2011), oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma
+      it grows (above or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 13471
+      dend_area_um2: 24932
+      branch: 62
+      tips: 67
+      maxpath_um: 859
+      apical_um: 7898
+      basal_um: 5573
+      axon_um: 1021
+      axon_branch: 2
+      extent_um:
+      - 470.0
+      - 873.0
+      - 518.0
+    n_samples: 1830
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 90.5
+      lambda0_um: 132.9
+      lambda100_um: 72.0
+  ca3-cell6zr:
+    file: hippocampal_formation/ca3/ca3-cell6zr.swc
+    name: CA3 pyramidal cell
+    code: cell6zr (Barrionuevo archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Barrionuevo lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et
+      al. (2011), oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma
+      it grows (above or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 10243
+      dend_area_um2: 20630
+      branch: 67
+      tips: 72
+      maxpath_um: 593
+      apical_um: 5505
+      basal_um: 4739
+      axon_um: 450
+      axon_branch: 1
+      extent_um:
+      - 341.0
+      - 703.0
+      - 221.0
+    n_samples: 1547
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 95.0
+      lambda0_um: 108.9
+      lambda100_um: 57.0
+  ca3-cell7zr:
+    file: hippocampal_formation/ca3/ca3-cell7zr.swc
+    name: CA3 pyramidal cell
+    code: cell7zr (Barrionuevo archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Barrionuevo lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et
+      al. (2011), oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma
+      it grows (above or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 14682
+      dend_area_um2: 27281
+      branch: 82
+      tips: 89
+      maxpath_um: 713
+      apical_um: 7192
+      basal_um: 7490
+      axon_um: 6512
+      axon_branch: 15
+      extent_um:
+      - 1273.0
+      - 738.0
+      - 408.0
+    n_samples: 2848
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 76.4
+      lambda0_um: 120.7
+      lambda100_um: 64.3
+  ca3-cell8zr:
+    file: hippocampal_formation/ca3/ca3-cell8zr.swc
+    name: CA3 pyramidal cell
+    code: cell8zr (Barrionuevo archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Barrionuevo lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et
+      al. (2011), oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma
+      it grows (above or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 9441
+      dend_area_um2: 18898
+      branch: 54
+      tips: 60
+      maxpath_um: 798
+      apical_um: 6187
+      basal_um: 3254
+      axon_um: 195
+      axon_branch: 0
+      extent_um:
+      - 368.0
+      - 735.0
+      - 343.0
+    n_samples: 1582
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 119.7
+      lambda0_um: 146.0
+      lambda100_um: 73.9
+  ca3-l24b:
+    file: hippocampal_formation/ca3/ca3-l24b.swc
+    name: CA3 pyramidal cell
+    code: l24b (Turner archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Turner lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et al. (2011),
+      oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma it grows (above
+      or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 23650
+      dend_area_um2: 75308
+      branch: 115
+      tips: 121
+      maxpath_um: 1612
+      apical_um: 13837
+      basal_um: 9813
+      axon_um: 3768
+      axon_branch: 11
+      extent_um:
+      - 571.0
+      - 792.0
+      - 462.0
+    n_samples: 3619
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 32.6
+      lambda0_um: 176.0
+      lambda100_um: 93.3
+  ca3-l51:
+    file: hippocampal_formation/ca3/ca3-l51.swc
+    name: CA3 pyramidal cell
+    code: l51 (Turner archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Turner lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et al. (2011),
+      oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma it grows (above
+      or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 17877
+      dend_area_um2: 41924
+      branch: 92
+      tips: 101
+      maxpath_um: 983
+      apical_um: 9777
+      basal_um: 8101
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 446.0
+      - 944.0
+      - 306.0
+    n_samples: 2626
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 53.9
+      lambda0_um: 140.4
+      lambda100_um: 76.5
+  ca3-l56a:
+    file: hippocampal_formation/ca3/ca3-l56a.swc
+    name: CA3 pyramidal cell
+    code: l56a (Turner archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Turner lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et al. (2011),
+      oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma it grows (above
+      or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 13357
+      dend_area_um2: 32288
+      branch: 64
+      tips: 67
+      maxpath_um: 698
+      apical_um: 8060
+      basal_um: 5297
+      axon_um: 698
+      axon_branch: 2
+      extent_um:
+      - 391.0
+      - 744.0
+      - 200.0
+    n_samples: 1896
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 70.7
+      lambda0_um: 132.4
+      lambda100_um: 68.6
+  ca3-c30573:
+    file: hippocampal_formation/ca3/ca3-c30573.swc
+    name: CA3 pyramidal cell
+    code: c30573 (Amaral archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Amaral lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et al. (2011),
+      oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma it grows (above
+      or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 12469
+      dend_area_um2: 16538
+      branch: 70
+      tips: 75
+      maxpath_um: 666
+      apical_um: 6842
+      basal_um: 5627
+      axon_um: 1072
+      axon_branch: 2
+      extent_um:
+      - 751.0
+      - 805.0
+      - 327.0
+    n_samples: 1608
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 131.9
+      lambda0_um: 99.2
+      lambda100_um: 54.6
+  ca3-c31162:
+    file: hippocampal_formation/ca3/ca3-c31162.swc
+    name: CA3 pyramidal cell
+    code: c31162 (Amaral archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Amaral lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et al. (2011),
+      oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma it grows (above
+      or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 11618
+      dend_area_um2: 18135
+      branch: 63
+      tips: 69
+      maxpath_um: 619
+      apical_um: 6553
+      basal_um: 5066
+      axon_um: 12307
+      axon_branch: 43
+      extent_um:
+      - 1633.0
+      - 790.0
+      - 336.0
+    n_samples: 3131
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 99.9
+      lambda0_um: 84.8
+      lambda100_um: 47.2
+  ca3-c60361:
+    file: hippocampal_formation/ca3/ca3-c60361.swc
+    name: CA3 pyramidal cell
+    code: c60361 (Amaral archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Amaral lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et al. (2011),
+      oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma it grows (above
+      or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 11463
+      dend_area_um2: 16003
+      branch: 71
+      tips: 77
+      maxpath_um: 564
+      apical_um: 6509
+      basal_um: 4954
+      axon_um: 824
+      axon_branch: 2
+      extent_um:
+      - 531.0
+      - 672.0
+      - 250.0
+    n_samples: 1828
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 131.2
+      lambda0_um: 94.7
+      lambda100_um: 51.6
+  ca3-c62563:
+    file: hippocampal_formation/ca3/ca3-c62563.swc
+    name: CA3 pyramidal cell
+    code: c62563 (Amaral archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Amaral lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et al. (2011),
+      oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma it grows (above
+      or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 12644
+      dend_area_um2: 18019
+      branch: 75
+      tips: 80
+      maxpath_um: 697
+      apical_um: 6613
+      basal_um: 6030
+      axon_um: 5940
+      axon_branch: 18
+      extent_um:
+      - 1538.0
+      - 788.0
+      - 266.0
+    n_samples: 2599
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 114.5
+      lambda0_um: 111.7
+      lambda100_um: 60.9
+  ca3-c73164:
+    file: hippocampal_formation/ca3/ca3-c73164.swc
+    name: CA3 pyramidal cell
+    code: c73164 (Amaral archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Amaral lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et al. (2011),
+      oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma it grows (above
+      or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 11624
+      dend_area_um2: 20127
+      branch: 72
+      tips: 78
+      maxpath_um: 702
+      apical_um: 6543
+      basal_um: 5082
+      axon_um: 4638
+      axon_branch: 17
+      extent_um:
+      - 1373.0
+      - 858.0
+      - 390.0
+    n_samples: 2195
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 97.9
+      lambda0_um: 120.3
+      lambda100_um: 62.9
+  ca3-c81463:
+    file: hippocampal_formation/ca3/ca3-c81463.swc
+    name: CA3 pyramidal cell
+    code: c81463 (Amaral archive)
+    region: CA3
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in stratum pyramidale; proximal apical dendrite in stratum lucidum (mossy-fibre input), then radiatum and lacunosum-moleculare
+    species: Rat
+    how: Filled and reconstructed in the Amaral lab and standardised by NeuroMorpho.Org (CNG version); this is the copy used by Baker et al. (2011),
+      oriented with the apical axis given in the package. Each dendritic tree is labelled apical or basal by which side of the soma it grows (above
+      or below stratum pyramidale); the traced axon is kept and contour lines drawn in the file are left out.
+    role: CA3 cells receive mossy fibres from granule cells and recurrent input from other CA3 cells, and send Schaffer collaterals to CA1. Sixteen
+      cells from three labs show how much one cell type varies.
+    cite: Baker, Perez-Rosello, Migliore, Barrionuevo & Ascoli (2011) J Comput Neurosci 31:137–158 · ModelDB 137259 · doi:10.1007/s10827-010-0304-x
+    note: Unitary responses of associational/commissural and perforant-path synapses across many real CA3 pyramidal cells
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/137259
+    - label: Paper
+      url: https://doi.org/10.1007/s10827-010-0304-x
+    morphometrics:
+      dendrite_um: 13967
+      dend_area_um2: 28836
+      branch: 91
+      tips: 97
+      maxpath_um: 663
+      apical_um: 7412
+      basal_um: 6555
+      axon_um: 8127
+      axon_branch: 23
+      extent_um:
+      - 1306.0
+      - 990.0
+      - 400.0
+    n_samples: 2948
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 67.5
+      lambda0_um: 132.3
+      lambda100_um: 68.1
+  gc-sh2:
+    file: hippocampal_formation/dentate_gyrus/gc-sh2.swc
+    name: Dentate granule cell
+    code: cell 2 (Schmidt-Hieber)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in the granule cell layer; dendrites fan out through the molecular layer
+    species: Rat
+    how: Filled with biocytin during whole-cell recording in hippocampal slices, imaged with two-photon / confocal stacks and reconstructed in
+      Imaris (Schmidt-Hieber, Jonas & Bischofberger 2007). Section 0 is the soma; any traced axon is the start of the mossy fibre.
+    role: 'Measured diameters and a fitted passive cable: compare how strongly perforant-path EPSPs attenuate across granule cells.'
+    cite: Schmidt-Hieber, Jonas & Bischofberger (2007) J Neurosci 27:8430–8441 · ModelDB 95960
+    note: 'Passive cable models fitted to dual soma–dendrite recordings: strong dendritic attenuation, coincidence detection in the soma'
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/95960
+    morphometrics:
+      dendrite_um: 2619
+      dend_area_um2: 8623
+      branch: 15
+      tips: 18
+      maxpath_um: 286
+      apical_um: 0
+      basal_um: 2619
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 289.0
+      - 235.0
+      - 142.0
+    n_samples: 898
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 236.6
+      lambda0_um: 262.3
+      lambda100_um: 76.0
+  gc-sh3:
+    file: hippocampal_formation/dentate_gyrus/gc-sh3.swc
+    name: Dentate granule cell
+    code: cell 3 (Schmidt-Hieber)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in the granule cell layer; dendrites fan out through the molecular layer
+    species: Rat
+    how: Filled with biocytin during whole-cell recording in hippocampal slices, imaged with two-photon / confocal stacks and reconstructed in
+      Imaris (Schmidt-Hieber, Jonas & Bischofberger 2007). Section 0 is the soma; any traced axon is the start of the mossy fibre.
+    role: 'Measured diameters and a fitted passive cable: compare how strongly perforant-path EPSPs attenuate across granule cells.'
+    cite: Schmidt-Hieber, Jonas & Bischofberger (2007) J Neurosci 27:8430–8441 · ModelDB 95960
+    note: 'Passive cable models fitted to dual soma–dendrite recordings: strong dendritic attenuation, coincidence detection in the soma'
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/95960
+    morphometrics:
+      dendrite_um: 2436
+      dend_area_um2: 6276
+      branch: 15
+      tips: 17
+      maxpath_um: 262
+      apical_um: 0
+      basal_um: 2436
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 174.0
+      - 262.0
+      - 166.0
+    n_samples: 828
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 337.2
+      lambda0_um: 234.0
+      lambda100_um: 71.8
+  gc-sh4:
+    file: hippocampal_formation/dentate_gyrus/gc-sh4.swc
+    name: Dentate granule cell
+    code: cell 4 (Schmidt-Hieber)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in the granule cell layer; dendrites fan out through the molecular layer
+    species: Rat
+    how: Filled with biocytin during whole-cell recording in hippocampal slices, imaged with two-photon / confocal stacks and reconstructed in
+      Imaris (Schmidt-Hieber, Jonas & Bischofberger 2007). Section 0 is the soma; any traced axon is the start of the mossy fibre.
+    role: 'Measured diameters and a fitted passive cable: compare how strongly perforant-path EPSPs attenuate across granule cells.'
+    cite: Schmidt-Hieber, Jonas & Bischofberger (2007) J Neurosci 27:8430–8441 · ModelDB 95960
+    note: 'Passive cable models fitted to dual soma–dendrite recordings: strong dendritic attenuation, coincidence detection in the soma'
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/95960
+    morphometrics:
+      dendrite_um: 2032
+      dend_area_um2: 5423
+      branch: 15
+      tips: 18
+      maxpath_um: 217
+      apical_um: 0
+      basal_um: 2032
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 158.0
+      - 212.0
+      - 158.0
+    n_samples: 676
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 336.8
+      lambda0_um: 214.1
+      lambda100_um: 59.3
+  gc-sh5:
+    file: hippocampal_formation/dentate_gyrus/gc-sh5.swc
+    name: Dentate granule cell
+    code: cell 5 (Schmidt-Hieber)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in the granule cell layer; dendrites fan out through the molecular layer
+    species: Rat
+    how: Filled with biocytin during whole-cell recording in hippocampal slices, imaged with two-photon / confocal stacks and reconstructed in
+      Imaris (Schmidt-Hieber, Jonas & Bischofberger 2007). Section 0 is the soma; any traced axon is the start of the mossy fibre.
+    role: 'Measured diameters and a fitted passive cable: compare how strongly perforant-path EPSPs attenuate across granule cells.'
+    cite: Schmidt-Hieber, Jonas & Bischofberger (2007) J Neurosci 27:8430–8441 · ModelDB 95960
+    note: 'Passive cable models fitted to dual soma–dendrite recordings: strong dendritic attenuation, coincidence detection in the soma'
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/95960
+    morphometrics:
+      dendrite_um: 2314
+      dend_area_um2: 5909
+      branch: 16
+      tips: 18
+      maxpath_um: 245
+      apical_um: 0
+      basal_um: 2314
+      axon_um: 553
+      axon_branch: 11
+      extent_um:
+      - 220.0
+      - 375.0
+      - 155.0
+    n_samples: 997
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 298.2
+      lambda0_um: 196.5
+      lambda100_um: 58.3
+  gc-sh7:
+    file: hippocampal_formation/dentate_gyrus/gc-sh7.swc
+    name: Dentate granule cell
+    code: cell 7 (Schmidt-Hieber)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in the granule cell layer; dendrites fan out through the molecular layer
+    species: Rat
+    how: Filled with biocytin during whole-cell recording in hippocampal slices, imaged with two-photon / confocal stacks and reconstructed in
+      Imaris (Schmidt-Hieber, Jonas & Bischofberger 2007). Section 0 is the soma; any traced axon is the start of the mossy fibre.
+    role: 'Measured diameters and a fitted passive cable: compare how strongly perforant-path EPSPs attenuate across granule cells.'
+    cite: Schmidt-Hieber, Jonas & Bischofberger (2007) J Neurosci 27:8430–8441 · ModelDB 95960
+    note: 'Passive cable models fitted to dual soma–dendrite recordings: strong dendritic attenuation, coincidence detection in the soma'
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/95960
+    morphometrics:
+      dendrite_um: 3117
+      dend_area_um2: 12818
+      branch: 20
+      tips: 22
+      maxpath_um: 391
+      apical_um: 0
+      basal_um: 3117
+      axon_um: 1680
+      axon_branch: 7
+      extent_um:
+      - 385.0
+      - 496.0
+      - 434.0
+    n_samples: 1410
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 145.6
+      lambda0_um: 240.3
+      lambda100_um: 91.8
+  gc-sh8:
+    file: hippocampal_formation/dentate_gyrus/gc-sh8.swc
+    name: Dentate granule cell
+    code: cell 8 (Schmidt-Hieber)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in the granule cell layer; dendrites fan out through the molecular layer
+    species: Rat
+    how: Filled with biocytin during whole-cell recording in hippocampal slices, imaged with two-photon / confocal stacks and reconstructed in
+      Imaris (Schmidt-Hieber, Jonas & Bischofberger 2007). Section 0 is the soma; any traced axon is the start of the mossy fibre.
+    role: 'Measured diameters and a fitted passive cable: compare how strongly perforant-path EPSPs attenuate across granule cells.'
+    cite: Schmidt-Hieber, Jonas & Bischofberger (2007) J Neurosci 27:8430–8441 · ModelDB 95960
+    note: 'Passive cable models fitted to dual soma–dendrite recordings: strong dendritic attenuation, coincidence detection in the soma'
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/95960
+    morphometrics:
+      dendrite_um: 1874
+      dend_area_um2: 4175
+      branch: 17
+      tips: 19
+      maxpath_um: 200
+      apical_um: 0
+      basal_um: 1874
+      axon_um: 0
+      axon_branch: 0
+      extent_um:
+      - 109.0
+      - 160.0
+      - 112.0
+    n_samples: 829
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 435.0
+      lambda0_um: 190.7
+      lambda100_um: 50.0
+  gc-sh9:
+    file: hippocampal_formation/dentate_gyrus/gc-sh9.swc
+    name: Dentate granule cell
+    code: cell 9 (Schmidt-Hieber)
+    region: Dentate gyrus
+    system: Hippocampal formation
+    group: Pyramidal & principal cells
+    layer: Soma in the granule cell layer; dendrites fan out through the molecular layer
+    species: Rat
+    how: Filled with biocytin during whole-cell recording in hippocampal slices, imaged with two-photon / confocal stacks and reconstructed in
+      Imaris (Schmidt-Hieber, Jonas & Bischofberger 2007). Section 0 is the soma; any traced axon is the start of the mossy fibre.
+    role: 'Measured diameters and a fitted passive cable: compare how strongly perforant-path EPSPs attenuate across granule cells.'
+    cite: Schmidt-Hieber, Jonas & Bischofberger (2007) J Neurosci 27:8430–8441 · ModelDB 95960
+    note: 'Passive cable models fitted to dual soma–dendrite recordings: strong dendritic attenuation, coincidence detection in the soma'
+    links:
+    - label: ModelDB
+      url: https://modeldb.science/95960
+    morphometrics:
+      dendrite_um: 2465
+      dend_area_um2: 6646
+      branch: 16
+      tips: 19
+      maxpath_um: 246
+      apical_um: 0
+      basal_um: 2465
+      axon_um: 23
+      axon_branch: 0
+      extent_um:
+      - 335.0
+      - 303.0
+      - 141.0
+    n_samples: 814
+    provenance: modeldb-import
+    neuron_check:
+      rin_MOhm: 284.1
+      lambda0_um: 208.0
+      lambda100_um: 56.8

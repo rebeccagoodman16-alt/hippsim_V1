@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: Curare
+tool: reflex
+kind: pharmacology
+what: nAChR block at the neuromuscular junction.
+expected_size: 3 × K_d
+references: []
+ops:
+- control: '#rxCur'
+  set: 3

@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: 'ZD7288: I_h block'
+tool: interleaved-resonance
+kind: pharmacology
+what: 'HCN channels blocked: dendritic g_h = 0.'
+expected_size: complete block in the model
+references:
+- magee1998
+ops:
+- control: '#irp-gh'
+  set: 0

@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: Flat I_h (no gradient)
+tool: research-morphology
+kind: model
+what: Removes the Magee 1998 increase of I_h with distance.
+expected_size: structural change
+references:
+- magee1998
+ops:
+- control: '#rmGrad'
+  set: false

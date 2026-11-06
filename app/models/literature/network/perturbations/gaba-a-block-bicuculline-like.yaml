@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: GABA_A block (bicuculline-like)
+tool: network
+kind: pharmacology
+what: Inhibition reduced to 30%.
+expected_size: 70% reduction
+references: []
+ops:
+- control: '#nfInh'
+  set: 0.3

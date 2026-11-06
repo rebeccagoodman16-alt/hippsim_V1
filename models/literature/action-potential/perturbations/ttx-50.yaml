@@ -1,0 +1,13 @@
+schema: hippsim.perturbation/1.0
+name: TTX 50%
+tool: action-potential
+kind: pharmacology
+what: Half the Na⁺ channels blocked, patch and axon.
+expected_size: 50%
+references:
+- hodgkin1952
+ops:
+- control: '#apTTX'
+  set: 50
+- control: '#apATTX'
+  set: 50

@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: '4-AP: A-type block'
+tool: neuron-lab
+kind: pharmacology
+what: A-type K⁺ × 0.
+expected_size: complete block in the model
+references:
+- hoffman1997
+ops:
+- control: range:~^A-type K⁺ \(kap
+  set: 0

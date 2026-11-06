@@ -1,0 +1,13 @@
+schema: hippsim.perturbation/1.0
+name: shakB² (no gap junctions)
+tool: giant-fiber
+kind: genetic
+what: Removes ShakB electrical synapses from the GF.
+expected_size: complete block in the model
+references:
+- allen2006
+ops:
+- control: '#gfmGap'
+  set: false
+- control: '#escGap'
+  set: false

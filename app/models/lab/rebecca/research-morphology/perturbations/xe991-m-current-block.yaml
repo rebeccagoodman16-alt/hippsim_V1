@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: 'XE991: M-current block'
+tool: research-morphology
+kind: pharmacology
+what: Somatic/axonal I_M removed.
+expected_size: complete block in the model
+references:
+- golomb2006
+ops:
+- control: '#rmc-gM'
+  set: 0

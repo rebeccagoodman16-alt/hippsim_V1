@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: GF silenced (Kir2.1-like)
+tool: giant-fiber
+kind: genetic
+what: GF cannot fire; only the GF-independent long-mode escape remains.
+expected_size: complete block in the model
+references:
+- vonreyn2014
+ops:
+- control: '#escGF'
+  set: false

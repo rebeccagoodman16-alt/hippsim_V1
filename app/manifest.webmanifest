@@ -1,0 +1,49 @@
+{
+ "name": "hippsim \u00b7 lab simulator",
+ "short_name": "hippsim",
+ "id": "./",
+ "start_url": "./index.html",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#fff9f2",
+ "theme_color": "#f8cddd",
+ "description": "Simulations of real neurons and circuits with documented baselines, literature perturbations and saved runs.",
+ "categories": [
+  "education",
+  "science",
+  "medical"
+ ],
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ],
+ "shortcuts": [
+  {
+   "name": "Simulator",
+   "url": "./simulator.html"
+  },
+  {
+   "name": "Lab run log",
+   "url": "./runs.html"
+  },
+  {
+   "name": "Lab research models",
+   "url": "./sim-lab-models.html"
+  }
+ ]
+}

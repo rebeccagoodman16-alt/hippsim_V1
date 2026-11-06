@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: '4-AP: A-type block'
+tool: interleaved-resonance
+kind: pharmacology
+what: A-type K⁺ removed.
+expected_size: complete block in the model
+references:
+- hoffman1997
+ops:
+- control: '#irp-gKA'
+  set: 0

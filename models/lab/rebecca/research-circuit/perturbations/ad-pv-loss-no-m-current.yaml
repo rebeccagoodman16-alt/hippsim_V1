@@ -1,0 +1,13 @@
+schema: hippsim.perturbation/1.0
+name: AD · PV loss + no M current
+tool: research-circuit
+kind: disease
+what: PV dysfunction combined with M-current loss in pyramidal cells.
+expected_size: illustrative
+references:
+- verret2012
+ops:
+- control: '#ns-gpe'
+  set: 0.006
+- control: '#nsNoM'
+  set: true

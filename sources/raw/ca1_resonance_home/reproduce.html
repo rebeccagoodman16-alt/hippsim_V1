@@ -1,0 +1,984 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>CA1 Resonance · Reproduce</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lab notebook — sticky stage index on the left, one reading column; plots sit on white "paper" plates so matplotlib output reads in both themes. Accent colors match the plots (dendrite magenta, soma indigo). */
+:root{
+  --bg:#f5f6f9; --surface:#ffffff; --ink:#1b1d2b; --muted:#5d6076; --rule:#dde0ea;
+  --dend:#c4006a; --soma:#4a4a8a; --theta:#b88a00; --theta-bg:#fff5cc;
+  --ok:#1f7a4d; --ok-bg:#e1f3ea; --warn:#9a6200; --warn-bg:#fdf0d5; --todo:#5d6076; --todo-bg:#eceef4;
+  --code-bg:#eef0f6;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#13141c; --surface:#1c1e29; --ink:#e7e8f0; --muted:#a2a5bb; --rule:#2f3242;
+  --dend:#ff5aa8; --soma:#9a9ae6; --theta:#e6c34a; --theta-bg:#3a3214;
+  --ok:#6fd3a0; --ok-bg:#16301f; --warn:#f2c065; --warn-bg:#3a2c10; --todo:#a2a5bb; --todo-bg:#262938;
+  --code-bg:#171925; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13141c; --surface:#1c1e29; --ink:#e7e8f0; --muted:#a2a5bb; --rule:#2f3242;
+  --dend:#ff5aa8; --soma:#9a9ae6; --theta:#e6c34a; --theta-bg:#3a3214;
+  --ok:#6fd3a0; --ok-bg:#16301f; --warn:#f2c065; --warn-bg:#3a2c10; --todo:#a2a5bb; --todo-bg:#262938;
+  --code-bg:#171925; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+a{color:var(--soma)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--dend);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:880px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+
+/* index */
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:13.5px}
+.toc p{font:600 11px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:4px;border-left:1px solid var(--rule)}
+.toc a{display:block;padding:3px 0 3px 12px;color:var(--muted);text-decoration:none;margin-left:-1px;border-left:2px solid transparent}
+.toc a:hover{color:var(--ink);border-left-color:var(--dend)}
+
+main{min-width:0;display:grid;gap:56px;padding-top:40px}
+section{display:grid;gap:18px;min-width:0;scroll-margin-top:16px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(2rem,5vw,3.1rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.6rem;font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.1rem;font-weight:500}
+p{margin:0;max-width:68ch}
+.eyebrow{font:600 11.5px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.12rem;color:var(--muted);max-width:62ch}
+.byline{font-size:13.5px;color:var(--muted)}
+
+/* header */
+header.top{display:grid;gap:14px;padding-bottom:28px;border-bottom:1px solid var(--rule)}
+.aim{border-left:3px solid var(--dend);padding:4px 0 4px 16px;max-width:70ch}
+.aim strong{font-family:var(--f-display);font-weight:500;font-size:1.15rem;display:block;line-height:1.35}
+
+/* findings */
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.finding{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:16px 18px;display:grid;gap:6px;align-content:start}
+.finding .num{font:700 1.7rem/1 var(--f-display);color:var(--dend);font-variant-numeric:tabular-nums}
+.finding .num small{font-size:.9rem;font-weight:500;color:var(--muted)}
+.finding p{font-size:14.5px}
+
+/* stages */
+.stages{display:grid;gap:0;border-top:1px solid var(--rule)}
+.stage{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--rule);align-items:start}
+.stage .n{font:700 1.5rem/1 var(--f-display);color:var(--muted);font-variant-numeric:tabular-nums}
+.stage h3{grid-column:2}
+.stage p{grid-column:2;font-size:14.5px;color:var(--muted)}
+.stage .chip{grid-column:3;grid-row:1}
+@media (max-width:520px){.stage{grid-template-columns:40px minmax(0,1fr)}.stage .chip{grid-column:2;grid-row:auto;justify-self:start}}
+.chip{font:600 11.5px/1 var(--f-body);letter-spacing:.04em;padding:6px 10px;border-radius:999px;white-space:nowrap}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}
+.chip.warn{background:var(--warn-bg);color:var(--warn)}
+.chip.todo{background:var(--todo-bg);color:var(--todo)}
+
+/* model diagram + equations */
+.model{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:24px;align-items:center}
+@media (max-width:760px){.model{grid-template-columns:minmax(0,1fr)}}
+.diagram{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px}
+.diagram svg{width:100%;height:auto;display:block}
+.eqs{display:grid;gap:14px;font-size:1.05rem;overflow-x:auto}
+.eqs math{font-size:1.05em}
+.eq{display:grid;gap:2px}
+.eq span{font-size:12.5px;color:var(--muted)}
+
+/* tables */
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:600 11.5px/1.3 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+td.num{text-align:right;font-family:var(--f-mono);font-size:13px}
+tr.hl td{background:var(--theta-bg)}
+.mark-d{color:var(--dend);font-weight:600}
+.mark-s{color:var(--soma);font-weight:600}
+
+/* figures: white plates so matplotlib output reads in both themes */
+figure{margin:0;display:grid;gap:8px}
+.plate{background:#ffffff;border:1px solid var(--rule);border-radius:10px;padding:10px;overflow-x:auto}
+.plate img{display:block;width:100%;height:auto;min-width:520px}
+.plate.narrow img{min-width:0;max-width:640px;margin:0 auto}
+figcaption{font-size:13.5px;color:var(--muted);max-width:75ch}
+figcaption b{color:var(--ink);font-weight:600}
+
+.callout{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--theta);border-radius:6px 10px 10px 6px;padding:14px 18px;display:grid;gap:8px}
+.callout p{font-size:15px}
+ul.tight{margin:0;padding-left:20px;display:grid;gap:6px;max-width:70ch}
+
+/* code */
+.code{display:grid;gap:0;background:var(--code-bg);border:1px solid var(--rule);border-radius:10px;overflow:hidden;min-width:0}
+.code-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--rule);font:500 12.5px/1 var(--f-mono);color:var(--muted)}
+.code-head button{font:600 12px/1 var(--f-body);background:var(--surface);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:6px 10px;cursor:pointer}
+.code-head button:hover{border-color:var(--soma)}
+pre{margin:0;padding:14px 16px;overflow-x:auto;font:13px/1.55 var(--f-mono);color:var(--ink);tab-size:4}
+.c{color:var(--muted);font-style:italic}
+.k{color:var(--soma);font-weight:500}
+.s{color:var(--ok)}
+
+.weeks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.week{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:16px 18px;display:grid;gap:8px;align-content:start}
+.week .when{font:600 12px/1 var(--f-mono);color:var(--dend)}
+.week ul{margin:0;padding-left:18px;font-size:14px;display:grid;gap:4px}
+
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--rule);padding-top:20px;display:grid;gap:6px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+<style>
+/* v2 additions: term color-coding for equations, symbol tables, protocol cards, recipes */
+:root{ --t-leak:#3f6c9e; --t-h:#c4006a; --t-ax:#a35f00; --t-in:#1f7a4d; --t-syn:#6b4fb3 }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){ --t-leak:#8ab4e8; --t-h:#ff5aa8; --t-ax:#f2b45a; --t-in:#6fd3a0; --t-syn:#b9a2ff }}
+:root[data-theme="dark"]{ --t-leak:#8ab4e8; --t-h:#ff5aa8; --t-ax:#f2b45a; --t-in:#6fd3a0; --t-syn:#b9a2ff }
+
+.leak{color:var(--t-leak)} .ih{color:var(--t-h)} .ax{color:var(--t-ax)} .in{color:var(--t-in)} .syn{color:var(--t-syn)}
+math .leak,math .ih,math .ax,math .in,math .syn{font-weight:600}
+
+.eqblock{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:18px 20px;display:grid;gap:14px;min-width:0}
+.eqblock h3{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.eqblock h3 .tag{font:500 12px/1 var(--f-mono);color:var(--muted)}
+.eqrow{overflow-x:auto;padding:4px 0}
+.eqrow math{font-size:1.18rem}
+.eqrow.num math{font-size:1.02rem}
+.eqrow.num{border-top:1px dashed var(--rule);padding-top:12px}
+.eqrow.num::before{content:"with the default values";display:block;font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.term{border-top:3px solid currentColor;padding-top:8px;display:grid;gap:3px;font-size:13.5px}
+.term b{font-weight:600}
+.term span{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;background:currentColor;margin-right:6px;vertical-align:-1px}
+
+.protocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.protocol div{background:var(--surface);padding:10px 14px;display:grid;gap:3px;align-content:start}
+.protocol dt{font:600 11px/1.2 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.protocol dd{margin:0;font-size:14px;font-variant-numeric:tabular-nums}
+dl.protocol{margin:0}
+
+.result{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.result div{display:grid;gap:2px;padding:10px 0;border-top:2px solid var(--ink)}
+.result b{font:700 1.35rem/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.result span{font-size:12.5px;color:var(--muted)}
+
+details{background:var(--surface);border:1px solid var(--rule);border-radius:10px;min-width:0}
+details summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style-position:inside}
+details[open] summary{border-bottom:1px solid var(--rule)}
+details .code{border:0;border-radius:0}
+.api td:first-child{white-space:nowrap}
+.api code{font-size:12.5px}
+code{font-family:var(--f-mono);font-size:.92em}
+.steps{counter-reset:s;display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start}
+.steps li::before{counter-increment:s;content:counter(s);font:700 13px/26px var(--f-display);text-align:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg)}
+.steps li > div{min-width:0;display:grid;gap:8px}
+</style>
+
+<style>
+/* v3: illustrated neuron, explorer controls, mermaid blocks */
+:root{ --cell-a:#f6b8d3; --cell-b:#e58db4; --cell-hi:#fde3ef; --nucleus:#b5578a; --ais:#7a5af0; --spike:#d9480f;
+  --shadow:#6b2049; --dend-wash:rgba(196,0,106,.06); --soma-wash:rgba(74,74,138,.07); --gamma-bg:#e9eef8 }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){ --cell-a:#9a3d6c; --cell-b:#7a2c55; --cell-hi:#c0628f; --nucleus:#f0a6c9; --ais:#a48bff; --spike:#ff8a50;
+  --shadow:#000000; --dend-wash:rgba(255,90,168,.08); --soma-wash:rgba(154,154,230,.09); --gamma-bg:#1f2536 }}
+:root[data-theme="dark"]{ --cell-a:#9a3d6c; --cell-b:#7a2c55; --cell-hi:#c0628f; --nucleus:#f0a6c9; --ais:#a48bff; --spike:#ff8a50;
+  --shadow:#000000; --dend-wash:rgba(255,90,168,.08); --soma-wash:rgba(154,154,230,.09); --gamma-bg:#1f2536 }
+
+.anat{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.anat{grid-template-columns:minmax(0,1fr)}}
+.anat-fig{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:12px;display:grid;gap:10px;min-width:0}
+.anat-fig svg{width:100%;height:auto;display:block}
+.anat-side{display:grid;gap:12px;min-width:0}
+.seg{display:inline-flex;gap:4px;padding:3px;background:var(--code-bg);border:1px solid var(--rule);border-radius:999px;justify-self:start;flex-wrap:wrap}
+.segbtn{font:600 12.5px/1 var(--f-body);color:var(--muted);background:transparent;border:0;border-radius:999px;padding:8px 13px;cursor:pointer}
+.segbtn.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.seg.small .segbtn{padding:7px 12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chipbtn{font:500 13px/1 var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:999px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.chipbtn i{width:12px;height:12px;border-radius:3px;background:currentColor;display:inline-block}
+.chipbtn.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.glyph{cursor:pointer;transition:opacity .2s}
+.glyph.dim{opacity:.15}
+.glyph.lit rect{stroke:var(--ink);stroke-width:1.1}
+.info{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;display:grid;gap:10px;align-content:start}
+.info h3{font-size:1.15rem}
+.info .gene{font:500 12.5px/1.3 var(--f-mono);color:var(--muted)}
+.info dl{margin:0;display:grid;gap:4px}
+.info dt{font:600 11px/1.2 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.info dd{margin:0;font-size:14px}
+.info .chip{justify-self:start}
+.hint{color:var(--muted);font-size:14px}
+
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.presets button{font:600 13px/1 var(--f-body);background:var(--surface);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:9px 12px;cursor:pointer}
+.presets button:hover{border-color:var(--dend)}
+.presets button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.xp{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.xp{grid-template-columns:minmax(0,1fr)}}
+.xp-controls{display:grid;gap:12px}
+fieldset{border:1px solid var(--rule);border-radius:10px;padding:10px 14px 12px;margin:0;display:grid;gap:8px;background:var(--surface)}
+legend{font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 6px}
+.xp-controls label{display:grid;grid-template-columns:62px minmax(0,1fr) 72px;gap:8px;align-items:center;font-size:13.5px}
+.xp-controls label.row{grid-template-columns:62px minmax(0,1fr)}
+.xp-controls label.check{grid-template-columns:auto minmax(0,1fr);gap:8px}
+.xp-controls output{font:500 12.5px/1 var(--f-mono);text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.xp-controls select{font:inherit;font-size:13px;padding:5px 6px;border:1px solid var(--rule);border-radius:6px;background:var(--bg);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--dend)}
+input[type=range]:disabled{opacity:.35}
+input[type=checkbox]{accent-color:var(--dend);width:16px;height:16px}
+.xp-out{display:grid;gap:12px;min-width:0}
+.xp-plate{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:8px}
+.xp-plate svg{width:100%;height:auto;display:block}
+.xp-read{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.tile{display:grid;gap:2px;padding:8px 0;border-top:2px solid var(--ink)}
+.tile b{font:700 1.15rem/1.15 var(--f-display);font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;color:var(--muted)}
+.verdict{grid-column:1/-1}
+.warnline{grid-column:1/-1;font-size:13.5px;color:var(--warn);background:var(--warn-bg);border-radius:8px;padding:8px 12px}
+
+.mm{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px;overflow-x:auto}
+.mm pre.mermaid{margin:0;background:transparent;text-align:center;font-family:var(--f-body)}
+.mmcap{font-size:13.5px;color:var(--muted)}
+</style>
+
+<style>
+:root{--pn-bg:#171313;--pn-ink:#fff9f2;--pn-mute:#cbbab3;--pn-on:#ff8dbd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn-bg:#2a2226;--pn-ink:#f6ecef;--pn-mute:#a8999d;--pn-on:#ff8dbd}}
+:root[data-theme="dark"]{--pn-bg:#2a2226;--pn-ink:#f6ecef;--pn-mute:#a8999d;--pn-on:#ff8dbd}
+.pnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--pn-bg);color:var(--pn-ink);margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+.pnav-in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;min-height:48px;padding-block:6px}
+.pnav b{font:800 14px/1 system-ui,sans-serif;letter-spacing:.02em;margin-right:6px}
+.pnav a{color:var(--pn-mute);text-decoration:none;font:600 13.5px/1 system-ui,sans-serif;padding:8px 2px;border-bottom:2px solid transparent}
+.pnav a:hover{color:var(--pn-ink)}
+.pnav a[aria-current=page]{color:var(--pn-ink);border-bottom-color:var(--pn-on)}
+.pnav .sp{flex:1}
+</style><style>
+.part{display:grid;gap:6px;padding-top:22px;border-top:3px solid var(--ink);scroll-margin-top:60px}
+.part:first-of-type{border-top:0;padding-top:0}
+.parth{font-size:clamp(1.6rem,3vw,2.1rem)}
+.nextpart{justify-self:end;font-weight:600;text-decoration:none;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;background:var(--surface);color:var(--ink)}
+.nextpart:hover{border-color:var(--dend)}
+main{gap:44px}
+section{scroll-margin-top:60px}
+.toc{top:calc(env(safe-area-inset-top,0px) + 56px);max-height:calc(100vh - 80px);overflow-y:auto}
+.toc .tocpart{display:block;font:700 12px/1.3 var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink);text-decoration:none;margin:14px 0 6px;padding:0;border:0}
+.toc .tocpart:first-of-type{margin-top:0}
+.toc ol{margin-bottom:4px}
+</style>
+<style>
+.partbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 48px);z-index:20;background:var(--bg);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--rule)}
+.pchips{display:flex;gap:6px;flex-wrap:wrap}
+.pchip{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--ink);border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:6px 12px 6px 6px;font:600 13px/1 var(--f-body)}
+.pchip span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--code-bg);font-size:11px}
+.pchip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pchip.on span{background:var(--dend);color:#fff}
+.pctl{display:flex;gap:6px}
+.ptog{font:600 12.5px/1 var(--f-body);border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 11px;cursor:pointer}
+.ptog[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.partwrap{display:grid;gap:44px}
+.partwrap[hidden],.pagenav[hidden]{display:none}
+.pagenav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.prevpart{font-weight:600;text-decoration:none;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;background:var(--surface);color:var(--ink)}
+body.toc-off .wrap{grid-template-columns:minmax(0,1fr);max-width:1060px}
+body.toc-off .toc{display:none}
+body.paged .part{border-top:0;padding-top:0}
+</style>
+<style>
+/* compendium layer: page nav, contents toggle, reading paths, evidence labels */
+.pnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--pn-bg);color:var(--pn-ink);margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+.pnav-in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:4px 16px;flex-wrap:wrap;min-height:48px;padding-block:6px}
+.pnav b{font:800 14px/1 system-ui,sans-serif;letter-spacing:.02em;margin-right:6px;color:var(--pn-ink);text-decoration:none}
+.pnav a{color:var(--pn-mute);text-decoration:none;font:600 13.5px/1 system-ui,sans-serif;padding:8px 2px;border-bottom:2px solid transparent}
+.pnav a:hover{color:var(--pn-ink)}
+.pnav a[aria-current=page]{color:var(--pn-ink);border-bottom-color:var(--pn-on)}
+.pnav .sp{flex:1}
+.pagebar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:10px}
+.crumb{font:600 12.5px/1.3 var(--f-body);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.ptog{font:600 12.5px/1 var(--f-body);border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 11px;cursor:pointer}
+.ptog[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+body.toc-off .wrap{grid-template-columns:minmax(0,1fr);max-width:1060px}
+body.toc-off .toc{display:none}
+.toc .tocpart{display:block;font:700 12px/1.3 var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink);text-decoration:none;margin:14px 0 6px}
+.toc .tocpart:first-of-type{margin-top:0}
+.partrule{font:700 13px/1.2 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--dend);border-top:2px solid var(--ink);padding-top:12px;margin:0}
+.abs{display:grid;gap:10px;background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--dend);border-radius:12px;padding:16px 18px}
+.abs p{margin:0}
+.pathgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.pathcard{display:grid;gap:6px;align-content:start;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px}
+.pathcard:hover{border-color:var(--dend)}
+.pathcard span:not(.lvl){color:var(--muted);font-size:14.5px}
+.pathcard em{font-style:normal;font-weight:600;color:var(--dend);font-size:13.5px}
+.lvl{justify-self:start;display:inline-block;font:700 11px/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:4px 8px;vertical-align:middle}
+.lvl.intro{background:#e3f4ea;color:#17613a}.lvl.mid{background:#e8eefc;color:#2848a8}.lvl.adv{background:#f6e6f0;color:#8a1f5c}
+.ev{display:inline-block;font:700 11.5px/1.2 var(--f-body);border-radius:6px;padding:3px 7px}
+.ev.val{background:#e3f4ea;color:#17613a}.ev.pre{background:#fff1d6;color:#7a4b00}.ev.hyp{background:#eee8fb;color:#4b2f9a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lvl.intro,:root:not([data-theme="light"]) .ev.val{background:#173a27;color:#9fe0b8}:root:not([data-theme="light"]) .lvl.mid{background:#1d2a4d;color:#aac0ff}:root:not([data-theme="light"]) .lvl.adv{background:#3d1a30;color:#f3a9d2}:root:not([data-theme="light"]) .ev.pre{background:#3d2e10;color:#ffd38a}:root:not([data-theme="light"]) .ev.hyp{background:#2b2147;color:#cbb8ff}}
+:root[data-theme="dark"] .lvl.intro,:root[data-theme="dark"] .ev.val{background:#173a27;color:#9fe0b8}:root[data-theme="dark"] .lvl.mid{background:#1d2a4d;color:#aac0ff}:root[data-theme="dark"] .lvl.adv{background:#3d1a30;color:#f3a9d2}:root[data-theme="dark"] .ev.pre{background:#3d2e10;color:#ffd38a}:root[data-theme="dark"] .ev.hyp{background:#2b2147;color:#cbb8ff}
+.refs{display:grid;gap:8px;padding-left:22px}
+.refs li{padding-left:4px}
+.tight{display:grid;gap:6px}
+.pager{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--rule);padding-top:16px}
+.pager a{font-weight:600;text-decoration:none;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;background:var(--surface);color:var(--ink)}
+.pager a:hover{border-color:var(--dend)}
+footer.foot{font-size:13px;color:var(--muted)}
+math[display=block]{display:block;max-width:100%;overflow-x:auto;overflow-y:hidden;padding-bottom:4px}
+main>section,main>header,main section div{min-width:0}
+.tbl{overflow-x:auto;max-width:100%}
+main,main section{grid-template-columns:minmax(0,1fr)}
+p code,li code{overflow-wrap:anywhere}
+</style><style>
+.bdgrid{display:grid;gap:10px}
+details.bd{background:var(--surface);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+details.bd[open]{border-color:var(--dend)}
+details.bd summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:14px 16px}
+details.bd summary::-webkit-details-marker{display:none}
+details.bd summary::after{content:"+";grid-column:3;grid-row:1;font:700 20px/1 var(--f-body);color:var(--muted)}
+details.bd[open] summary::after{content:"−"}
+.bdq{grid-column:2;font:700 16.5px/1.35 var(--f-display);color:var(--ink)}
+.bda{grid-column:2;color:var(--muted);font-size:15px}
+details.bd summary .lvl{grid-column:1;grid-row:1;margin-top:2px}
+.bdbody{display:grid;gap:12px;padding:0 16px 16px;border-top:1px solid var(--rule);padding-top:14px}
+.bdrow{display:grid;gap:6px}
+.bdrow h4{margin:0;font:700 12px/1.2 var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.bdrow p,.bdrow ul{margin:0}
+.bdrow.conn{border-left:3px solid var(--dend);padding-left:12px}
+.bdrow.dist{background:var(--warn-bg,#fff4e0);border-radius:8px;padding:10px 12px}
+.bdlinks{margin:0;font-size:14px;font-weight:600}
+.plain{background:var(--surface);border:1px dashed var(--rule);border-radius:10px;padding:10px 14px;font-size:15px}
+.plain b{color:var(--dend)}
+@media (max-width:560px){details.bd summary{grid-template-columns:minmax(0,1fr) auto}details.bd summary .lvl{grid-column:1}.bdq,.bda{grid-column:1}details.bd summary::after{grid-column:2}}
+</style>
+<nav class="pnav" aria-label="Compendium pages"><div class="pnav-in"><b>CA1 Resonance</b><a href="index.html">Home</a><a href="paper.html">Paper</a><a href="learn.html">Learn</a><a href="lab.html">Lab</a><a href="reproduce.html" aria-current=page>Reproduce</a><a href="log.html">Log</a><span class="sp"></span><a href="https://claude.ai/artifact/GB4Sg32iBpjD4vcVtd15j6" target="_blank" rel="noopener">Little Neural Guide ↗</a></div></nav>
+<div class="wrap">
+<nav class="toc" aria-label="On this page"><p>On this page</p>
+<a class="tocpart" href="#part-set-up">Set up</a>
+<ol>
+<li><a href="#setup">Setup and files</a></li>
+<li><a href="#start">Quick start</a></li>
+</ol>
+<a class="tocpart" href="#part-run">Run</a>
+<ol>
+<li><a href="#recipes">Recipes</a></li>
+</ol>
+<a class="tocpart" href="#part-reference">Reference</a>
+<ol>
+<li><a href="#api">API reference</a></li>
+<li><a href="#source">Full source</a></li>
+</ol>
+</nav>
+<main>
+<div class="pagebar"><span class="crumb">CA1 Resonance · Reproduce</span><button type="button" class="ptog" id="ptoc" aria-pressed="true">Contents sidebar</button></div>
+<header class="top"><span class="eyebrow">Reproduce · code, data and expected numbers</span><h1>Reproduce and Extend</h1><p class="lede">Everything needed to re-run each result in the Paper and check it against expected numbers. <span class="lvl mid">Intermediate</span></p></header>
+<p class="partrule" id="part-set-up">Set up</p>
+<section id="setup">
+  <span class="eyebrow">Before you start</span>
+  <h2>Setup and files</h2>
+  <ol class="steps">
+    <li><div><p><b>Environment.</b> Google Colab or any Python ≥ 3.9 with NumPy and Matplotlib (<code>pip install numpy matplotlib</code>). Optional: <code>brian2</code>, <code>neuron</code> for the ports.</p></div></li>
+    <li><div><p><b>Files.</b> Put these in one folder (all were delivered in the chat):</p>
+      <div class="tbl"><table>
+        <thead><tr><th>File</th><th>What it is</th></tr></thead>
+        <tbody>
+          <tr><td><code>ca1_reduced.py</code></td><td>Two-compartment model, impedance theory, protocols, spike metrics</td></tr>
+          <tr><td><code>CA1_reduced_validation.ipynb</code></td><td>Executed notebook that makes the Paper's figures 1–6</td></tr>
+          <tr><td><code>ca1_morph.py</code></td><td>Reconstructed-cell engine (same numbers as the Lab)</td></tr>
+          <tr><td><code>ca1-jarsky.json</code>, <code>ca1_jarsky.swc</code></td><td>Morphology (Jarsky et al. 2005) for NumPy, NEURON and Brian2</td></tr>
+        </tbody>
+      </table></div></div></li>
+    <li><div><p><b>Check your setup.</b> <code>python ca1_reduced.py</code> and <code>python ca1_morph.py ca1-jarsky.json</code> print validation summaries. Compare with the expected numbers below.</p></div></li>
+  </ol>
+  <div class="tbl"><table>
+    <thead><tr><th>Result</th><th>Command</th><th>Expected</th></tr></thead>
+    <tbody>
+      <tr><td>Passive transfer ratio</td><td><code>m.axial_sweep(m.Params(), [0.25])</code></td><td>0.833</td></tr>
+      <tr><td>Lowet I<sub>h</sub> resonance</td><td><code>m.resonance_metrics(f, m.analytic_Z(replace(p, g_h=2.0), f)[1])</code></td><td>f<sub>res</sub> ≈ 2.2–2.3 Hz, Q ≈ 1.53</td></tr>
+      <tr><td>Frozen-gate control</td><td>same with <code>freeze_h=True</code></td><td>Q = 1.00</td></tr>
+      <tr><td>M-resonance at −60 mV</td><td>see Paper 3.5 recipe</td><td>peak 5 Hz, |Z<sub>ss</sub>| ≈ 31.4 MΩ</td></tr>
+      <tr><td>Reconstructed cell</td><td><code>python ca1_morph.py ca1-jarsky.json</code></td><td>rest −63.40 mV, R<sub>in</sub> 66.1 MΩ</td></tr>
+    </tbody>
+  </table></div>
+</section>
+<section id="start">
+  <span class="eyebrow">Run it in Colab</span>
+  <h2>Quick start</h2>
+  <ol class="steps">
+    <li><div><p>Get the module. Either upload <code>ca1_reduced.py</code> to the Colab session, or open <code>CA1_reduced_validation.ipynb</code> and run its first cell, which writes the file with <code>%%writefile</code>.</p></div></li>
+    <li><div><p>Import it and make a parameter set. <code>Params</code> is frozen; change values with <code>replace</code>, so every condition is a new, named object.</p>
+      <div class="code"><div class="code-head"><span>setup</span><button type="button" data-copy="q1">Copy</button></div>
+<pre id="q1"><span class="k">import</span> numpy <span class="k">as</span> np, matplotlib.pyplot <span class="k">as</span> plt
+<span class="k">from</span> dataclasses <span class="k">import</span> replace
+<span class="k">import</span> ca1_reduced <span class="k">as</span> m
+
+p  = m.Params()                       <span class="c"># passive defaults (g_h = 0)</span>
+ph = replace(p, g_h=2.0)              <span class="c"># Lowet dendritic Ih</span>
+print(m.rest_state(ph))               <span class="c"># (V_s, V_d, h) at rest -> (-55.16, -52.19, 0.042)</span></pre></div></div></li>
+    <li><div><p>Run a simulation and plot both compartments. Inputs are functions of the time array; the result is a dict of arrays.</p>
+      <div class="code"><div class="code-head"><span>first run: 8 Hz dendritic drive</span><button type="button" data-copy="q2">Copy</button></div>
+<pre id="q2">r = m.simulate(ph, T=2000, I_d=m.sine_current(I0=0.0, A=0.05, f_hz=8))
+
+plt.plot(r[<span class="s">"t"</span>], r[<span class="s">"Vd"</span>], label=<span class="s">"dendrite"</span>)
+plt.plot(r[<span class="s">"t"</span>], r[<span class="s">"Vs"</span>], label=<span class="s">"soma"</span>)
+plt.xlabel(<span class="s">"t (ms)"</span>); plt.ylabel(<span class="s">"V (mV)"</span>); plt.legend(); plt.show()
+
+<span class="c"># other keys: r["h"], r["I_ax"] (nA), r["I_h"] (nA), r["spikes"] (ms), r["V0"]</span></pre></div></div></li>
+  </ol>
+</section>
+<p class="partrule" id="part-run">Run</p>
+<section id="recipes">
+  <span class="eyebrow">Copy, change one thing, run</span>
+  <h2>Recipes</h2>
+  <div class="code"><div class="code-head"><span>baseline-matched comparison (separate rest shift from I<sub>h</sub>)</span><button type="button" data-copy="k1">Copy</button></div>
+<pre id="k1">p, ph = m.Params(), replace(m.Params(), g_h=2.0)
+Vs0, Vd0, _ = m.rest_state(ph)                       <span class="c"># Ih rest: Vd = -52.19 mV</span>
+I_hold = m.match_holding(p, Vd0, site=<span class="s">"d"</span>)           <span class="c"># 1.633 nA puts passive Vd at -52.19</span>
+
+stim = m.step_current(0.3, 100, 600)
+r_pas = m.simulate(p,  T=800, I_d=stim, I_hold_d=I_hold)
+r_ih  = m.simulate(ph, T=800, I_d=stim)
+print(r_pas[<span class="s">"V0"</span>], r_ih[<span class="s">"V0"</span>])                         <span class="c"># same starting Vd</span></pre></div>
+  <div class="code"><div class="code-head"><span>EPSP test with a synaptic conductance (your Oct 26 protocol)</span><button type="button" data-copy="k2">Copy</button></div>
+<pre id="k2">syn = m.alpha_like_syn(g_max=0.015, t_stim=30.0, tau=2.0)  <span class="c"># uS, ms, ms</span>
+<span class="k">for</span> label, q <span class="k">in</span> {<span class="s">"Ih off"</span>: m.Params(), <span class="s">"Ih on"</span>: replace(m.Params(), g_h=2.0)}.items():
+    r = m.simulate(q, T=150, g_syn_d=syn)
+    dVd = (r[<span class="s">"Vd"</span>] - r[<span class="s">"V0"</span>][1]).max(); dVs = (r[<span class="s">"Vs"</span>] - r[<span class="s">"V0"</span>][0]).max()
+    print(<span class="s">f"{label}: EPSP_d {dVd:.3f} mV, EPSP_s {dVs:.3f} mV, ratio {dVs/dVd:.3f}"</span>)</pre></div>
+  <div class="code"><div class="code-head"><span>Q and f<sub>res</sub> map over τ<sub>h</sub> × ḡ<sub>h</sub> (Week 1 task)</span><button type="button" data-copy="k3">Copy</button></div>
+<pre id="k3">f = np.linspace(0.2, 40, 400)
+taus = np.geomspace(10, 2000, 25)                      <span class="c"># ms, constant tau_h</span>
+ghs  = np.linspace(0.05, 2.0, 20)                      <span class="c"># uS</span>
+Q = np.zeros((len(taus), len(ghs))); F = np.zeros_like(Q)
+<span class="k">for</span> i, tau <span class="k">in</span> enumerate(taus):
+    <span class="k">for</span> j, gh <span class="k">in</span> enumerate(ghs):
+        q = replace(m.Params(), g_h=gh, ih_kinetics=<span class="s">"simple"</span>, tau_h=tau)
+        r = m.resonance_metrics(f, m.analytic_Z(q, f)[1])
+        Q[i, j], F[i, j] = r[<span class="s">"Q"</span>], r[<span class="s">"f_res"</span>]
+
+fig, ax = plt.subplots(1, 2, figsize=(11, 4))
+<span class="k">for</span> a, Z, lab <span class="k">in</span> zip(ax, (Q, F), (<span class="s">"Q"</span>, <span class="s">"f_res (Hz)"</span>)):
+    im = a.pcolormesh(ghs, taus, Z, shading=<span class="s">"auto"</span>); a.set_yscale(<span class="s">"log"</span>)
+    a.set(xlabel=<span class="s">"g_h (uS)"</span>, ylabel=<span class="s">"tau_h (ms)"</span>, title=lab); fig.colorbar(im, ax=a)
+ax[1].contour(ghs, taus, F, levels=[4, 12], colors=<span class="s">"w"</span>)        <span class="c"># theta band edges</span>
+plt.tight_layout(); plt.show()</pre></div>
+  <div class="code"><div class="code-head"><span>impedance from a ZAP / chirp input instead of single sinusoids</span><button type="button" data-copy="k4">Copy</button></div>
+<pre id="k4">q = replace(m.Params(), g_h=2.0, dt=0.1)
+T, f0, f1, A = 30000.0, 0.5, 20.0, 0.02                 <span class="c"># ms, Hz, Hz, nA</span>
+chirp = <span class="k">lambda</span> t: A * np.sin(2*np.pi*(f0*t + (f1 - f0)*t**2/(2*T))/1000)
+r = m.simulate(q, T=T, I_d=chirp)
+
+I = chirp(r[<span class="s">"t"</span>]); V = r[<span class="s">"Vd"</span>] - r[<span class="s">"Vd"</span>].mean()
+freqs = np.fft.rfftfreq(len(I), d=q.dt/1000)             <span class="c"># Hz</span>
+Z = np.fft.rfft(V) / np.fft.rfft(I)
+band = (freqs &gt; f0) &amp; (freqs &lt; f1)
+plt.plot(freqs[band], abs(Z[band])); plt.xlabel(<span class="s">"f (Hz)"</span>); plt.ylabel(<span class="s">"|Z_dd| (MOhm)"</span>); plt.show()</pre></div>
+</section>
+<p class="partrule" id="part-reference">Reference</p>
+<section id="api">
+  <span class="eyebrow">ca1_reduced.py</span>
+  <h2>API reference</h2>
+  <div class="tbl"><table class="api">
+    <thead><tr><th>Function</th><th>Arguments (units)</th><th>Returns</th></tr></thead>
+    <tbody>
+      <tr><td><code>Params(...)</code></td><td>See symbols table. Frozen dataclass: use <code>replace(p, field=value)</code></td><td>parameter set</td></tr>
+      <tr><td><code>simulate(p, T, ...)</code></td><td><code>T</code> ms; <code>I_s</code>, <code>I_d</code> (nA) and <code>g_syn_d</code> (µS) as functions of t; <code>I_hold_s</code>, <code>I_hold_d</code> nA; <code>E_syn</code> mV; <code>t_settle</code> ms; <code>seed</code></td><td>dict: <code>t, Vs, Vd, h, I_ax, I_h, spikes, V0</code></td></tr>
+      <tr><td><code>rest_state(p, I_s0, I_d0)</code></td><td>constant currents, nA</td><td><code>(V_s, V_d, h)</code> at exact rest</td></tr>
+      <tr><td><code>impedance_matrix(p, f_hz, I_hold_s, I_hold_d)</code></td><td>Hz array; holding currents nA</td><td>dict: <code>Z_ss, Z_ds, Z_dd, Z_sd</code> (MΩ), <code>V0_s, V0_d</code>; includes I<sub>h</sub>, I<sub>M</sub>, I<sub>NaP</sub></td></tr>
+      <tr><td><code>match_holding(p, V_target, site, comp)</code></td><td>target mV; inject at <code>"d"</code>/<code>"s"</code>; match <code>"d"</code>/<code>"s"</code></td><td>holding current, nA</td></tr>
+      <tr><td><code>step_current(amp, t_on, t_off)</code></td><td>nA, ms, ms</td><td>input function</td></tr>
+      <tr><td><code>sine_current(I0, A, f_hz, t_on)</code></td><td>nA, nA, Hz, ms</td><td>input function I<sub>0</sub> + A sin(2πft)</td></tr>
+      <tr><td><code>alpha_like_syn(g_max, t_stim, tau)</code></td><td>µS, ms, ms</td><td>conductance function (exponential decay)</td></tr>
+      <tr><td><code>analytic_Z(p, f_hz, V0_d)</code></td><td>Hz array; linearization point (default: exact rest)</td><td><code>(Z_dd, Z_sd)</code> complex, MΩ</td></tr>
+      <tr><td><code>impedance_sweep(p, freqs, A, I0, n_cycles)</code></td><td>Hz, nA, nA, cycles analysed</td><td>site d: <code>(Z_dd, Z_sd)</code>; site s: <code>(Z_ss, Z_ds)</code>; pass <code>site</code>, <code>I_hold_s</code>, <code>I_hold_d</code></td></tr>
+      <tr><td><code>resonance_metrics(freqs, Z)</code></td><td>Hz array, complex Z</td><td><code>{"f_res", "Q"}</code></td></tr>
+      <tr><td><code>axial_sweep(p, g_ax_values, amp, t_on, t_off)</code></td><td>µS list, nA, ms, ms</td><td>rows: <code>dVd, dVs, ratio, ratio_analytic, I_ax_ss</code></td></tr>
+      <tr><td><code>sag_ratio(p, amp, t_on, dur, site)</code></td><td>nA, ms, ms, <code>"d"</code>/<code>"s"</code></td><td><code>{sag, V_base, V_peak, V_ss}</code></td></tr>
+      <tr><td><code>dt_convergence(p, protocol, dts)</code></td><td>function p → number; dt list</td><td><code>{dt: value}</code></td></tr>
+      <tr><td><code>noise_trials(p, T, n_trials, f_hz, A, seed0)</code></td><td>ms, count, Hz, nA, int</td><td>array (trials × 2): SD of V<sub>d</sub>, V<sub>s</sub></td></tr>
+      <tr><td><code>ppc(spikes_ms, f_hz, t_on)</code></td><td>spike times ms, Hz, phase origin ms</td><td><code>(PPC, phase°)</code>; NaN if &lt; 10 spikes</td></tr>
+      <tr><td><code>classify_bursts(spikes_ms, window_ms)</code></td><td>ms; default 14.6 ms</td><td>bool mask, True = burst spike</td></tr>
+    </tbody>
+  </table></div>
+</section>
+<section id="source">
+  <span class="eyebrow">Everything in one file</span>
+  <h2>Full source</h2>
+  <p>Copy this into a file named <code>ca1_reduced.py</code> next to your notebook, or into a Colab cell that starts with <code>%%writefile ca1_reduced.py</code>. It needs only NumPy. Running it directly prints the validation checks.</p>
+  <details>
+    <summary>ca1_reduced.py (434 lines)</summary>
+    <div class="code"><div class="code-head"><span>ca1_reduced.py</span><button type="button" data-copy="src">Copy</button></div>
+<pre id="src">&quot;&quot;&quot;
+ca1_reduced.py — Reduced two-compartment CA1 model + validation protocols.
+
+Rung 1 of the ladder: passive / Ih two-compartment (optional LIF soma)
+  -&gt; GLIF -&gt; 2-D spiking (e.g. AdEx) -&gt; HH (Golomb soma + dendritic Ih).
+
+Lowet HHca2 is per-area (uF/cm^2, mS/cm^2, uA/cm^2) with C = 1 and equal
+compartments; with A = 1e-3 cm^2 its numbers map 1:1 onto nF / uS / nA here.
+
+UNITS (total, not per-area — matches CA1_LIF_Axial_Coupling_EPSP.ipynb)
+  t: ms | V: mV | C: nF | g: uS | I: nA
+  uS * mV = nA ;  nA / nF = mV/ms
+  To use area-normalised literature values: g[uS] = g[mS/cm^2] * A[cm^2] * 1e3,
+  C[nF] = c[uF/cm^2] * A[cm^2] * 1e3. Define A_s, A_d before converting.
+
+Sign convention: currents are OUTWARD-positive inside the membrane sum;
+I_ax = g_ax * (V_d - V_s) leaves the dendrite and enters the soma.
+&quot;&quot;&quot;
+from __future__ import annotations
+
+from dataclasses import dataclass, replace
+import numpy as np
+
+
+# ----------------------------------------------------------------------------
+# Parameters
+# ----------------------------------------------------------------------------
+@dataclass(frozen=True)
+class Params:
+    # Passive membrane (total values per compartment)
+    C_s: float = 1.0      # nF
+    C_d: float = 1.0      # nF
+    gL_s: float = 0.05    # uS   -&gt; tau_m = C/gL = 20 ms
+    gL_d: float = 0.05    # uS
+    E_L: float = -70.0    # mV
+    g_ax: float = 0.25    # uS   -&gt; steady Vs/Vd = g_ax/(g_ax+gL_s) = 0.833
+
+    # Dendritic Ih — Lowet et al. 2023 HHca2 (HanLabBU/Lowet-Cell-Reports-2023,
+    # biophysical_modeling/ca1.ipynb): h_inf = 1/(1+exp((V+84)/10.2)),
+    # tau_h(V) = 1/(exp(-17.9-0.116V) + exp(-1.84+0.09V)) + 0.1 ms,
+    # E_h = -32.9 mV, Gh2 = 2 mS/cm^2 (= 2 uS here at A = 1e-3 cm^2).
+    # ih_kinetics=&quot;simple&quot; restores the old placeholder (constant tau_h).
+    ih_kinetics: str = &quot;lowet2023&quot;
+    g_h: float = 0.0      # uS   (Lowet default 2.0)
+    E_h: float = -32.9    # mV
+    Vh_half: float = -84.0  # mV  (h_inf = 0.5)
+    k_h: float = 10.2       # mV  (&gt;0: activates with hyperpolarisation)
+    tau_h: float = 40.0     # ms  (used only when ih_kinetics == &quot;simple&quot;)
+    tau_h_scale: float = 1.0  # multiplies tau_h(V); e.g. 1/Q10 per +10 °C (Q10 ~ 3–4 for Ih)
+    freeze_h: bool = False  # True: h fixed at its resting value (adds conductance
+                            # and shifts rest, but no Ih kinetics) — control for
+                            # &quot;is the effect kinetic or just a rest/conductance shift?&quot;
+
+    # Optional somatic subthreshold currents — Golomb et al. 2006 values as used
+    # in Lowet 2023 HHca2 (ca1.ipynb). Off by default (g = 0).
+    g_M: float = 0.0        # uS   (HHca2 Gm = 1; Ceballos 2025 g_KM = 2.4)
+    E_K: float = -90.0      # mV
+    theta_z: float = -39.0  # mV   z_inf midpoint
+    sigma_z: float = 5.0    # mV
+    tau_z: float = 75.0     # ms
+    g_NaP: float = 0.0      # uS   (HHca2 Gnap 0–0.41; Ceballos 0.9)
+    E_Na: float = 55.0      # mV
+    theta_p: float = -47.0  # mV   (Golomb: −47 normal Ca2+, up to −41)
+    sigma_p: float = 3.0    # mV
+
+    # Somatic LIF (off by default for subthreshold protocols)
+    spiking: bool = False
+    V_th: float = -50.0
+    V_reset: float = -65.0
+    t_ref: float = 2.0    # ms
+
+    # White-noise current amplitude, nA*ms^0.5 (Euler–Maruyama)
+    sigma_s: float = 0.0
+    sigma_d: float = 0.0
+
+    dt: float = 0.025     # ms
+
+
+def h_inf(V, p: Params):
+    return 1.0 / (1.0 + np.exp((V - p.Vh_half) / p.k_h))
+
+
+def z_inf(V, p: Params):
+    return 1.0 / (1.0 + np.exp(-(V - p.theta_z) / p.sigma_z))
+
+
+def p_inf(V, p: Params):
+    return 1.0 / (1.0 + np.exp(-(V - p.theta_p) / p.sigma_p))
+
+
+def tau_h(V, p: Params):
+    if p.ih_kinetics == &quot;lowet2023&quot;:
+        return p.tau_h_scale * (1.0 / (np.exp(-17.9 - 0.116 * V) + np.exp(-1.84 + 0.09 * V)) + 0.1)
+    return p.tau_h_scale * p.tau_h
+
+
+def dh_inf_dV(V, p: Params):
+    hi = h_inf(V, p)
+    return -hi * (1.0 - hi) / p.k_h
+
+
+# ----------------------------------------------------------------------------
+# Exact resting state (Lowet tau_h is 0.5–3 s, so time-settling is unreliable)
+# ----------------------------------------------------------------------------
+def rest_state(p: Params, I_s0: float = 0.0, I_d0: float = 0.0):
+    &quot;&quot;&quot;Exact steady state (V_s, V_d, h) with h = h_inf(V_d), z = z_inf(V_s)
+    and constant currents I_s0, I_d0 (nA).&quot;&quot;&quot;
+    def Fs(vs, vd):
+        return (-p.gL_s * (vs - p.E_L) - p.g_M * z_inf(vs, p) * (vs - p.E_K)
+                - p.g_NaP * p_inf(vs, p) * (vs - p.E_Na) + p.g_ax * (vd - vs) + I_s0)
+
+    def vd_of(vs):          # dendrite is monotone in vd for fixed vs -&gt; bisection
+        F = lambda vd: (-p.gL_d * (vd - p.E_L) - p.g_h * h_inf(vd, p) * (vd - p.E_h)
+                        - p.g_ax * (vd - vs) + I_d0)
+        lo, hi = -150.0, 50.0
+        for _ in range(80):
+            mid = 0.5 * (lo + hi)
+            lo, hi = (mid, hi) if F(mid) &gt; 0 else (lo, mid)
+        return 0.5 * (lo + hi)
+
+    if not (p.g_M or p.g_NaP):   # soma linear -&gt; fast 1-D bisection on V_d
+        vs_lin = lambda vd: (p.gL_s * p.E_L + p.g_ax * vd + I_s0) / (p.gL_s + p.g_ax)
+        F = lambda vd: (-p.gL_d * (vd - p.E_L) - p.g_h * h_inf(vd, p) * (vd - p.E_h)
+                        - p.g_ax * (vd - vs_lin(vd)) + I_d0)
+        lo, hi = -150.0, 50.0
+        for _ in range(100):
+            mid = 0.5 * (lo + hi)
+            lo, hi = (mid, hi) if F(mid) &gt; 0 else (lo, mid)
+        vd = 0.5 * (lo + hi)
+        return vs_lin(vd), vd, float(h_inf(vd, p))
+
+    # scan soma voltage for sign changes of the reduced soma equation; take the
+    # root closest to E_L (the physiological rest if several exist)
+    grid = np.linspace(-200.0, 40.0, 2401)
+    G = np.array([Fs(v, vd_of(v)) for v in grid])
+    idx = np.where(np.sign(G[:-1]) != np.sign(G[1:]))[0]
+    if len(idx) == 0:
+        raise ValueError(&quot;no resting state found&quot;)
+    k = idx[np.argmin(abs(grid[idx] - p.E_L))]
+    lo, hi = grid[k], grid[k + 1]
+    for _ in range(60):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if np.sign(Fs(mid, vd_of(mid))) == np.sign(Fs(lo, vd_of(lo))) else (lo, mid)
+    vs = 0.5 * (lo + hi); vd = vd_of(vs)
+    return vs, vd, float(h_inf(vd, p))
+
+
+# ----------------------------------------------------------------------------
+# Core integrator
+# ----------------------------------------------------------------------------
+def simulate(p: Params, T: float, I_s=None, I_d=None, g_syn_d=None,
+             E_syn: float = 0.0, t_settle: float = 500.0, seed: int | None = None,
+             I_hold_s: float = 0.0, I_hold_d: float = 0.0):
+    &quot;&quot;&quot;Forward-Euler (Euler–Maruyama if noisy) integration.
+
+    I_s, I_d, g_syn_d: callables f(t_array) -&gt; array (nA, nA, uS), or None.
+    Starts from the exact resting state (rest_state), runs a settle period
+    with only the holding currents, then applies I_s/I_d on top of the holds.
+    I_hold_s / I_hold_d (nA) are constant for the whole run — use
+    match_holding() to set a baseline-matched comparison.
+    Returns dict: t, Vs, Vd, h, I_ax, I_h, spikes, V0 = (Vs, Vd) at t = 0.
+    &quot;&quot;&quot;
+    dt = p.dt
+    n_set, n = int(round(t_settle / dt)), int(round(T / dt))
+    t = np.arange(n) * dt
+    zeros = np.zeros(n)
+    Is = (I_s(t) if I_s else zeros) + I_hold_s
+    Id = (I_d(t) if I_d else zeros) + I_hold_d
+    gs = g_syn_d(t) if g_syn_d else zeros
+
+    rng = np.random.default_rng(seed)
+    sq = np.sqrt(dt)
+
+    def step(vs, vd, h, is_, id_, gsyn, noise=True):
+        z = state[&quot;z&quot;]
+        I_M = p.g_M * z * (vs - p.E_K)
+        I_NaP = p.g_NaP * p_inf(vs, p) * (vs - p.E_Na)
+        I_ax = p.g_ax * (vd - vs)
+        I_h = p.g_h * h * (vd - p.E_h)
+        I_syn = gsyn * (vd - E_syn)
+        dvd = (-p.gL_d * (vd - p.E_L) - I_h - I_syn - I_ax + id_) / p.C_d
+        dvs = (-p.gL_s * (vs - p.E_L) - I_M - I_NaP + I_ax + is_) / p.C_s
+        state[&quot;z&quot;] = z + dt * (z_inf(vs, p) - z) / p.tau_z
+        dh = 0.0 if p.freeze_h else (h_inf(vd, p) - h) / tau_h(vd, p)
+        vd_n, vs_n = vd + dt * dvd, vs + dt * dvs
+        if noise and (p.sigma_d or p.sigma_s):
+            vd_n += p.sigma_d / p.C_d * sq * rng.standard_normal()
+            vs_n += p.sigma_s / p.C_s * sq * rng.standard_normal()
+        return vs_n, vd_n, h + dt * dh, I_ax, I_h
+
+    # Start at exact rest (with holds), then settle (deterministic, holds only)
+    vs, vd, h = rest_state(p, I_hold_s, I_hold_d)
+    state = {&quot;z&quot;: float(z_inf(vs, p))}
+    for _ in range(n_set):
+        vs, vd, h, _, _ = step(vs, vd, h, I_hold_s, I_hold_d, 0.0, noise=False)
+
+    Vs, Vd, H, Z = np.empty(n), np.empty(n), np.empty(n), np.empty(n)
+    Iax, Ih = np.empty(n), np.empty(n)
+    spikes, ref_until = [], -np.inf
+    for i in range(n):
+        Vs[i], Vd[i], H[i], Z[i] = vs, vd, h, state[&quot;z&quot;]
+        vs, vd, h, Iax[i], Ih[i] = step(vs, vd, h, Is[i], Id[i], gs[i])
+        if p.spiking:
+            if t[i] &lt; ref_until:
+                vs = p.V_reset
+            elif vs &gt;= p.V_th:
+                spikes.append(t[i])
+                vs, ref_until = p.V_reset, t[i] + p.t_ref
+
+    return dict(t=t, Vs=Vs, Vd=Vd, h=H, z=Z, I_ax=Iax, I_h=Ih,
+                spikes=np.array(spikes), V0=(Vs[0], Vd[0]))
+
+
+# ----------------------------------------------------------------------------
+# Input builders
+# ----------------------------------------------------------------------------
+def step_current(amp, t_on, t_off):
+    return lambda t: np.where((t &gt;= t_on) &amp; (t &lt; t_off), amp, 0.0)
+
+
+def sine_current(I0, A, f_hz, t_on=0.0):
+    w = 2 * np.pi * f_hz / 1000.0  # rad/ms
+    return lambda t: np.where(t &gt;= t_on, I0 + A * np.sin(w * (t - t_on)), 0.0)
+
+
+def alpha_like_syn(g_max, t_stim, tau):
+    return lambda t: np.where(t &gt;= t_stim, g_max * np.exp(-(t - t_stim) / tau), 0.0)
+
+
+# ----------------------------------------------------------------------------
+# Analytic references (validation targets)
+# ----------------------------------------------------------------------------
+def analytic_Z(p: Params, f_hz, V0_d: float | None = None):
+    &quot;&quot;&quot;Input (Z_dd) and transfer (Z_sd) impedance, MOhm, dendritic injection.
+
+    Passive if g_h = 0. With g_h &gt; 0 uses the quasi-active linearisation of Ih
+    about V0_d (Koch 1984; Hutcheon &amp; Yarom 2000):
+      y_d = gL_d + g_h*h0 + i*w*C_d + g_h*(V0-E_h)*h_inf&#x27;(V0) / (1 + i*w*tau_h)
+    The last term is a slow restorative conductance -&gt; band-pass is possible.
+    Purely passive RC compartments can only low-pass (|Z| monotone in f).
+    &quot;&quot;&quot;
+    w = 2 * np.pi * np.asarray(f_hz, float) / 1000.0
+    y_s = p.gL_s + 1j * w * p.C_s
+    y_d = p.gL_d + 1j * w * p.C_d
+    if p.g_h:
+        V0 = rest_state(p)[1] if V0_d is None else V0_d
+        y_d = y_d + p.g_h * h_inf(V0, p)
+        if not p.freeze_h:
+            y_d = y_d + p.g_h * (V0 - p.E_h) * dh_inf_dV(V0, p) / (1 + 1j * w * tau_h(V0, p))
+    g = p.g_ax
+    det = (y_d + g) * (y_s + g) - g ** 2
+    return (y_s + g) / det, g / det  # uS^-1 = MOhm
+
+
+def impedance_matrix(p: Params, f_hz, I_hold_s: float = 0.0, I_hold_d: float = 0.0):
+    &quot;&quot;&quot;Full 2x2 quasi-active impedance (MΩ) linearised at the exact rest set by
+    the holding currents. Keys: Z_ss (soma in → soma), Z_ds (soma in → dendrite),
+    Z_dd (dend in → dend), Z_sd (dend in → soma), plus V0_s, V0_d.
+    Includes Ih (dendrite), I_M and I_NaP (soma) when their conductances are &gt; 0.
+    I_M adds a delayed restoring term (resonance at depolarised V);
+    I_NaP adds an instantaneous NEGATIVE conductance (amplification).&quot;&quot;&quot;
+    w = 2 * np.pi * np.asarray(f_hz, float) / 1000.0
+    vs0, vd0, h0 = rest_state(p, I_hold_s, I_hold_d)
+    y_d = p.gL_d + 1j * w * p.C_d
+    if p.g_h:
+        y_d = y_d + p.g_h * h0
+        if not p.freeze_h:
+            y_d = y_d + p.g_h * (vd0 - p.E_h) * dh_inf_dV(vd0, p) / (1 + 1j * w * tau_h(vd0, p))
+    y_s = p.gL_s + 1j * w * p.C_s
+    if p.g_M:
+        z0 = z_inf(vs0, p); dz = z0 * (1 - z0) / p.sigma_z
+        y_s = y_s + p.g_M * z0 + p.g_M * (vs0 - p.E_K) * dz / (1 + 1j * w * p.tau_z)
+    if p.g_NaP:
+        p0 = p_inf(vs0, p); dp = p0 * (1 - p0) / p.sigma_p
+        y_s = y_s + p.g_NaP * p0 + p.g_NaP * (vs0 - p.E_Na) * dp
+    g = p.g_ax
+    det = (y_s + g) * (y_d + g) - g ** 2
+    return dict(Z_ss=(y_d + g) / det, Z_ds=g / det, Z_dd=(y_s + g) / det, Z_sd=g / det,
+                V0_s=vs0, V0_d=vd0)
+
+
+def match_holding(p: Params, V_target: float, site: str = &quot;d&quot;, comp: str = &quot;d&quot;):
+    &quot;&quot;&quot;Constant holding current (nA) at `site` that puts compartment `comp`
+    at V_target at rest. Use for baseline-matched comparisons.&quot;&quot;&quot;
+    def V(I):
+        vs, vd, _ = rest_state(p, I if site == &quot;s&quot; else 0.0, I if site == &quot;d&quot; else 0.0)
+        return vd if comp == &quot;d&quot; else vs
+    lo, hi = -10.0, 10.0
+    for _ in range(100):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if V(mid) &lt; V_target else (lo, mid)
+    return 0.5 * (lo + hi)
+
+
+def steady_transfer_ratio(p: Params):
+    &quot;&quot;&quot;Passive DC Vs/Vd for dendritic injection.&quot;&quot;&quot;
+    return p.g_ax / (p.g_ax + p.gL_s)
+
+
+# ----------------------------------------------------------------------------
+# Protocols
+# ----------------------------------------------------------------------------
+def lockin(x, t, f_hz):
+    &quot;&quot;&quot;Complex amplitude of x at f (single-bin Fourier projection).&quot;&quot;&quot;
+    w = 2 * np.pi * f_hz / 1000.0
+    return 2 * np.mean((x - x.mean()) * np.exp(-1j * w * t))
+
+
+def impedance_sweep(p: Params, freqs, A=0.02, I0=0.0, n_cycles=10, t_min=1000.0,
+                    site=&quot;d&quot;, I_hold_s=0.0, I_hold_d=0.0):
+    &quot;&quot;&quot;Simulated impedance (complex, MOhm) from a sinusoid injected at `site`.
+    site=&quot;d&quot; -&gt; (Z_dd, Z_sd); site=&quot;s&quot; -&gt; (Z_ss, Z_ds).
+    Discards transients; analyses an integer number of cycles.&quot;&quot;&quot;
+    Zdd, Zsd = [], []
+    for f in freqs:
+        period = 1000.0 / f
+        slow = max(p.C_d / p.gL_d, p.tau_z if p.g_M else 0.0,
+                   tau_h(p.E_L, p) if p.g_h else 0.0)
+        t_trans = max(t_min, 5 * slow)
+        T = t_trans + n_cycles * period
+        drive = sine_current(I0, A, f)
+        r = simulate(p, T, I_hold_s=I_hold_s, I_hold_d=I_hold_d,
+                     **({&quot;I_d&quot;: drive} if site == &quot;d&quot; else {&quot;I_s&quot;: drive}))
+        m = r[&quot;t&quot;] &gt;= T - n_cycles * period
+        tt = r[&quot;t&quot;][m]
+        Iin = lockin(I0 + A * np.sin(2 * np.pi * f / 1000 * tt), tt, f)
+        here, other = (&quot;Vd&quot;, &quot;Vs&quot;) if site == &quot;d&quot; else (&quot;Vs&quot;, &quot;Vd&quot;)
+        Zdd.append(lockin(r[here][m], tt, f) / Iin)
+        Zsd.append(lockin(r[other][m], tt, f) / Iin)
+    return np.array(Zdd), np.array(Zsd)
+
+
+def resonance_metrics(freqs, Z):
+    &quot;&quot;&quot;f_res and Q = |Z(f_res)| / |Z(f_lowest)|. Q &gt; 1 =&gt; band-pass.&quot;&quot;&quot;
+    mag = np.abs(Z)
+    k = int(np.argmax(mag))
+    return dict(f_res=float(freqs[k]), Q=float(mag[k] / mag[0]))
+
+
+def sag_ratio(p: Params, amp=-0.1, t_on=200.0, dur=800.0, site=&quot;d&quot;):
+    &quot;&quot;&quot;Hyperpolarising step; sag = (V_peak - V_ss) / (V_peak - V_base).&quot;&quot;&quot;
+    stim = step_current(amp, t_on, t_on + dur)
+    r = simulate(p, t_on + dur + 200, **({&quot;I_d&quot;: stim} if site == &quot;d&quot; else {&quot;I_s&quot;: stim}))
+    V = r[&quot;Vd&quot;] if site == &quot;d&quot; else r[&quot;Vs&quot;]
+    win = (r[&quot;t&quot;] &gt;= t_on) &amp; (r[&quot;t&quot;] &lt; t_on + dur)
+    base, peak, ss = V[r[&quot;t&quot;] &lt; t_on].mean(), V[win].min(), V[win][-int(50 / p.dt):].mean()
+    return dict(sag=(ss - peak) / (base - peak + 1e-12), V_base=base, V_peak=peak, V_ss=ss)
+
+
+def axial_sweep(p: Params, g_ax_values, amp=0.3, t_on=100.0, t_off=600.0):
+    &quot;&quot;&quot;Dendritic DC step at each g_ax: ΔVd, ΔVs, ratio, steady I_ax.&quot;&quot;&quot;
+    rows = []
+    for g in g_ax_values:
+        q = replace(p, g_ax=g)
+        r = simulate(q, t_off + 100, I_d=step_current(amp, t_on, t_off))
+        i_ss = int((t_off - 1) / q.dt)
+        dVd, dVs = r[&quot;Vd&quot;][i_ss] - r[&quot;V0&quot;][1], r[&quot;Vs&quot;][i_ss] - r[&quot;V0&quot;][0]
+        rows.append(dict(g_ax=g, dVd=dVd, dVs=dVs, ratio=dVs / dVd,
+                         ratio_analytic=steady_transfer_ratio(q) if not q.g_h else np.nan,
+                         I_ax_ss=r[&quot;I_ax&quot;][i_ss]))
+    return rows
+
+
+def dt_convergence(p: Params, protocol, dts=(0.1, 0.05, 0.025, 0.0125)):
+    &quot;&quot;&quot;Run protocol(p) -&gt; scalar at several dt; values should converge.&quot;&quot;&quot;
+    return {dt: protocol(replace(p, dt=dt)) for dt in dts}
+
+
+def noise_trials(p: Params, T=6000.0, n_trials=20, f_hz=8.0, A=0.05, seed0=0):
+    &quot;&quot;&quot;Repeated noisy trials with explicit seeds: SD of Vd, Vs per trial.&quot;&quot;&quot;
+    out = []
+    for k in range(n_trials):
+        r = simulate(p, T, I_d=sine_current(0.0, A, f_hz), seed=seed0 + k)
+        m = r[&quot;t&quot;] &gt; 1000
+        out.append((r[&quot;Vd&quot;][m].std(), r[&quot;Vs&quot;][m].std()))
+    return np.array(out)  # shape (n_trials, 2)
+
+
+# ----------------------------------------------------------------------------
+# Spike-output analysis (ported from Lowet 2023 voltage_imaging scripts)
+# ----------------------------------------------------------------------------
+def classify_bursts(spikes_ms, window_ms=12 / 820 * 1000):
+    &quot;&quot;&quot;figure3_ISI.m rule: a spike is a burst spike if either neighbouring ISI
+    &lt; window (12 samples @ 820 Hz ≈ 14.6 ms). Returns bool mask (True = burst).&quot;&quot;&quot;
+    s = np.asarray(spikes_ms)
+    if len(s) &lt; 3:
+        return np.zeros(len(s), bool)
+    isi = np.diff(s)
+    prev = np.r_[np.inf, isi]
+    nxt = np.r_[isi, np.inf]
+    return (prev &lt; window_ms) | (nxt &lt; window_ms)
+
+
+def ppc(spikes_ms, f_hz, t_on=0.0):
+    &quot;&quot;&quot;Pairwise phase consistency (spike_field_ppc_adj.m):
+    PPC = (N*R^2 - 1)/(N - 1), R = |mean(exp(i*phase))|. Unbiased by N.
+    Phase taken relative to the imposed sinusoid (no LFP in the model).&quot;&quot;&quot;
+    s = np.asarray(spikes_ms)
+    N = len(s)
+    if N &lt; 10:
+        return np.nan, np.nan
+    z = np.exp(1j * 2 * np.pi * f_hz / 1000 * (s - t_on)).mean()
+    return (N * abs(z) ** 2 - 1) / (N - 1), np.angle(z, deg=True)
+
+
+# ----------------------------------------------------------------------------
+# Smoke test / validation summary
+# ----------------------------------------------------------------------------
+if __name__ == &quot;__main__&quot;:
+    p = Params()
+
+    # 1) Uncoupled: dendritic step must not move the soma
+    r = simulate(replace(p, g_ax=0.0), 400, I_d=step_current(0.3, 100, 300))
+    print(f&quot;[uncoupled] max|ΔVs| = {np.abs(r[&#x27;Vs&#x27;] - r[&#x27;V0&#x27;][0]).max():.2e} mV&quot;)
+
+    # 2) Steady-state ratio vs analytic
+    for row in axial_sweep(p, [0.005, 0.02, 0.05, 0.25, 1.0]):
+        print(f&quot;[axial] g_ax={row[&#x27;g_ax&#x27;]:&lt;6} ratio={row[&#x27;ratio&#x27;]:.3f} &quot;
+              f&quot;analytic={row[&#x27;ratio_analytic&#x27;]:.3f} I_ax={row[&#x27;I_ax_ss&#x27;]:.4f} nA&quot;)
+
+    # 3) Passive impedance: simulated vs analytic
+    freqs = np.array([1, 2, 4, 8, 16, 40])
+    Zdd, Zsd = impedance_sweep(p, freqs)
+    Zdd_a, Zsd_a = analytic_Z(p, freqs)
+    for f, a, b in zip(freqs, np.abs(Zsd), np.abs(Zsd_a)):
+        print(f&quot;[Z passive] {f:&gt;3} Hz |Z_sd| sim={a:.2f}  analytic={b:.2f} MOhm&quot;)
+
+    # 4) Ih: sag + quasi-active prediction of band-pass
+    ph = replace(p, g_h=2.0)
+    print(&quot;[Ih] sag:&quot;, {k: round(v, 3) for k, v in sag_ratio(ph).items()})
+    V0d = simulate(ph, 10)[&quot;V0&quot;][1]
+    f_fine = np.linspace(0.5, 40, 80)
+    print(&quot;[Ih] quasi-active Z_dd:&quot;, resonance_metrics(f_fine, analytic_Z(ph, f_fine, V0d)[0]),
+          f&quot;(V0_d = {V0d:.2f} mV)&quot;)
+</pre></div>
+  </details>
+</section>
+<nav class="pager" aria-label="Pages"><a href="lab.html">← Lab</a><a href="log.html">Log →</a></nav>
+<footer class="foot">Rebecca Goodman · CA1 resonance compendium v1.0 · 2 Nov 2026</footer>
+</main>
+</div>
+<script>
+document.querySelectorAll('[data-copy]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var el = document.getElementById(btn.dataset.copy);
+    var text = el.innerText;
+    function done(msg){ btn.textContent = msg; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }
+    function fallback(){
+      var r = document.createRange(); r.selectNodeContents(el);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      done('Selected');
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function(){ done('Copied'); }, fallback);
+    } catch (e) { fallback(); }
+  });
+});
+</script><script>
+(function () {
+  function load(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var toc = load("ca1c-toc", window.innerWidth > 1100 ? "on" : "off"), bt = document.getElementById("ptoc");
+  function apply() { document.body.classList.toggle("toc-off", toc === "off"); bt.setAttribute("aria-pressed", toc === "on"); }
+  bt.onclick = function () { toc = toc === "on" ? "off" : "on"; save("ca1c-toc", toc); apply(); };
+  apply();
+})();
+</script><script type="module">
+// Render Mermaid blocks if the host has not already done so.
+const blocks = [...document.querySelectorAll("pre.mermaid")].filter(b => !b.querySelector("svg") && !b.dataset.processed);
+if (blocks.length) {
+  try {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs");
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches && document.documentElement.dataset.theme !== "light";
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", securityLevel: "strict" });
+    await mermaid.run({ nodes: blocks });
+  } catch (e) { console.warn("mermaid", e); }
+}
+</script></body></html>

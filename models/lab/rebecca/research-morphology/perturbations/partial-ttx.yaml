@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: Partial TTX
+tool: research-morphology
+kind: pharmacology
+what: Na⁺ density reduced to the slider minimum (× 0.3).
+expected_size: 70% reduction
+references: []
+ops:
+- control: '#rmc-naS'
+  set: 0.3

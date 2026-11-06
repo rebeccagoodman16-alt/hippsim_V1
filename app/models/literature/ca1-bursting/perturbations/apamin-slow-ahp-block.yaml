@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: 'Apamin: slow AHP block'
+tool: ca1-bursting
+kind: pharmacology
+what: SK / slow-AHP K⁺ current removed.
+expected_size: complete block in the model
+references: []
+ops:
+- control: '#gy-gKAHP'
+  set: 0

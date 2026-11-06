@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: 'Iberiotoxin: BK block'
+tool: ca1-bursting
+kind: pharmacology
+what: Fast Ca²⁺-activated K⁺ (BK) current removed.
+expected_size: complete block in the model
+references: []
+ops:
+- control: '#gy-gKCa'
+  set: 0

@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: Soma only (no dendrite)
+tool: interleaved-resonance
+kind: model
+what: Removes the dendritic compartment and its I_h.
+expected_size: structural change
+references:
+- ceballos2025
+ops:
+- control: '#irDend'
+  set: false

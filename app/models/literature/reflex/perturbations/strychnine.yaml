@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: Strychnine
+tool: reflex
+kind: pharmacology
+what: 'Glycine receptors blocked: no spinal inhibition.'
+expected_size: complete block in the model
+references: []
+ops:
+- control: '#rxStr'
+  set: true

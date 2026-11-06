@@ -1,0 +1,681 @@
+<title>hippsim</title>
+<style>
+:root{
+  --bg:#fff9f2; --surface:#fffdfa; --ink:#1b1616; --muted:#75665f; --rule:#e8dbd1; --line:#cdb8ad; --code:#f5ece4;
+  --apical:#a62961; --basal:#3d5a8a; --axon:#9a6a33; --accent:#a62961; --on-accent:#ffffff;
+  --trunk:#6b1a3f; --oblique:#d0679a; --tuft:#e0a03a;
+  --f-display:Georgia,"Times New Roman",serif; --f-body:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html[data-hs-palette="contrast"]{--trunk:#7a2e00;--oblique:#cc79a7;--tuft:#e69f00}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px}
+a{color:var(--accent)} button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.1}
+.mono{font-family:var(--f-mono);font-size:.88em}
+.muted{color:var(--muted)}
+.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between;padding-top:22px}
+.top h1{font-size:clamp(1.7rem,4vw,2.3rem);font-weight:800;letter-spacing:-.02em}
+.find{position:relative;flex:0 1 420px;min-width:min(100%,280px)}
+.find input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:15px}
+.sugg{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:12px;z-index:20;box-shadow:0 10px 30px rgba(0,0,0,.12);overflow:hidden}
+.sugg button{display:flex;gap:10px;width:100%;text-align:left;padding:8px 12px;border:0;background:none;cursor:pointer;align-items:center}
+.sugg button[aria-selected="true"],.sugg button:hover{background:var(--code)}
+.sugg small{color:var(--muted);margin-left:auto;font-family:var(--f-mono);font-size:11px}
+.jump{display:flex;flex-wrap:wrap;gap:6px}
+.jump a{font-size:13px;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:4px 11px;background:var(--surface)}
+.jump a span{color:var(--muted);font-family:var(--f-mono);font-size:11px;margin-left:3px}
+.wrap > main{width:100%}
+.sys{display:flex;flex-direction:column;gap:18px}
+.sys > h2{font-size:1.35rem;border-bottom:1px solid var(--rule);padding-bottom:6px}
+.reg h3{font:600 15px var(--f-body);margin-bottom:8px;display:flex;gap:8px;align-items:baseline}
+.reg h3 span{font:500 11.5px var(--f-mono);color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.cell{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:5px;padding:8px;border:1px solid var(--rule);border-radius:12px;background:var(--surface);min-width:0}
+.cell:hover{border-color:var(--accent)} .cell:focus-visible{outline:2px solid var(--accent)}
+.cell svg{width:100%;aspect-ratio:1/1;background:var(--code);border-radius:8px}
+.cell svg path{fill:none;stroke-width:.8;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.cell .ap{stroke:var(--apical)}.cell .ba{stroke:var(--basal)}.cell .ax{stroke:var(--axon);opacity:.5}.cell .so{fill:var(--ink)}
+.cell b{font-size:12.5px;line-height:1.25;font-weight:600}
+.cell .mono{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- full-screen viewer ---------- */
+#viewer{position:fixed;inset:0;z-index:1000;background:var(--bg);display:grid;grid-template-rows:auto 1fr auto;grid-template-columns:1fr auto}
+#viewer[hidden]{display:none}
+.vbar{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px max(14px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--rule);background:var(--surface)}
+.vbar h2{font-size:1.15rem}
+.vbar .sub{font-size:12.5px;color:var(--muted)}
+.vbar .sp{flex:1}
+@media (max-width:760px){.vbar .lg{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)} .vbar .btn{padding:7px 10px} .vbar > div{flex:1 1 60%;min-width:0} .vbar .sp{display:none} #vsim{order:5}}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;color:var(--ink);display:inline-flex;gap:6px;align-items:center}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.stage{grid-row:2;grid-column:1;position:relative;min-width:0;min-height:0;touch-action:none;cursor:grab}
+.stage:active{cursor:grabbing}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12.5px;line-height:1.35;padding:6px 9px;border-radius:8px;max-width:260px;z-index:3;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+.tip b{display:block;font-size:13px}
+.hint{position:absolute;left:14px;bottom:12px;font-size:12px;color:var(--muted);pointer-events:none}
+.parts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;padding:8px max(14px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--rule);background:var(--surface)}
+.parts .lbl{font:500 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.part{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 11px 5px 8px;font-size:13px;cursor:pointer;background:var(--surface)}
+.part i{width:14px;height:4px;border-radius:2px;display:inline-block}
+.part[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+.part.hl{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:none;padding:5px 10px;font-size:12.5px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+aside.side{grid-row:2;grid-column:2;width:min(360px,92vw);border-left:1px solid var(--rule);background:var(--surface);overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:14px;font-size:14px}
+aside.side[hidden]{display:none}
+@media (max-width:760px){#viewer{grid-template-columns:1fr} .stage{grid-row:2;grid-column:1} aside.side{grid-row:2;grid-column:1;justify-self:end;height:100%;width:min(340px,88vw);z-index:5;box-shadow:-10px 0 30px rgba(0,0,0,.15)}}
+.side h3{font:700 13px var(--f-body)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:3px 12px;font-size:13.5px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-variant-numeric:tabular-nums;text-align:right}
+.side .note{font-size:12px;color:var(--muted)}
+.side svg{width:100%;height:auto;display:block}
+.side svg text{font:10px var(--f-mono);fill:var(--muted)}
+/* simulate chooser */
+dialog#sim{border:1px solid var(--line);border-radius:16px;padding:0;max-width:min(720px,94vw);background:var(--surface);color:var(--ink)}
+dialog#sim::backdrop{background:rgba(0,0,0,.35)}
+.simh{padding:16px 18px 6px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.simh h2{font-size:1.3rem}
+.simq{padding:0 18px 6px;font-size:14px;color:var(--muted)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;padding:8px 18px 18px}
+.opt{border:1px solid var(--rule);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
+.opt h3{font:700 14.5px var(--f-body)}
+.opt p{margin:0;font-size:13px;color:var(--muted);flex:1}
+.opt .row{display:flex;flex-wrap:wrap;gap:6px}
+.opt .btn{padding:6px 11px;font-size:12.5px}
+.simf{padding:10px 18px 16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--muted)}
+
+/* simulator panel */
+.simp .sh{display:flex;justify-content:space-between;align-items:baseline}
+.sl{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;font-size:13.5px}
+.sl input{flex:1 1 100%;accent-color:var(--accent)}
+.sl output{font-variant-numeric:tabular-nums;color:var(--muted)}
+.srow{margin:0;font-size:13.5px}
+.linkish{all:unset;cursor:pointer;color:var(--accent);text-decoration:underline;text-underline-offset:3px;font-size:13px}
+.linkish[aria-pressed="true"]{font-weight:700}
+.btn.run{justify-content:center;font-size:15px;padding:10px}
+.trace{position:relative;height:150px;background:var(--code);border-radius:8px}
+.trace canvas{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+.sres{margin:0;font-size:13.5px}
+.base{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:13px}
+.base dt{color:var(--muted);font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;padding-top:2px}
+.base dd{margin:0}
+.base dd.chg{color:var(--accent);font-weight:600}
+[hidden]{display:none!important}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.seg button{flex:1;border:0;background:none;padding:7px 8px;font-size:13px;cursor:pointer;color:var(--ink)}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--bg)}
+.seg.sm button{padding:5px 8px;font-size:12.5px}
+.setup{display:flex;flex-direction:column;gap:10px}
+.mlist{display:flex;flex-direction:column;gap:6px}
+.mlist button{all:unset;cursor:pointer;display:block;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface)}
+.mlist button[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.mlist b{display:block;font-size:13.5px}
+.mlist span{display:block;font-size:12px;color:var(--muted);line-height:1.35;margin-top:2px}
+.simrow{display:flex;align-items:center;gap:10px}
+.simrow .lbl{font-size:12px;color:var(--muted);white-space:nowrap}
+.simrow .seg{flex:1}
+.simrow .fixed{font-size:12.5px;color:var(--muted)}
+.chosen{font-size:13px;color:var(--muted);margin:0}
+.chosen b{color:var(--ink)}
+.out{display:flex;flex-direction:column;gap:12px}
+aside.side > *{flex:none}
+.sman{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--rule);padding-top:12px}
+.sman[hidden]{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font-size:12.5px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.vleg{position:absolute;left:14px;bottom:12px;display:flex;align-items:center;gap:6px;font:11px var(--f-mono);color:var(--muted);background:color-mix(in srgb,var(--bg) 80%,transparent);padding:3px 6px;border-radius:6px}
+.vleg i{display:block;width:90px;height:8px;border-radius:4px}
+.vleg[hidden]{display:none}
+@media (min-width:1200px){#viewer{grid-template-columns:1fr auto auto} aside.simp{grid-column:3}}
+.sfoot{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#vsim[aria-pressed="true"]{background:var(--ink);border-color:var(--ink)}
+@media (max-width:760px){#viewer{grid-template-rows:auto 1fr auto auto} aside.simp{grid-row:3;grid-column:1;justify-self:stretch;width:auto;height:auto;max-height:46vh;border-left:0;border-top:1px solid var(--rule);box-shadow:0 -8px 24px rgba(0,0,0,.08);gap:10px;padding:10px 14px}
+  .simp .trace{height:110px} .simp .note{display:none} #parts{grid-row:4} .parts{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none} .parts .part,.parts .seg button{white-space:nowrap}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div><h1>Neurons</h1><p class="muted" id="sub"></p></div>
+    <div class="find" role="combobox" aria-expanded="false" aria-haspopup="listbox">
+      <input id="q" type="search" placeholder="Type a cell: CA1, granule, n123, Amaral…" aria-label="Find a neuron" autocomplete="off" aria-controls="sugg">
+      <div class="sugg" id="sugg" role="listbox" hidden></div>
+    </div>
+  </div>
+  <nav class="jump" id="jump" aria-label="Regions"></nav>
+  <main id="list"></main>
+</div>
+
+<div id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="vname">
+  <div class="vbar">
+    <button class="btn" id="vback" title="Back to all neurons (Esc)">← All neurons</button>
+    <div><h2 id="vname"></h2><div class="sub" id="vsub"></div></div>
+    <span class="sp"></span>
+    <button class="btn" id="vspin" aria-pressed="false" title="Turn slowly (space)"><span aria-hidden="true">⟳</span><span class="lg">Rotate</span></button>
+    <button class="btn" id="vreset" title="Front view (0)"><span aria-hidden="true">↺</span><span class="lg">Reset view</span></button>
+    <button class="btn" id="vshot" title="Save a PNG of this view"><span aria-hidden="true">⤓</span><span class="lg">Screenshot</span></button>
+    <button class="btn" id="vvid" title="Record one full turn (8 s)"><span aria-hidden="true">⏺</span><span class="lg">Video</span></button>
+    <button class="btn" id="vside" aria-pressed="false" aria-controls="side">Details</button>
+    <button class="btn primary" id="vsim" aria-pressed="false" aria-controls="simp">▶ Simulate</button>
+  </div>
+  <div class="stage" id="stage"><canvas id="cv" aria-label="3D neuron. Drag to rotate, scroll or pinch to zoom."></canvas>
+    <div class="tip" id="tip" hidden></div><div class="vleg" id="vleg" hidden><span>−80</span><i id="vgrad"></i><span>+30 mV</span><span id="vt"></span></div><div class="hint" id="hint" hidden>Drag to rotate · scroll or pinch to zoom · hover or tap a branch</div></div>
+  <aside class="side" id="side" hidden aria-label="Details"></aside>
+  <aside class="side simp" id="simp" hidden aria-label="Simulate">
+    <div class="sh"><h3 id="stitle">Simulate</h3><button class="linkish" id="sclose" aria-label="Close simulator">Close</button></div>
+    <div class="setup" id="ssetup">
+      <div class="seg" id="sscale" role="radiogroup" aria-label="Scale"><button data-s="cell">Single cell</button><button data-s="circuit">Circuit</button><button data-s="population">Population</button></div>
+      <div class="mlist" id="smodels" role="radiogroup" aria-label="Model"></div>
+      <div class="simrow" id="ssimrow"><span class="lbl">Run in</span><div class="seg sm" id="ssims" role="radiogroup" aria-label="Simulator"></div></div>
+      <button class="btn primary run" id="sgo">▶ Run baseline</button>
+    </div>
+    <div class="chosen" id="schosen" hidden><span id="schosent"></span> <button class="linkish" id="schange">change</button></div>
+    <div class="out" id="sout" hidden>
+      <div class="trace"><canvas id="trace" aria-label="Simulation result"></canvas></div>
+      <p class="sres" id="sres" aria-live="polite"></p>
+      <dl class="base" id="sbase"></dl>
+      <button class="btn primary run" id="smanip" aria-expanded="false" aria-controls="sman">Manipulate the baseline</button>
+      <div class="sman" id="sman" hidden>
+        <div class="chips" id="spre" role="group" aria-label="Manipulations"></div>
+        <div id="sctl"></div>
+        <p class="srow" id="spickrow">Electrode: <b id="ssite">soma</b> · <button class="linkish" id="spick" aria-pressed="false">tap a branch to move it</button></p>
+        <p class="srow"><span id="snch">No changes yet</span> · <button class="linkish" id="sreset">back to baseline</button></p>
+        <button class="btn primary run" id="srun">▶ Run</button>
+        <p class="note" id="sextnote" hidden></p>
+      </div>
+      <div class="sfoot"><button class="btn" id="ssave">Save run</button><span><a class="linkish" id="sdoc" href="docs.html#models" target="_blank" rel="noopener">How this model works</a> <button class="linkish" id="spy" hidden></button></span></div>
+    </div>
+  </aside>
+  <div class="parts" id="parts"></div>
+</div>
+
+
+<script src="hs-cable.js"></script>
+<script src="hs-ngc.js"></script>
+<script src="hs-models.js"></script>
+<script>
+"use strict";
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const fmt = n => n == null || n === "" ? "–" : Number(n).toLocaleString("en-US", {maximumFractionDigits: 1});
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cap = n => (window.claude && typeof window.claude.use === "function") ? window.claude.use(n).catch(() => null) : Promise.resolve(null);
+async function saveFile(name, blob) {           // claude.ai downloads capability, else an ordinary download
+  const dl = await cap("downloads");
+  if (dl) { try { await dl.save({filename: name, data: blob}); return; } catch (e) {} }
+  const a = Object.assign(document.createElement("a"), {href: URL.createObjectURL(blob), download: name});
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+
+/* ================= index: neurons only, grouped by system and region ================= */
+const ORDER = ["Dentate gyrus", "CA3", "CA2", "CA1", "Subiculum", "Entorhinal cortex", "Medial septum"];
+const SYS = ["Hippocampal formation", "Beyond the hippocampus"];
+const thumb = c => { const t = c.thumb || {}; return `<svg viewBox="0 0 100 100" aria-hidden="true">${t.x ? `<path d="${t.x}" class="ax"/>` : ""}${t.b ? `<path d="${t.b}" class="ba"/>` : ""}${t.a ? `<path d="${t.a}" class="ap"/>` : ""}${t.s ? `<circle cx="${t.s[0]}" cy="${t.s[1]}" r="2.2" class="so"/>` : ""}</svg>`; };
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+function renderIndex() {
+  $("sub").textContent = `${D.cells.length} reconstructed neurons. Pick one to see it in 3D and simulate it.`;
+  const by = {};
+  D.cells.forEach(c => ((by[c.system] = by[c.system] || {})[c.region] = by[c.system][c.region] || []).push(c));
+  const regs = s => Object.keys(by[s] || {}).sort((a, b) => ((ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99)) || a.localeCompare(b));
+  $("jump").innerHTML = SYS.flatMap(s => regs(s).map(r => `<a href="#r-${slug(r)}">${esc(r)}<span>${by[s][r].length}</span></a>`)).join("");
+  $("list").innerHTML = SYS.filter(s => by[s]).map(s => `<section class="sys"><h2>${esc(s)}</h2>${regs(s).map(r => {
+    const gk = g => /^Pyramidal|principal/i.test(g) ? 0 : 1;                       // principal cells first, then interneurons
+    const cells = by[s][r].sort((a, b) => gk(a.group) - gk(b.group) || a.group.localeCompare(b.group) || a.name.localeCompare(b.name) || (a.code || "").localeCompare(b.code || ""));
+    return `<div class="reg" id="r-${slug(r)}"><h3>${esc(r)} <span>${cells.length}</span></h3><div class="grid">${cells.map(c =>
+      `<button class="cell" data-id="${esc(c.id)}" title="${esc(c.name)} · ${esc(c.species)}">${thumb(c)}<b>${esc(c.name)}</b><span class="mono">${esc(c.code || c.id)}</span></button>`).join("")}</div></div>`;
+  }).join("")}</section>`).join("");
+}
+$("list").addEventListener("click", e => { const b = e.target.closest(".cell"); if (b) open(b.dataset.id); });
+
+/* search with suggestions: type, arrows, Enter opens */
+let sel = 0, hits = [];
+function suggest() {
+  const q = $("q").value.trim().toLowerCase(), box = $("sugg");
+  hits = !q ? [] : D.cells.map(c => { const hay = [c.id, c.name, c.code, c.region, c.species, c.group, (c.prov || {}).archive].join(" ").toLowerCase();
+    return [c, hay.includes(q) ? (c.id === q || (c.code || "").toLowerCase().startsWith(q) ? 0 : 1) : q.split(/\s+/).every(w => hay.includes(w)) ? 2 : 9]; })
+    .filter(x => x[1] < 9).sort((a, b) => a[1] - b[1]).slice(0, 8).map(x => x[0]);
+  sel = 0; box.hidden = !hits.length; $("q").parentElement.setAttribute("aria-expanded", String(!!hits.length));
+  box.innerHTML = hits.map((c, i) => `<button role="option" data-id="${esc(c.id)}" aria-selected="${i === sel}"><b>${esc(c.name)}</b> <span class="mono">${esc(c.code || "")}</span><small>${esc(c.region)}</small></button>`).join("");
+}
+$("q").addEventListener("input", suggest);
+$("q").addEventListener("keydown", e => {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + hits.length) % Math.max(1, hits.length);
+    [...$("sugg").children].forEach((b, i) => b.setAttribute("aria-selected", String(i === sel))); }
+  else if (e.key === "Enter" && hits[sel]) { open(hits[sel].id); $("sugg").hidden = true; }
+  else if (e.key === "Escape") $("sugg").hidden = true;
+});
+$("sugg").addEventListener("click", e => { const b = e.target.closest("[data-id]"); if (b) { open(b.dataset.id); $("sugg").hidden = true; } });
+document.addEventListener("click", e => { if (!e.target.closest(".find")) $("sugg").hidden = true; });
+
+/* ================= geometry: SWC -> points, parts, path distance ================= */
+const PARTS = [
+  ["soma", "Soma", "--ink"], ["basal", "Basal dendrites", "--basal"], ["dend", "Dendrites", "--basal"],
+  ["trunk", "Apical trunk", "--trunk"], ["oblique", "Oblique dendrites", "--oblique"], ["tuft", "Apical tuft", "--tuft"],
+  ["apical", "Apical dendrites", "--apical"], ["axon", "Axon", "--axon"]];
+const PART_NOTE = {
+  soma: "Cell body: integrates input and starts the action potential (with the axon initial segment).",
+  basal: "Basal dendrites: below the soma (stratum oriens in CA1/CA3); local recurrent and Schaffer input.",
+  dend: "Dendrites of a cell without an apical tree.",
+  trunk: "Main apical shaft from the soma toward the tuft; carries back-propagating spikes and has the highest I_h gradient in CA1.",
+  oblique: "Thin side branches off the trunk (stratum radiatum in CA1): most Schaffer-collateral synapses.",
+  tuft: "Distal branches at the end of the trunk (stratum lacunosum-moleculare in CA1): entorhinal (perforant / temporo-ammonic) input.",
+  apical: "Apical dendrites.",
+  axon: "Traced axon. Where the file's axon was added by modellers it starts hidden."};
+const cache = {};
+async function loadCell(c) {
+  if (cache[c.id]) return cache[c.id];
+  const txt = await (await fetch(c.file)).text();
+  const P = [];                                   // [x,y,z,r,type,parentIndex]
+  const idx = {};
+  txt.split("\n").forEach(l => { if (!l.trim() || l[0] === "#") return; const a = l.trim().split(/\s+/).map(Number); if (a.length < 7) return;
+    idx[a[0]] = P.length; P.push([a[2], a[3], a[4], a[5], a[1], a[6]]); });
+  P.forEach(p => p[5] = p[5] in idx ? idx[p[5]] : -1);
+  const n = P.length, kids = Array.from({length: n}, () => []);
+  P.forEach((p, i) => { if (p[5] >= 0) kids[p[5]].push(i); });
+  const so = P.filter(p => p[4] === 1); const cx = so.length ? so.reduce((s, p) => s + p[0], 0) / so.length : 0,
+    cy = so.length ? so.reduce((s, p) => s + p[1], 0) / so.length : 0, cz = so.length ? so.reduce((s, p) => s + p[2], 0) / so.length : 0;
+  P.forEach(p => { p[0] -= cx; p[1] -= cy; p[2] -= cz; });
+  const seglen = i => { const p = P[i], q = P[p[5]]; return q ? Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) : 0; };
+  const dist = new Float64Array(n); for (let i = 0; i < n; i++) dist[i] = P[i][5] >= 0 ? dist[P[i][5]] + (P[i][4] === 1 ? 0 : seglen(i)) : 0;
+  // downstream length (children come after parents in SWC order)
+  const down = new Float64Array(n); for (let i = n - 1; i >= 0; i--) { if (P[i][5] >= 0) down[P[i][5]] += down[i] + seglen(i); }
+  const hasApical = P.some(p => p[4] === 4);
+  const part = new Array(n).fill("dend");
+  let axis = [0, 1, 0], dmax = 1, tuftStart = Infinity;
+  if (hasApical) {
+    const ap = P.filter(p => p[4] === 4); const m = ap.reduce((s, p) => [s[0] + p[0], s[1] + p[1], s[2] + p[2]], [0, 0, 0]);
+    const L = Math.hypot(...m) || 1; axis = m.map(v => v / L);
+    const dep = p => p[0] * axis[0] + p[1] * axis[1] + p[2] * axis[2];
+    dmax = Math.max(...ap.map(dep)); tuftStart = 0.6 * dmax;
+    // trunk: from the biggest apical root, always follow the child with the most dendrite downstream
+    const roots = P.map((p, i) => i).filter(i => P[i][4] === 4 && (P[i][5] < 0 || P[P[i][5]][4] !== 4));
+    const trunk = new Set(); let cur = roots.sort((a, b) => down[b] - down[a])[0];
+    while (cur != null) { trunk.add(cur); if (dep(P[cur]) > tuftStart) break; const k = kids[cur].filter(j => P[j][4] === 4).sort((a, b) => down[b] - down[a]); cur = k[0]; }
+    P.forEach((p, i) => { if (p[4] === 4) part[i] = dep(p) > tuftStart ? "tuft" : trunk.has(i) ? "trunk" : "oblique"; });
+  }
+  P.forEach((p, i) => { if (p[4] === 1) part[i] = "soma"; else if (p[4] === 2) part[i] = "axon"; else if (p[4] === 3) part[i] = hasApical ? "basal" : "dend"; });
+  const depth = P.map(p => p[0] * axis[0] + p[1] * axis[1] + p[2] * axis[2]);
+  let R = 1; P.forEach(p => R = Math.max(R, Math.hypot(p[0], p[1], p[2])));
+  const maxDist = Math.max(1, ...Array.from(dist).filter((d, i) => P[i][4] !== 2));
+  return (cache[c.id] = {off: [cx, cy, cz], P, kids, part, dist, depth, R, maxDist, hasApical, tuftStart, dmax, seglen, parts: [...new Set(part)]});
+}
+
+/* ================= viewer ================= */
+let C = null, G = null, view = {yaw: 0, pitch: 0.12, zoom: 1, px: 0, py: 0}, spin = false, raf = 0, colorBy = "part";
+const on = {};
+const cv = $("cv"), ctx = cv.getContext("2d");
+let proj = null;                                  // screen coords of every point, for hover
+function layer(c, i) {                            // rough CA1/CA3 strata from depth along the apical axis
+  if (!G.hasApical || !/^CA[13]$/.test(c.region)) return "";
+  const d = G.depth[i];
+  return d < -20 ? "stratum oriens" : d < 30 ? "stratum pyramidale" : d < G.tuftStart ? (c.region === "CA3" && d < 100 ? "stratum lucidum / radiatum" : "stratum radiatum") : "stratum lacunosum-moleculare";
+}
+let colorOf = function (i) {
+  if (colorBy === "volt" && R && R.frames && vf >= 0) return vColor(R.frames[vf][R.nodeOf[i]]);
+  if (colorBy === "dist" && G.part[i] !== "soma" && G.part[i] !== "axon") {
+    const t = Math.min(1, G.dist[i] / G.maxDist); return `hsl(${250 - 230 * t} 70% ${45 + 5 * t}%)`; }
+  return css((PARTS.find(p => p[0] === G.part[i]) || [, , "--basal"])[2]);
+}
+function resize() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; draw(); }
+function draw(target) {
+  if (!G) return;
+  const c2 = target ? target.getContext("2d") : ctx, W = target ? target.width : cv.width, H = target ? target.height : cv.height, d = target ? W / cv.clientWidth : (devicePixelRatio || 1);
+  c2.setTransform(1, 0, 0, 1, 0, 0); c2.fillStyle = css("--bg") || "#fff"; c2.fillRect(0, 0, W, H);
+  const s = Math.min(W, H) / (2.15 * G.R) * view.zoom, cy = Math.cos(view.yaw), sy = Math.sin(view.yaw), cp = Math.cos(view.pitch), sp = Math.sin(view.pitch);
+  const ox = W / 2 + view.px * d, oy = H / 2 + view.py * d, P = G.P, n = P.length;
+  const X = new Float32Array(n), Y = new Float32Array(n), Z = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const [x, y, z] = P[i]; const x1 = x * cy + z * sy, z1 = -x * sy + z * cy, y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+    X[i] = ox + x1 * s; Y[i] = oy - y1 * s; Z[i] = z2; }
+  if (!target) proj = {X, Y, s};
+  c2.lineCap = "round"; c2.lineJoin = "round";
+  const hl = hover != null ? G.part[hover] : null;
+  const order = ["axon", "basal", "dend", "oblique", "trunk", "tuft", "apical"];
+  for (const part of order) {
+    if (!G.parts.includes(part) || on[part] === false) continue;
+    for (let i = 0; i < n; i++) {
+      const q = P[i][5]; if (q < 0 || G.part[i] !== part || P[q][4] === 1 && P[i][4] === 1) continue;
+      c2.strokeStyle = colorOf(i); c2.globalAlpha = part === "axon" ? .55 : hl && hl !== part ? .35 : 1;
+      c2.lineWidth = Math.max(.7 * d, Math.min(6 * d, 2 * P[i][3] * s * (part === "axon" ? .8 : 1)));
+      c2.beginPath(); c2.moveTo(X[q], Y[q]); c2.lineTo(X[i], Y[i]); c2.stroke();
+    }
+  }
+  c2.globalAlpha = 1;
+  if (on.soma !== false) { const so = P.map((p, i) => i).filter(i => P[i][4] === 1); if (so.length) {
+    const r = Math.max(3 * d, Math.max(...so.map(i => P[i][3])) * s); c2.fillStyle = css("--ink"); c2.beginPath(); c2.arc(ox + 0, oy, r, 0, 7); c2.fill(); } }
+  if (sitePt >= 0 && G.P[sitePt]) { const i = sitePt; c2.fillStyle = css("--accent"); c2.strokeStyle = css("--bg"); c2.lineWidth = 2 * d;
+    c2.beginPath(); c2.arc(X[i], Y[i], 6 * d, 0, 7); c2.fill(); c2.stroke(); }
+  // scale bar + source line (part of every screenshot and video)
+  const bar = [10, 20, 50, 100, 200, 500, 1000].find(b => b * s > W * .12) || 1000;
+  c2.strokeStyle = css("--ink"); c2.fillStyle = css("--ink"); c2.lineWidth = 2 * d;
+  c2.beginPath(); c2.moveTo(W - 20 * d - bar * s, H - 22 * d); c2.lineTo(W - 20 * d, H - 22 * d); c2.stroke();
+  c2.font = `${11 * d}px ${css("--f-mono") || "monospace"}`; c2.textAlign = "right"; c2.fillText(`${bar} µm`, W - 20 * d, H - 28 * d);
+  if (target) { c2.textAlign = "left"; c2.fillStyle = css("--muted"); c2.fillText(`${C.name} (${C.code || C.id}) · ${C.cite.split(" · ")[0]} · hippsim`, 20 * d, H - 18 * d);
+    c2.font = `600 ${18 * d}px ${css("--f-body") || "sans-serif"}`; c2.fillStyle = css("--ink"); c2.fillText(C.name, 20 * d, 34 * d); }
+}
+let hover = null;
+function pick(ev) {
+  if (!proj) return null; const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1, mx = (ev.clientX - r.left) * d, my = (ev.clientY - r.top) * d;
+  let best = null, bd = (10 * d) ** 2;
+  for (let i = 0; i < G.P.length; i++) { if (on[G.part[i]] === false) continue; const dx = proj.X[i] - mx, dy = proj.Y[i] - my, dd = dx * dx + dy * dy; if (dd < bd) { bd = dd; best = i; } }
+  return best;
+}
+function showTip(ev, i) {
+  const t = $("tip"); if (i == null) { t.hidden = true; return; }
+  const p = G.part[i], L = layer(C, i), r = cv.getBoundingClientRect();
+  t.innerHTML = `<b>${esc((PARTS.find(x => x[0] === p) || [, p])[1])}</b>${p === "soma" ? "" : `path ${fmt(G.dist[i])} µm from soma · ⌀ ${fmt(2 * G.P[i][3])} µm`}${L ? `<br>${L} (approx.)` : ""}${R && R.frames && vf >= 0 ? `<br>V = ${fmt(R.frames[vf][R.nodeOf[i]])} mV at ${fmt(vf * R.frameDt)} ms` : ""}`;
+  t.hidden = false; const x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
+  t.style.left = Math.min(x, r.width - t.offsetWidth - 8) + "px"; t.style.top = Math.min(y, r.height - t.offsetHeight - 8) + "px";
+  document.querySelectorAll(".part").forEach(b => b.classList.toggle("hl", b.dataset.p === p));
+}
+/* interaction: drag rotate, wheel / pinch zoom, hover */
+const ptr = new Map(); let pinch0 = 0, zoom0 = 1;
+cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); spinOff(); $("hint").hidden = true;
+  if (ptr.size === 2) { const [a, b] = [...ptr.values()]; pinch0 = Math.hypot(a[0] - b[0], a[1] - b[1]); zoom0 = view.zoom; } });
+cv.addEventListener("pointermove", e => {
+  const p = ptr.get(e.pointerId);
+  if (!p) { const i = pick(e); if (i !== hover) { hover = i; draw(); } showTip(e, i); return; }
+  if (ptr.size === 2) { ptr.set(e.pointerId, [e.clientX, e.clientY]); const [a, b] = [...ptr.values()]; view.zoom = Math.max(.3, Math.min(12, zoom0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / (pinch0 || 1))); draw(); return; }
+  const dx = e.clientX - p[0], dy = e.clientY - p[1]; ptr.set(e.pointerId, [e.clientX, e.clientY]);
+  if (e.shiftKey) { view.px += dx; view.py += dy; } else { view.yaw += dx * .01; view.pitch = Math.max(-1.5, Math.min(1.5, view.pitch + dy * .01)); }
+  $("tip").hidden = true; draw();
+});
+let downAt = null;
+cv.addEventListener("pointerdown", e => { downAt = [e.clientX, e.clientY]; }, true);
+const up = e => { ptr.delete(e.pointerId);                      // a tap (no drag) names the branch: touch screens have no hover
+  if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 5) { const i = pick(e);
+    if (picking && i != null) placeElectrode(i); else { hover = i; draw(); showTip(e, i); } } downAt = null; };
+cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+cv.addEventListener("pointerleave", () => { hover = null; $("tip").hidden = true; document.querySelectorAll(".part").forEach(b => b.classList.remove("hl")); draw(); });
+cv.addEventListener("wheel", e => { e.preventDefault(); view.zoom = Math.max(.3, Math.min(12, view.zoom * Math.exp(-e.deltaY * .0015))); draw(); }, {passive: false});
+function loop() { if (spin) { view.yaw += .008; draw(); } raf = requestAnimationFrame(loop); }
+function spinOff() { spin = false; $("vspin").setAttribute("aria-pressed", "false"); }
+$("vspin").onclick = () => { spin = !spin; $("vspin").setAttribute("aria-pressed", String(spin)); };
+$("vreset").onclick = () => { view = {yaw: 0, pitch: .12, zoom: 1, px: 0, py: 0}; draw(); };
+$("vback").onclick = () => close();
+$("vside").onclick = () => { const s = $("side"); s.hidden = !s.hidden; if (!s.hidden && !wide()) { $("simp").hidden = true; $("vsim").setAttribute("aria-pressed", "false"); } $("vside").setAttribute("aria-pressed", String(!s.hidden)); try { localStorage.setItem("hs-atlas-side", s.hidden ? "0" : "1"); } catch (e) {} setTimeout(resize, 0); };
+addEventListener("resize", () => { if (!$("viewer").hidden) resize(); });
+addEventListener("keydown", e => {
+  if ($("viewer").hidden || e.target.closest("input")) return;
+  if (e.key === "Escape") close(); else if (e.key === " ") { e.preventDefault(); $("vspin").click(); } else if (e.key === "0") $("vreset").click();
+  else if (e.key === "ArrowLeft") { view.yaw -= .15; draw(); } else if (e.key === "ArrowRight") { view.yaw += .15; draw(); }
+});
+
+/* parts bar: toggle compartments, colour by part or path distance */
+function renderParts() {
+  const ps = PARTS.filter(p => G.parts.includes(p[0]));
+  $("parts").innerHTML = `<span class="lbl">Show</span>` + ps.map(([k, l, v]) => `<button class="part" data-p="${k}" aria-pressed="${on[k] !== false}" title="${esc(PART_NOTE[k])}"><i style="background:var(${v})"></i>${l}</button>`).join("") +
+    `<span style="flex:1"></span><span class="lbl">Colour</span><span class="seg"><button data-c="part" aria-pressed="${colorBy === "part"}">Compartment</button><button data-c="dist" aria-pressed="${colorBy === "dist"}">Distance from soma</button>${R && R.frames ? `<button data-c="volt" aria-pressed="${colorBy === "volt"}">Voltage</button>` : ""}</span>`;
+}
+$("parts").addEventListener("click", e => {
+  const b = e.target.closest(".part"), c = e.target.closest("[data-c]");
+  if (b) { on[b.dataset.p] = on[b.dataset.p] === false; b.setAttribute("aria-pressed", String(on[b.dataset.p] !== false)); draw(); renderSide(); }
+  if (c) { colorBy = c.dataset.c; renderParts(); draw(); vLegend(); }
+});
+$("parts").addEventListener("pointerover", e => { const b = e.target.closest(".part"); if (b) { hover = G.part.indexOf(b.dataset.p); draw(); } });
+$("parts").addEventListener("pointerout", e => { if (e.target.closest(".part")) { hover = null; draw(); } });
+
+/* sidebar: simple numbers, Sholl profile, length by depth */
+function renderSide() {
+  const P = G.P, n = P.length, len = {}, branch = {}, tips = {}, diam = {};
+  for (let i = 0; i < n; i++) { const p = G.part[i]; if (p === "soma") continue; len[p] = (len[p] || 0) + G.seglen(i);
+    diam[p] = (diam[p] || [0, 0]); diam[p][0] += 2 * P[i][3] * G.seglen(i); diam[p][1] += G.seglen(i);
+    const k = G.kids[i].length; if (k >= 2) branch[p] = (branch[p] || 0) + 1; if (k === 0) tips[p] = (tips[p] || 0) + 1; }
+  const dend = Object.keys(len).filter(k => k !== "axon");
+  const tot = dend.reduce((s, k) => s + len[k], 0), bp = dend.reduce((s, k) => s + (branch[k] || 0), 0);
+  // Sholl: dendritic crossings of spheres every 25 µm
+  const step = 25, rmax = Math.ceil(Math.max(...P.map((p, i) => G.part[i] === "axon" ? 0 : Math.hypot(p[0], p[1], p[2]))) / step) * step, sh = new Array(rmax / step + 1).fill(0);
+  for (let i = 0; i < n; i++) { const q = P[i][5]; if (q < 0 || G.part[i] === "axon" || G.part[i] === "soma") continue;
+    const a = Math.hypot(...P[q].slice(0, 3)), b = Math.hypot(...P[i].slice(0, 3)); const lo = Math.min(a, b), hi = Math.max(a, b);
+    for (let k = Math.ceil(lo / step); k * step < hi; k++) if (k < sh.length) sh[k]++; }
+  const shMax = Math.max(1, ...sh), W = 320, Hh = 90;
+  const shSvg = `<svg viewBox="0 0 ${W} ${Hh + 16}" role="img" aria-label="Sholl profile"><polyline fill="none" stroke="var(--accent)" stroke-width="1.6" points="${sh.map((v, k) => `${(k / Math.max(1, sh.length - 1)) * (W - 30) + 26},${Hh - v / shMax * (Hh - 8)}`).join(" ")}"/>
+    <line x1="26" y1="${Hh}" x2="${W - 4}" y2="${Hh}" stroke="var(--line)"/><text x="26" y="${Hh + 12}">0</text><text x="${W - 4}" y="${Hh + 12}" text-anchor="end">${rmax} µm</text><text x="2" y="10">${shMax}</text></svg>`;
+  const nrn = C.nrn;
+  $("side").innerHTML = `<div><h3>${esc(C.name)}</h3><p class="note">${esc(C.species)} · ${esc(C.region)}${C.layer ? " · " + esc(C.layer) : ""}</p></div>
+    <div><h3>Dendrites</h3><dl class="kv"><dt>Total length</dt><dd>${fmt(tot)} µm</dd><dt>Branch points</dt><dd>${fmt(bp)}</dd>
+      <dt>Branch density</dt><dd>${fmt(bp / tot * 100)} per 100 µm</dd><dt>Longest path</dt><dd>${fmt(G.maxDist)} µm</dd></dl></div>
+    <div><h3>By compartment <span class="note">(shown parts)</span></h3><dl class="kv">${PARTS.filter(p => len[p[0]] && on[p[0]] !== false).map(([k, l]) =>
+      `<dt>${l}</dt><dd>${fmt(len[k])} µm · ⌀ ${fmt(diam[k][0] / diam[k][1])}</dd>`).join("")}</dl>
+      ${G.hasApical ? `<p class="note">Trunk, obliques and tuft are estimated: the trunk follows the largest apical branch; the tuft starts at 60 % of the apical height.</p>` : ""}</div>
+    <div><h3>Sholl profile</h3>${shSvg}<p class="note">Dendrite crossings of spheres every ${step} µm from the soma: where branching is densest.</p></div>
+    ${nrn ? `<div><h3>Passive NEURON check</h3><dl class="kv"><dt>Input resistance</dt><dd>${fmt(nrn.rin)} MΩ</dd><dt>Length constant (steady)</dt><dd>${fmt(nrn.lam0)} µm</dd><dt>Length constant (100 Hz)</dt><dd>${fmt(nrn.lam100)} µm</dd></dl><p class="note">R<sub>m</sub> 20 kΩ·cm², R<sub>a</sub> 150 Ω·cm, C<sub>m</sub> 1 µF/cm².</p></div>` : ""}
+    <div><h3>Source</h3><p class="note">${esc(C.cite)}</p><p><a href="library.html#cell/${encodeURIComponent(C.id)}">Full record, citation and SWC →</a></p></div>`;
+}
+
+/* screenshot and video */
+function offCanvas(w = 1920, h = 1080) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+$("vshot").onclick = () => { const c = offCanvas(); draw(c); c.toBlob(b => saveFile(`${C.id}.png`, b), "image/png"); };
+$("vvid").onclick = async () => {
+  const types = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"];
+  const type = typeof MediaRecorder !== "undefined" ? types.find(t => MediaRecorder.isTypeSupported(t)) : null;
+  if (!type || !HTMLCanvasElement.prototype.captureStream) { $("vvid").lastChild.textContent = "Video not supported here"; return; }
+  const c = offCanvas(1280, 720), rec = new MediaRecorder(c.captureStream(30), {mimeType: type, videoBitsPerSecond: 6e6}), chunks = [];
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  const done = new Promise(r => rec.onstop = r);
+  const withRun = colorBy === "volt" && R; if (withRun) cancelAnimationFrame(playT);
+  const b = $("vvid"), y0 = view.yaw, T = 8000, t0 = performance.now(); spinOff(); b.disabled = true; rec.start();
+  await new Promise(res => { const tick = () => { const t = (performance.now() - t0) / T; view.yaw = y0 + Math.min(1, t) * 2 * Math.PI; if (withRun) vf = Math.round(Math.min(1, t) * (R.frames.length - 1)); draw(c); draw(); if (withRun) { drawTrace(); vLegend(); }
+    b.lastChild.textContent = `Recording ${Math.min(100, Math.round(t * 100))} %`; if (t < 1) requestAnimationFrame(tick); else res(); }; tick(); });
+  rec.stop(); await done; b.disabled = false; b.lastChild.textContent = "Video";
+  await saveFile(`${C.id}-${withRun ? "run" : "turn"}.${type.includes("mp4") ? "mp4" : "webm"}`, new Blob(chunks, {type: type.split(";")[0]}));
+};
+
+/* open / close */
+async function open(id, push = true) {
+  const c = D.cells.find(x => x.id === id); if (!c) return;
+  C = c; $("viewer").hidden = false; document.body.style.overflow = "hidden";
+  $("vname").textContent = c.name; $("vsub").textContent = `${c.code || c.id} · ${c.region} · ${c.species}`;
+  $("side").hidden = (() => { try { return localStorage.getItem("hs-atlas-side") !== "1"; } catch (e) { return true; } })();
+  $("vside").setAttribute("aria-pressed", String(!$("side").hidden));
+  if (push) history.replaceState(null, "", "#" + encodeURIComponent(id));
+  try { G = await loadCell(c); } catch (e) { $("vsub").textContent = "Could not load this reconstruction: " + e.message; return; }
+  Object.keys(on).forEach(k => delete on[k]); if (c.axonHidden) on.axon = false; view = {yaw: 0, pitch: .12, zoom: 1, px: 0, py: 0}; hover = null;
+  renderParts(); renderSide(); resize();
+  simReset();
+  document.title = `${c.name} · Neuron atlas`;
+  if (!raf) loop();
+  $("vback").focus();
+}
+function close() { $("viewer").hidden = true; document.body.style.overflow = ""; cancelAnimationFrame(raf); raf = 0; spinOff(); history.replaceState(null, "", location.pathname); document.title = "hippsim Neuron atlas"; }
+
+/* ================= simulate: choose scale, model and simulator → baseline → manipulate ================= */
+const MOD = HSModels.MODELS, wide = () => matchMedia("(min-width:1200px)").matches, nTrim = x => (+x).toFixed(2).replace(/\.?0+$/, "");
+let cfg = {scale: "cell", model: "hh", sim: "hippsim"}, R = null, RB = null, X = null, vf = -1, playT = 0, sitePt = -1, picking = false, mcache = {}, busy = false, extTr = null;
+const model = () => MOD[cfg.model];
+const modelsFor = sc => Object.entries(MOD).filter(([, m]) => m.scale === sc && m.when(C));
+function renderSetup() {
+  const ms = modelsFor(cfg.scale); if (!ms.some(([k]) => k === cfg.model)) cfg.model = ms[0][0];
+  const m = model(); if (!m.sims.includes(cfg.sim)) cfg.sim = m.sims[0];
+  document.querySelectorAll("#sscale [data-s]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.s === cfg.scale)));
+  $("smodels").innerHTML = ms.map(([k, x]) => `<button role="radio" data-m="${k}" aria-checked="${k === cfg.model}"><b>${x.name}</b><span>${x.desc}</span></button>`).join("");
+  $("ssims").innerHTML = m.sims.map(x => `<button role="radio" data-sim="${x}" aria-checked="${x === cfg.sim}">${x}</button>`).join("");
+  $("ssims").hidden = m.sims.length < 2;
+  let fx = $("ssimrow").querySelector(".fixed"); if (!fx) { fx = document.createElement("span"); fx.className = "fixed"; $("ssimrow").appendChild(fx); }
+  fx.hidden = m.sims.length > 1; fx.textContent = `hippsim (this browser)${m.original ? " · original model in " + m.original : ""}`;
+  $("sgo").textContent = cfg.sim === "hippsim" ? "▶ Run baseline" : `▶ Show the ${cfg.sim} baseline`;
+}
+$("sscale").onclick = e => { const b = e.target.closest("[data-s]"); if (b && !busy) { cfg.scale = b.dataset.s; renderSetup(); } };
+$("smodels").onclick = e => { const b = e.target.closest("[data-m]"); if (b && !busy) { cfg.model = b.dataset.m; renderSetup(); } };
+$("ssims").onclick = e => { const b = e.target.closest("[data-sim]"); if (b && !busy) { cfg.sim = b.dataset.sim; renderSetup(); } };
+$("schange").onclick = () => { cancelAnimationFrame(playT); R = RB = X = null; vf = -1; if (colorBy === "volt") colorBy = "part"; renderParts(); vLegend(); draw();
+  $("ssetup").hidden = false; $("schosen").hidden = true; $("sout").hidden = true; $("stitle").textContent = "Simulate"; renderSetup(); };
+
+/* parameters: sliders built from the model; values read back as numbers */
+const pbase = () => Object.fromEntries(model().params.map(q => [q.k, q.base]));
+function pnow() { const o = {}; model().params.forEach(q => { const el = $("sp-" + q.k); o[q.k] = el ? +el.value : q.base; }); return o; }
+function buildControls() {
+  const m = model();
+  $("spre").innerHTML = m.presets.map(x => `<button data-pre="${x.id}" title="${esc(x.title || "")}">${x.label}</button>`).join("");
+  $("sctl").innerHTML = m.params.map(q => `<label class="sl">${q.label} <output id="so-${q.k}"></output><input type="range" id="sp-${q.k}" min="${q.min}" max="${q.max}" step="${q.step}" value="${q.base}"></label>`).join("");
+  m.params.forEach(q => $("sp-" + q.k).addEventListener("input", syncOut));
+  $("spickrow").hidden = !m.electrode; sitePt = -1; $("ssite").textContent = "soma"; syncOut();
+}
+function changes() {
+  const m = model(), b = pbase(), p = pnow(), out = m.params.filter(q => Math.abs(p[q.k] - b[q.k]) > 1e-9).map(q => `${q.label} ${q.f(b[q.k])} → ${q.f(p[q.k])}`);
+  if (m.electrode && sitePt >= 0) out.push(`Electrode → ${$("ssite").textContent}`);
+  return out;
+}
+function syncOut() {
+  const m = model(), p = pnow(); m.params.forEach(q => { const o = $("so-" + q.k); if (o) o.textContent = q.f(p[q.k]); });
+  $("sbase").innerHTML = m.base(p).map(([k, v, ch]) => `<dt>${k}</dt><dd${ch ? ' class="chg"' : ""}>${v}</dd>`).join("") + (m.electrode ? `<dt>Electrode</dt><dd${sitePt >= 0 ? ' class="chg"' : ""}>${esc($("ssite").textContent)}</dd>` : "")
+    + `<dt>Morphology</dt><dd>${m.pop ? "not used (point neurons)" : esc(C.cite || (C.prov && C.prov.archive) || C.name)}</dd>`;
+  document.querySelectorAll("#spre [data-pre]").forEach(b => { const x = m.presets.find(y => y.id === b.dataset.pre); b.setAttribute("aria-pressed", String(Object.entries(x.set).every(([k, v]) => Math.abs(p[k] - v) < 1e-9))); });
+  const n = changes().length; $("snch").textContent = n ? `${n} change${n > 1 ? "s" : ""} from baseline` : "No changes yet";
+  $("stitle").textContent = n ? "Manipulated" : "Baseline";
+}
+$("spre").onclick = e => { const b = e.target.closest("[data-pre]"); if (!b) return; const m = model(), x = m.presets.find(y => y.id === b.dataset.pre), on = b.getAttribute("aria-pressed") === "true", bb = pbase();
+  Object.entries(x.set).forEach(([k, v]) => { $("sp-" + k).value = on ? bb[k] : v; }); syncOut(); };
+function setBaseline() { model().params.forEach(q => { const el = $("sp-" + q.k); if (el) el.value = q.base; }); sitePt = -1; $("ssite").textContent = "soma"; syncOut(); draw(); }
+$("sreset").onclick = () => { setBaseline(); if (RB) { R = RB; showResult(); play(); } };
+function simReset() { cancelAnimationFrame(playT); R = RB = X = null; vf = -1; picking = false; mcache = {}; if (colorBy === "volt") colorBy = "part";
+  cfg.scale = "cell"; cfg.model = "hh"; cfg.sim = "hippsim"; $("ssetup").hidden = false; $("schosen").hidden = true; $("sout").hidden = true; $("stitle").textContent = "Simulate";
+  renderSetup(); renderParts(); vLegend(); }
+function openSim(on) { $("simp").hidden = !on; $("vsim").setAttribute("aria-pressed", String(on));
+  if (on && !wide()) { $("side").hidden = true; $("vside").setAttribute("aria-pressed", "false"); }
+  if (on) renderSetup(); setTimeout(() => { resize(); drawTrace(); }, 0); }
+$("vsim").onclick = () => openSim($("simp").hidden);
+$("sclose").onclick = () => openSim(false);
+$("smanip").onclick = () => { $("sman").hidden = false; $("smanip").hidden = true; $("smanip").setAttribute("aria-expanded", "true"); };
+$("spick").onclick = () => { picking = !picking; $("spick").setAttribute("aria-pressed", String(picking)); $("spick").textContent = picking ? "now tap a branch on the cell…" : "tap a branch to move it"; };
+function placeElectrode(i) {
+  picking = false; $("spick").setAttribute("aria-pressed", "false"); $("spick").textContent = "tap a branch to move it";
+  if (G.part[i] === "soma") { sitePt = -1; $("ssite").textContent = "soma"; }
+  else { sitePt = i; $("ssite").textContent = `${(PARTS.find(x => x[0] === G.part[i]) || [, G.part[i]])[1].toLowerCase()}, ${fmt(G.dist[i])} µm from soma`; }
+  syncOut(); draw();
+}
+/* voltage colours: −80 mV blue → −50 grey-blue → +30 red */
+function vColor(v) { const t = Math.max(0, Math.min(1, (v + 80) / 110)); return t < .3 ? `hsl(220 70% ${35 + t * 80}%)` : `hsl(${220 - (t - .3) / .7 * 220} 75% ${55 - (t - .3) * 15}%)`; }
+$("vgrad").style.background = `linear-gradient(90deg,${[-80, -58, -36, -14, 8, 30].map(vColor).join(",")})`;
+function vLegend() { const on = colorBy === "volt" && R && R.frames && vf >= 0; $("vleg").hidden = !on; if (on) $("vt").textContent = `· ${fmt(vf * R.frameDt)} ms`; }
+function drawTrace() {
+  const c = $("trace"); if (!c || $("simp").hidden || $("sout").hidden) return; const d = devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+  c.width = W * d; c.height = H * d; const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, W, H);
+  g.font = "10px " + (css("--f-mono") || "monospace"); g.fillStyle = css("--muted"); g.strokeStyle = css("--line"); g.lineWidth = 1;
+  if (!R) { g.fillText(busy || "", 10, H / 2); return; }
+  const T = R.tstop, X0 = 30, Xt = t => X0 + t / T * (W - X0 - 6);
+  g.textAlign = "right"; g.fillText(`${T} ms`, W - 4, H - 3); g.textAlign = "left";
+  if (R.pop) {                                                   // raster (top) + population rate (bottom)
+    const h1 = (H - 16) * 0.68, Yr = i => 4 + i / R.show * (h1 - 4);
+    R.raster.forEach(([t, i]) => { g.fillStyle = i < R.show * 0.8 ? css("--ink") : css("--accent"); g.fillRect(Xt(t), Yr(i), 1.2, 1.2); });
+    const mx = Math.max(1, ...R.rate.map(x => x[1])), Yq = v => H - 14 - v / mx * (H - 16 - h1 - 6);
+    g.strokeStyle = css("--ink"); g.lineWidth = 1; g.beginPath(); R.rate.forEach(([t, v], k) => k ? g.lineTo(Xt(t), Yq(v)) : g.moveTo(Xt(t), Yq(v))); g.stroke();
+    g.fillStyle = css("--muted"); g.fillText("E", 2, Yr(R.show * 0.4)); g.fillStyle = css("--accent"); g.fillText("I", 2, Yr(R.show * 0.9)); g.fillStyle = css("--muted"); g.fillText(`${Math.round(mx)} Hz`, 2, Yq(mx) + 8);
+    return;
+  }
+  const Y = v => 8 + (40 - v) / 130 * (H - 22);
+  [-80, -40, 0, 40].forEach(v => { g.fillText(v === 40 ? "mV" : v, 2, Y(v) + 3); g.beginPath(); g.moveTo(28, Y(v)); g.lineTo(W, Y(v)); g.globalAlpha = .4; g.stroke(); g.globalAlpha = 1; });
+  if (R.stim) { g.fillStyle = css("--accent"); g.globalAlpha = .18; g.fillRect(Xt(R.stim[0]), H - 10, Xt(R.stim[1]) - Xt(R.stim[0]), 4); g.globalAlpha = 1; }
+  const line = (t, v, col, w, a = 1) => { g.globalAlpha = a; g.strokeStyle = col; g.lineWidth = w; g.beginPath(); v.forEach((y, k) => { const x = Xt(t[k]), yy = Y(y); k ? g.lineTo(x, yy) : g.moveTo(x, yy); }); g.stroke(); g.globalAlpha = 1; };
+  const cmp = RB && R !== RB, keys = [];
+  if (cmp) { line(RB.t, RB.vSoma, css("--muted"), 1, .45); keys.push(["baseline", css("--muted")]); }
+  if (X && R === RB) { line(R.t, R.vSoma, css("--muted"), 1, .5); line(X.t, X.v, css("--ink"), 1.3); keys.push([cfg.sim, css("--ink")], ["hippsim", css("--muted")]); }
+  else { if (R.siteIdx && R.vSite) { line(R.t, R.vSite, css("--basal"), 1); keys.push(["electrode", css("--basal")]); } line(R.t, R.vSoma, css("--ink"), 1.3); keys.unshift(["soma", css("--ink")]); }
+  let lx = W - 6; g.textAlign = "right"; keys.forEach(([txt, col]) => { g.fillStyle = col; g.fillText(txt, lx, 10); lx -= g.measureText(txt).width + 10; }); g.textAlign = "left";
+  if (vf >= 0 && R.frames) { g.strokeStyle = css("--accent"); g.lineWidth = 1.5; const x = Xt(vf * R.frameDt); g.beginPath(); g.moveTo(x, 14); g.lineTo(x, H - 12); g.stroke(); }
+}
+$("trace").addEventListener("pointerdown", e => { if (!R || !R.frames) return; const r = $("trace").getBoundingClientRect(); const t = Math.max(0, Math.min(R.tstop, (e.clientX - r.left - 30) / (r.width - 36) * R.tstop));
+  cancelAnimationFrame(playT); vf = Math.min(R.frames.length - 1, Math.round(t / R.frameDt)); draw(); drawTrace(); vLegend(); });
+function play() { if (!R.frames) { vf = -1; draw(); drawTrace(); vLegend(); return; } const t0 = performance.now(), T = R.tstop > 500 ? 6000 : 4000;
+  const tick = () => { if (!R || !R.frames || $("viewer").hidden) return; const f = Math.min(1, (performance.now() - t0) / T); vf = Math.round(f * (R.frames.length - 1)); draw(); drawTrace(); vLegend(); if (f < 1) playT = requestAnimationFrame(tick); };
+  cancelAnimationFrame(playT); tick(); }
+function showResult() {
+  const m = model(); let html;
+  if (X && R === RB) {                                            // NEURON / Brian2 baseline (precomputed with the same model)
+    const mine = m.summary(RB);
+    html = `<b>${cfg.sim}: ${X.n} spike${X.n === 1 ? "" : "s"}</b>${X.first != null ? ` · first ${fmt(X.first)} ms after the step` : ""} · hippsim: ${mine.n} <span class="muted">(${esc(X.note)})</span>`;
+  } else {
+    html = m.summary(R).html;
+    if (RB && R !== RB) { const b = m.summary(RB); html += ` <span class="muted">(baseline ${typeof b.n === "number" && !Number.isInteger(b.n) ? fmt(b.n) + " Hz" : b.n})</span>`; }
+  }
+  $("sres").innerHTML = html;
+  const ext = cfg.sim !== "hippsim" && R !== RB; $("sextnote").hidden = !ext;
+  if (ext) $("sextnote").innerHTML = `Manipulations run here in hippsim's engine. To run them in ${cfg.sim}, <button class="linkish" id="sextpy">download the ${cfg.sim} script with these settings</button>.`;
+  const sc = scriptKind(); $("spy").hidden = !sc; if (sc) $("spy").textContent = `${sc.startsWith("neuron") ? "NEURON" : "Brian2"} script`;
+}
+async function loadExt() {                                        // precomputed NEURON / Brian2 baseline traces (tools/engine_check.py)
+  if (!extTr) { try { extTr = await (await fetch("engine_traces.json")).json(); } catch (e) { extTr = {}; } }
+  const v = ((extTr || {})[C.id] || {})[cfg.sim.toLowerCase()]; if (!v) return null;
+  const t = v.map((_, k) => k * 0.5), e = (D.eng || {})[C.id] || {}, r = e[cfg.sim.toLowerCase()] || {}, sp = []; for (let k = 1; k < v.length; k++) if (v[k - 1] < 0 && v[k] >= 0) sp.push(t[k]);
+  return {t, v, spikes: sp, n: r.spikes ?? sp.filter(x => x >= 50 && x < 350).length, first: r.first_ms, note: `${cfg.sim} run ${e.date || ""}, same model; the 3D colours are hippsim's run`};
+}
+async function runModel(baseline) {
+  if (busy) return; const m = model(), btn = baseline ? $("sgo") : $("srun"), label = btn.textContent; busy = "running…"; btn.disabled = true;
+  if (baseline) { R = RB = X = null; $("ssetup").hidden = true; $("schosen").hidden = false; $("sout").hidden = false; $("sman").hidden = true; $("smanip").hidden = false; buildControls(); }
+  $("sdoc").href = `docs.html#model-${cfg.model}`;
+  $("schosent").innerHTML = `<b>${{cell: "Single cell", circuit: "Circuit", population: "Population"}[cfg.scale]}</b> · ${m.name} · ${cfg.sim}`;
+  const prog = f => { btn.textContent = `Running… ${Math.round(f * 100)} %`; if (!R) { busy = `running… ${Math.round(f * 100)} %`; drawTrace(); } };
+  prog(0); await new Promise(r => setTimeout(r, 30));
+  try {
+    const p = baseline ? pbase() : pnow(), out = await m.run(G.P, mcache, p, baseline ? -1 : sitePt, prog);
+    out.p = p; out.stim = m.stim; out.model = cfg.model; R = out; if (baseline) RB = R;
+    if (baseline && cfg.sim !== "hippsim") { X = await loadExt(); if (!X) $("sres").textContent = `No ${cfg.sim} trace for this cell.`; }
+    if (R.frames) colorBy = "volt"; renderParts(); $("ssave").disabled = false; $("ssave").textContent = "Save run";
+    showResult(); play(); $("simp").scrollTo({top: 0, behavior: "smooth"});
+  } catch (e) { $("sres").textContent = "Could not simulate this cell: " + e.message; }
+  busy = false; btn.disabled = false; btn.textContent = baseline ? "▶ Run baseline" : "▶ Run"; drawTrace();
+}
+$("sgo").onclick = () => runModel(true);
+$("srun").onclick = () => runModel(false);
+/* scripts: the HH model and the population have NEURON / Brian2 versions that take the current settings */
+const scriptKind = () => cfg.model === "hh" ? (cfg.sim === "Brian2" ? "brian2_single" : "neuron_single") : cfg.model === "population" ? "brian2_network" : null;
+function script(kind) {
+  const swc = C.file.split("/").pop(), t = D.scripts[kind], p = R ? R.p : pbase(), at = R && R !== RB && sitePt >= 0 ? G.P[sitePt] : null;
+  const xyz = at ? `(${[0, 1, 2].map(j => +(at[j] + G.off[j]).toFixed(3)).join(", ")})` : "None";
+  return t.replaceAll("{SWC_FILE}", swc).replaceAll("{NAME}", C.name.replace(/"/g, "'")).replaceAll("{ID}", C.id).replaceAll("{AMP_NA}", nTrim(p.amp ?? 0.5))
+    .replaceAll("{NA_SCALE}", nTrim(p.na ?? 1)).replaceAll("{K_SCALE}", nTrim(p.k ?? 1)).replaceAll("{DEND_FRAC}", nTrim((p.dend ?? 2) / 100)).replaceAll("{SITE_XYZ}", xyz)
+    .replaceAll("{SITE_LABEL}", at ? $("ssite").textContent : "soma").replaceAll("{G_RATIO}", nTrim(p.g ?? 5)).replaceAll("{NU_RATIO}", nTrim(p.nu ?? 2));
+}
+async function giveScript(kind) {
+  await saveFile(`${C.id}_${kind}.py`, new Blob([script(kind)], {type: "text/x-python"}));
+  if (kind !== "brian2_network") { const swc = await (await fetch(C.file)).blob(); await saveFile(C.file.split("/").pop(), swc); }
+}
+$("spy").onclick = async () => { const k = scriptKind(), b = $("spy"), t = b.textContent; b.textContent = "Saving…"; await giveScript(k); b.textContent = "Saved ✓"; setTimeout(() => b.textContent = t, 2500); };
+$("sman").addEventListener("click", async e => { if (e.target.id === "sextpy") { e.target.textContent = "Saving…"; await giveScript(scriptKind()); e.target.textContent = "saved ✓"; } });
+/* save the run to Runs (online), reopen from there into this view */
+const capDb = n => window.HS_BACKEND ? window.HS_BACKEND.use(n).catch(() => null) : (window.claude && typeof window.claude.use === "function") ? window.claude.use(n).catch(() => null) : Promise.resolve(null);
+$("ssave").onclick = async () => {
+  const b = $("ssave"), m = model(), p = R.p, isBase = R === RB; b.disabled = true; b.textContent = "Saving…";
+  const chg = isBase ? [] : changes(), sum = m.summary(R).html.replace(/<[^>]+>/g, "").split(" · ")[0];
+  const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), created = new Date().toISOString();
+  const q = new URLSearchParams({model: cfg.model, sim: cfg.sim, ...(isBase ? {} : Object.fromEntries(Object.entries(p).map(([k, v]) => [k, String(v)]))), ...(!isBase && sitePt >= 0 ? {site: sitePt} : {})});
+  const href = `index.html#${encodeURIComponent(C.id)}?${q}`;
+  const entry = {id, created, label: `${C.name} ${C.code || ""} · ${m.tag} · ${isBase ? "baseline" : chg.length + " change" + (chg.length > 1 ? "s" : "")} · ${sum}`.replace(/\s+/g, " "), note: "", tool: "atlas", route: "/atlas/", tool_name: "Neurons · " + m.name,
+    page: "index.html", href, perturbations: [], n_changed: chg.length, changes: chg, values: [], stored: true, n_figs: 1};
+  try {
+    const [db, user] = await Promise.all([capDb("db"), capDb("user")]); if (!db || !user) throw new Error("saving needs the online version");
+    const uid = await user.id(), ref = db.doc("runs/" + uid), cur = await ref.get(), v = cur.exists ? cur.data() : {entries: [], folders: []};
+    const fig = $("trace").toDataURL("image/png"), item = db.doc(`runs/${uid}/items/${id}`);
+    const data = R.pop ? {rate: R.rate.map(([t, r]) => [t, +r.toFixed(1)])} : {spikes: R.spikes, t: R.t.filter((_, k) => k % 5 === 0), vSoma: R.vSoma.filter((_, k) => k % 5 === 0).map(x => +x.toFixed(2))};
+    await item.set({figures: ["figures/result.png"], run: {schema: "hippsim.atlas-run/1.1", id, created, cell: {id: C.id, name: C.name, code: C.code, source: C.cite}, scale: cfg.scale, model: cfg.model, model_name: m.name,
+      simulator: cfg.sim, params: p, baseline: isBase, changes: chg, site: isBase || sitePt < 0 ? "soma" : $("ssite").textContent, summary: m.summary(R).html.replace(/<[^>]+>/g, ""), ...data}, saved: created});
+    if (fig.length < 180000) await item.collection("figs").doc("0").set({name: "figures/result.png", data: fig});
+    v.entries = [entry, ...(v.entries || [])]; await ref.set({entries: v.entries, folders: v.folders || [], updated: created});
+    b.textContent = "Saved ✓ in Runs";
+  } catch (e) { b.textContent = "Not saved"; b.title = e.message; b.disabled = false; }
+};
+
+renderIndex();
+/* address: #<cell id>[?model=…&sim=…&<param>=…&site=<point>] (Runs reopens saved runs this way) */
+async function route() {
+  const [h, q] = location.hash.slice(1).split("?"), start = decodeURIComponent(h || "");
+  if (!start) { if (!$("viewer").hidden) close(); return; }
+  if (!D.cells.some(c => c.id === start)) return;
+  await open(start, false);
+  if (!q) return;
+  const a = new URLSearchParams(q), mk = a.get("model") || (a.has("amp") ? "hh" : null); if (!mk || !MOD[mk]) return;
+  cfg = {scale: MOD[mk].scale, model: mk, sim: a.get("sim") || "hippsim"}; openSim(true); renderSetup();
+  await runModel(true);
+  let any = false; model().params.forEach(x => { if (a.has(x.k)) { $("sp-" + x.k).value = a.get(x.k); any = true; } });
+  syncOut(); if (a.has("site") && G && G.P[+a.get("site")]) placeElectrode(+a.get("site"));
+  if (changes().length) { $("smanip").click(); await runModel(false); }
+}
+route(); addEventListener("hashchange", route);
+</script>

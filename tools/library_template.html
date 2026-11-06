@@ -1,0 +1,388 @@
+<title>hippsim Cells &amp; data</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: lab bench — slim masthead with view tabs; each view is one working surface (tables left, inspector right).
+   Palette continues the Little Neural Guide: warm paper, ink, apical magenta, basal slate. */
+:root{
+  --bg:#fff9f2; --surface:#fffdfa; --ink:#1b1616; --muted:#75665f; --rule:#e8dbd1; --line:#cdb8ad; --code:#f5ece4;
+  --apical:#a62961; --basal:#3d5a8a; --axon:#9a6a33; --accent:#a62961; --on-accent:#ffffff;
+  --ok:#1f7a4d; --ok-bg:#e1f3ea; --warn:#9a6200; --warn-bg:#fcefd3; --plan:#5d6076; --plan-bg:#ece9ee;
+  --f-display:Georgia,"Times New Roman",serif;
+  --f-body:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 56px}
+a{color:var(--accent)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.1;text-wrap:balance}
+h2{font-size:1.45rem;font-weight:800;letter-spacing:-.01em}
+h3{font-size:1rem;font-weight:600}
+p{margin:0;max-width:68ch}
+.muted{color:var(--muted)}
+.eyebrow{font:500 11.5px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* masthead */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.mast{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);padding-block:18px 0;display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.brand h1{font-size:clamp(1.7rem,4vw,2.3rem);font-weight:800;letter-spacing:-.025em}
+.brand h1 b{color:var(--accent);font-weight:800}
+.brand .home{font:800 1rem var(--f-display);color:var(--accent);text-decoration:none;border:1px solid var(--accent);border-radius:999px;padding:4px 12px}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs a{padding:9px 14px 11px;text-decoration:none;color:var(--muted);font-weight:600;font-size:14px;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs a:hover{color:var(--ink)}
+.tabs a.sim{margin-left:auto;color:var(--accent)}
+.tabs .n{font:500 11px var(--f-mono);color:var(--muted);margin-left:5px}
+
+/* generic blocks */
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;min-width:0}
+.sect{display:flex;flex-direction:column;gap:14px;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:6px;font:500 11.5px/1 var(--f-mono);padding:5px 9px;border-radius:999px;white-space:nowrap}
+.chip.done,.chip.pass{background:var(--ok-bg);color:var(--ok)}
+.chip.progress,.chip.issue{background:var(--warn-bg);color:var(--warn)}
+.chip.next,.chip.planned{background:var(--plan-bg);color:var(--plan)}
+.chip.extracted{background:var(--ok-bg);color:var(--ok)}
+.chip.reference{background:var(--warn-bg);color:var(--warn)}
+.chip.excluded{background:var(--plan-bg);color:var(--plan)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:500 11px/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--code);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.num{text-align:right;font-family:var(--f-mono);font-size:12.5px}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover td{background:var(--code)}
+tbody tr.sel td{background:var(--code)}
+tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters input[type=search]{flex:1 1 220px;min-width:0;padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.filters select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);max-width:100%}
+.count{font:500 12px var(--f-mono);color:var(--muted)}
+
+/* overview */
+.simcta{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid var(--accent);border-radius:12px;background:var(--surface);text-decoration:none;color:var(--ink);max-width:760px}
+.simcta b{font:800 1.25rem/1.2 var(--f-display);color:var(--accent)}
+.simcta span{font-size:14px;color:var(--muted)}
+.simcta:hover{box-shadow:0 3px 0 var(--accent)}
+.lede{font-size:1.08rem;max-width:70ch}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{padding:12px 0 0;border-top:2px solid var(--ink);display:flex;flex-direction:column;gap:2px}
+.stat b{font:800 1.7rem/1.05 var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--muted)}
+.two{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
+.stages{display:flex;flex-direction:column}
+.stage{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:2px 12px;padding:13px 16px;border-bottom:1px solid var(--rule)}
+.stage:last-child{border-bottom:0}
+.stage .k{font:800 1.15rem/1.3 var(--f-display);color:var(--muted)}
+.stage p{grid-column:2;font-size:13.5px;color:var(--muted)}
+.stage .chip{grid-column:3;grid-row:1;align-self:start}
+.tree{font:13px/1.65 var(--f-mono);padding:14px 16px;overflow-x:auto;white-space:pre;margin:0;background:var(--code);border-radius:10px;border:1px solid var(--rule)}
+.tree i{font-style:normal;color:var(--muted)}
+.tree b{font-weight:500;color:var(--accent)}
+
+/* inspector layouts */
+.bench{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:980px){.bench{grid-template-columns:minmax(0,1fr)}}
+.listbox{max-height:min(72vh,780px);overflow:auto;border-radius:10px}
+.inspector{position:sticky;top:120px;display:flex;flex-direction:column;gap:12px;padding:16px}
+@media (max-width:980px){.inspector{position:static}}
+.inspector .empty{color:var(--muted);font-size:14px;padding:30px 4px;text-align:center}
+canvas#cellcv{width:100%;aspect-ratio:1/1;max-width:100%;background:var(--code);border-radius:8px;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+dl.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0;font-size:13.5px}
+dl.kv dt{color:var(--muted);font-size:12.5px}
+dl.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 13px;font-weight:600;font-size:13px;cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{color:var(--on-accent);filter:brightness(1.06)}
+
+/* cells explorer: tag facets, card grid, cell page */
+.facets{display:flex;flex-direction:column;gap:8px}
+.facet{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.facet .fl{font:500 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);min-width:64px}
+.tag{font:500 12px/1 var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.tag .n{font:500 10.5px var(--f-mono);color:var(--muted);margin-left:3px}
+.tag:hover{border-color:var(--accent)}
+.tag[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tag[aria-pressed="true"] .n{color:inherit;opacity:.8}
+.t-region{border-left:3px solid var(--apical)}.t-species{border-left:3px solid var(--basal)}.t-arch{border-left:3px solid var(--axon)}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px}
+.cgrid.small{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+.ccard{background:var(--surface);border:1px solid var(--rule);border-radius:12px;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.ccard:hover{border-color:var(--accent);box-shadow:0 2px 0 var(--accent)}
+.cmain{display:flex;flex-direction:column;text-decoration:none;color:inherit;padding:10px 10px 6px;gap:6px}
+.cmain:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.th{width:100%;aspect-ratio:1/1;background:var(--code);border-radius:8px;display:block}
+.th path{fill:none;stroke-width:.7;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.th .ap{stroke:var(--apical)}.th .ba{stroke:var(--basal)}.th .ax{stroke:var(--axon);opacity:.55}.th .so{fill:var(--ink)}
+.ctxt{display:flex;flex-direction:column;gap:1px;min-width:0}
+.ctxt b{font-size:13.5px;line-height:1.25}
+.ctxt .mono{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ctags{display:flex;flex-wrap:wrap;gap:4px;padding:0 10px 10px}
+.ctags .tag{font-size:11px;padding:3px 8px}
+.crumbs{font-size:13px;color:var(--muted)}.crumbs a{color:var(--muted)}
+.linkish{all:unset;cursor:pointer;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.chead{display:flex;flex-wrap:wrap;gap:14px 24px;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--rule);padding-bottom:14px}
+.chead h2{font-size:clamp(1.5rem,3.5vw,2rem)}
+.chead .ctags{padding:8px 0 0}
+.cbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:22px;align-items:start}
+@media (max-width:900px){.cbody{grid-template-columns:minmax(0,1fr)}}
+.cfig{margin:0;display:flex;flex-direction:column;gap:8px;position:sticky;top:12px}
+@media (max-width:900px){.cfig{position:static}}
+.cfig canvas{width:100%;aspect-ratio:1/1;background:var(--code);border-radius:10px;display:block}
+.cinfo{display:flex;flex-direction:column;gap:12px;font-size:14.5px}
+.two-t{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.kvt{font-size:13.5px}.kvt caption{text-align:left;font-weight:700;padding:0 0 6px;font-size:13px}
+.kvt caption .muted{display:block;font-weight:400;font-size:11.5px}
+.kvt th{position:static;background:none;text-transform:none;letter-spacing:0;font:13px var(--f-body);color:var(--muted);padding:6px 10px 6px 0}
+.kvt td{padding:6px 0}
+.cite{border:1px solid var(--rule);border-radius:10px;padding:12px 14px;background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.cite p{font-size:13.5px}.cite .ids{font-size:12.5px}
+
+/* files */
+.fgrid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.fgrid{grid-template-columns:minmax(0,1fr)}}
+.ftree{max-height:min(76vh,820px);overflow:auto;padding:8px 0;font-size:13px}
+.ftree details{padding-left:12px}
+.ftree summary{cursor:pointer;padding:3px 10px 3px 0;font-family:var(--f-mono);font-size:12.5px;color:var(--ink);list-style-position:inside}
+.ftree summary .n{color:var(--muted)}
+.ftree button{all:unset;display:flex;justify-content:space-between;gap:10px;width:calc(100% - 12px);margin-left:12px;padding:3px 10px 3px 8px;border-radius:6px;cursor:pointer;font-family:var(--f-mono);font-size:12.5px}
+.ftree button:hover{background:var(--code)}
+.ftree button[aria-current="true"]{background:var(--code);box-shadow:inset 2px 0 0 var(--accent)}
+.ftree button span:last-child{color:var(--muted);font-size:11px;white-space:nowrap}
+.ftree button:focus-visible{outline:2px solid var(--accent)}
+.viewer{display:flex;flex-direction:column;min-width:0}
+.vhead{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--rule)}
+.vhead .path{font:500 13px var(--f-mono);overflow-wrap:anywhere}
+.vdesc{padding:10px 16px;font-size:13.5px;color:var(--muted);border-bottom:1px solid var(--rule)}
+pre.src{margin:0;padding:14px 16px;overflow:auto;max-height:min(70vh,760px);font:12.5px/1.55 var(--f-mono);tab-size:4;background:var(--surface);border-radius:0 0 10px 10px}
+.vimg{padding:16px;background:#ffffff;border-radius:0 0 10px 10px}
+.note{font-size:12.5px;color:var(--warn);background:var(--warn-bg);padding:8px 16px}
+footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--rule);padding-top:16px;display:flex;flex-direction:column;gap:4px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+
+<div class="wrap">
+  <div class="mast">
+    <div class="brand"><h1>Cells &amp; data</h1><span class="eyebrow">Reconstructions, sources and files</span></div>
+    <nav class="tabs" aria-label="Views">
+      <a href="#cells" data-v="cells">Cells <span class="n" id="n-cells"></span></a>
+      <a href="#files" data-v="files">Files <span class="n" id="n-files"></span></a>
+    </nav>
+  </div>
+
+  <!-- ================= CELLS: index ================= -->
+  <section id="v-cells" class="sect" data-view hidden>
+    <p class="lede">Every reconstruction in hippsim, with its source paper, archive record and a passive NEURON check. Click a tag to filter; click a cell for its page.</p>
+    <div class="filters">
+      <input type="search" id="mq" placeholder="Search name, code, paper…  (try: CA3, Amaral, granule)" aria-label="Search cells">
+      <span class="count" id="mcount" aria-live="polite"></span>
+      <button class="btn" id="mreset" hidden>Clear filters</button>
+    </div>
+    <div class="facets" id="facets"></div>
+    <div class="cgrid" id="cgrid"></div>
+  </section>
+
+  <!-- ================= CELLS: one cell ================= -->
+  <section id="v-cell" class="sect" data-view hidden aria-live="polite"></section>
+
+  <!-- ================= FILES ================= -->
+  <section id="v-files" class="sect" data-view hidden>
+    <div class="fgrid">
+      <nav class="panel ftree" id="ftree" aria-label="Repository files"></nav>
+      <div class="panel viewer" id="viewer"><p class="inspector empty" style="position:static">Choose a file to read it here.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Each cell keeps its source paper and archive record; cite those when you use a cell (<a href="morphologies/references.bib">BibTeX</a> · <a href="morphologies/provenance.csv">provenance.csv</a>). NeuroMorpho.Org cells: also cite Ascoli et al. (2007).</span>
+    <span>How the repository was assembled: <a href="#files" onclick="setTimeout(()=>openFile('sources/MANIFEST.csv'),50)">sources/MANIFEST.csv</a>.</span>
+  </footer>
+</div>
+
+<script>
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const kb = b => (b / 1024).toFixed(b < 10240 ? 1 : 0);
+const fmt = n => (n == null || n === "") ? "–" : Number(n).toLocaleString("en-US");
+const statusClass = s => ({done:"done","in progress":"progress",next:"next",planned:"planned",pass:"pass","known issue":"issue"}[s] || "planned");
+
+$("n-cells").textContent = D.cells.length; $("n-files").textContent = D.files.length;
+
+/* ---------------- cells: index ---------------- */
+const FACETS = [["region", "Region"], ["group", "Type"], ["species", "Species"], ["arch", "Source"]];
+D.cells.forEach(c => { c.arch = (c.prov && c.prov.archive) || "Publication"; });
+const F = {};                                     // active filters: facet -> value
+const thumbSVG = (c, cls = "") => { const t = c.thumb || {}; return `<svg viewBox="0 0 100 100" class="th ${cls}" aria-hidden="true">
+  ${t.x ? `<path d="${t.x}" class="ax"/>` : ""}${t.b ? `<path d="${t.b}" class="ba"/>` : ""}${t.a ? `<path d="${t.a}" class="ap"/>` : ""}${t.s ? `<circle cx="${t.s[0]}" cy="${t.s[1]}" r="2.2" class="so"/>` : ""}</svg>`; };
+const tag = (k, v) => v ? `<button type="button" class="tag t-${k}" data-f="${k}" data-v="${esc(v)}" aria-pressed="${F[k] === v}">${esc(v)}</button>` : "";
+function match(c) {
+  const q = $("mq").value.trim().toLowerCase();
+  return Object.entries(F).every(([k, v]) => c[k] === v) &&
+    (!q || [c.id, c.name, c.code, c.cite, c.group, c.region, c.species, c.arch, c.layer].join(" ").toLowerCase().includes(q));
+}
+function renderCells() {
+  const rows = D.cells.filter(match);
+  $("mcount").textContent = `${rows.length} of ${D.cells.length} cells`;
+  $("mreset").hidden = !Object.keys(F).length && !$("mq").value;
+  $("facets").innerHTML = FACETS.map(([k, label]) => {
+    const n = {}; D.cells.filter(c => Object.entries(F).every(([kk, v]) => kk === k || c[kk] === v)).forEach(c => n[c[k]] = (n[c[k]] || 0) + 1);
+    return `<div class="facet"><span class="fl">${label}</span>${Object.entries(n).sort((x, y) => y[1] - x[1]).map(([v, m]) =>
+      `<button type="button" class="tag t-${k}" data-f="${k}" data-v="${esc(v)}" aria-pressed="${F[k] === v}">${esc(v)} <span class="n">${m}</span></button>`).join("")}</div>`;
+  }).join("");
+  $("cgrid").innerHTML = rows.map(c => `<article class="ccard">
+      <a class="cmain" href="#cell/${esc(c.id)}">${thumbSVG(c)}<span class="ctxt"><b>${esc(c.name)}</b><span class="mono">${esc(c.code || c.id)}</span></span></a>
+      <div class="ctags">${tag("region", c.region)}${tag("species", c.species)}${tag("arch", c.arch)}</div></article>`).join("")
+    || `<p class="muted">No cell matches. <button class="btn" onclick="document.getElementById('mreset').click()">Clear filters</button></p>`;
+}
+$("mq").addEventListener("input", renderCells);
+$("mreset").addEventListener("click", () => { Object.keys(F).forEach(k => delete F[k]); $("mq").value = ""; renderCells(); });
+document.addEventListener("click", e => {
+  const b = e.target.closest("button.tag[data-f]"); if (!b) return;
+  const k = b.dataset.f, v = b.dataset.v; if (F[k] === v) delete F[k]; else F[k] = v;
+  if (location.hash.startsWith("#cell/")) location.hash = "cells"; else renderCells();
+});
+
+/* ---------------- cells: one cell ---------------- */
+const swcCache = {};
+async function loadText(path) {
+  if (swcCache[path]) return swcCache[path];
+  const r = await fetch(path); if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return (swcCache[path] = await r.text());
+}
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function drawSWC(cv, text) {
+  const pts = {}, rows = [];
+  text.split("\n").forEach(l => { if (!l || l[0] === "#") return; const a = l.trim().split(/\s+/).map(Number); if (a.length < 7) return;
+    pts[a[0]] = a; rows.push(a); });
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  rows.forEach(a => { x0 = Math.min(x0, a[2]); x1 = Math.max(x1, a[2]); y0 = Math.min(y0, a[3]); y1 = Math.max(y1, a[3]); });
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const pad = 18, s = Math.min((W - 2 * pad) / (x1 - x0 || 1), (H - 2 * pad) / (y1 - y0 || 1));
+  const X = x => pad + (x - x0) * s + ((W - 2 * pad) - (x1 - x0) * s) / 2;
+  const Y = y => H - pad - (y - y0) * s - ((H - 2 * pad) - (y1 - y0) * s) / 2;
+  const col = {1: css("--ink"), 2: css("--axon"), 3: css("--basal"), 4: css("--apical")};
+  g.lineCap = "round";
+  for (const t of [2, 3, 4]) {
+    g.strokeStyle = col[t]; g.globalAlpha = t === 2 ? .55 : .95;
+    rows.forEach(a => { if (a[1] !== t) return; const p = pts[a[6]]; if (!p) return;
+      g.lineWidth = Math.max(.6, Math.min(3, a[5] * s * 1.6)); g.beginPath(); g.moveTo(X(p[2]), Y(p[3])); g.lineTo(X(a[2]), Y(a[3])); g.stroke(); });
+  }
+  g.globalAlpha = 1; g.fillStyle = col[1];
+  const so = rows.find(a => a[1] === 1); if (so) { g.beginPath(); g.arc(X(so[2]), Y(so[3]), Math.max(2.5, so[5] * s), 0, 7); g.fill(); }
+  const bar = [10, 20, 50, 100, 200, 500, 1000].find(b => b * s > W * .18) || 1000;
+  g.strokeStyle = col[1]; g.lineWidth = 2; g.beginPath(); g.moveTo(W - pad - bar * s, H - 10); g.lineTo(W - pad, H - 10); g.stroke();
+  g.fillStyle = col[1]; g.font = `11px ${css("--f-mono") || "monospace"}`; g.textAlign = "right"; g.fillText(`${bar} µm`, W - pad, H - 16);
+}
+const L = (u, t) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`;
+function idsHTML(p) {
+  return [p.neuromorpho_id && L(p.neuromorpho_url, "NeuroMorpho " + p.neuromorpho_id),
+    ...(p.modeldb || "").split(";").filter(Boolean).map(m => L("https://modeldb.science/" + m, "ModelDB " + m)),
+    ...(p.doi || "").split(";").filter(Boolean).map(d => L("https://doi.org/" + d, "doi:" + d)),
+    p.pmid && L("https://pubmed.ncbi.nlm.nih.gov/" + p.pmid + "/", "PubMed " + p.pmid),
+    p.pmcid && L("https://pmc.ncbi.nlm.nih.gov/articles/" + p.pmcid, p.pmcid)].filter(Boolean).join(" · ") || "–";
+}
+function citeText(c) {
+  const p = c.prov || {}, id = (p.doi || "").split(";")[0];
+  return `${c.cite.split(" · ")[0]}${id ? ". doi:" + id : p.pmid ? ". PMID " + p.pmid : ""}` +
+    (p.neuromorpho_id ? `. Reconstruction via NeuroMorpho.Org (${p.neuromorpho_id}; Ascoli et al. 2007, doi:10.1523/JNEUROSCI.2055-07.2007)` : "") +
+    (c.arch === "Allen Cell Types" ? ". Allen Cell Types Database, Allen Institute for Brain Science (celltypes.brain-map.org)" : "") + ".";
+}
+const studio = (route, id) => `sim-studio.html#biology.${route}?cell=${encodeURIComponent(id)}`;
+async function showCell(id) {
+  const c = D.cells.find(x => x.id === id);
+  const v = $("v-cell");
+  if (!c) { v.innerHTML = `<p>No cell “${esc(id)}”. <a href="#cells">All cells</a></p>`; return; }
+  const m = c.m || {}, n = c.nrn, simId = c.id === "ca1-jarsky-lab" ? "ca1-jarsky" : c.id;
+  const near = D.cells.filter(x => x !== c && x.region === c.region && x.group === c.group).slice(0, 6);
+  const row = (k, val, unit = "") => val || val === 0 ? `<tr><th scope="row">${k}</th><td class="num">${typeof val === "number" ? fmt(val) : esc(val)}${unit ? " " + unit : ""}</td></tr>` : "";
+  v.innerHTML = `<nav class="crumbs" aria-label="Breadcrumb"><a href="#cells">Cells</a> › <button type="button" class="linkish tag-like" data-f="region" data-v="${esc(c.region)}">${esc(c.region)}</button> › <span>${esc(c.code || c.id)}</span></nav>
+    <div class="chead"><div><h2>${esc(c.name)}</h2><p class="mono muted">${esc(c.code || "")} · id <b>${esc(c.id)}</b></p>
+      <div class="ctags">${tag("region", c.region)}${tag("group", c.group)}${tag("species", c.species)}${tag("arch", c.arch)}</div></div>
+      <div class="btns"><a class="btn primary" href="index.html#${encodeURIComponent(c.id)}">3D view &amp; simulate</a><a class="btn" href="${esc(c.file)}" download>Download SWC</a></div></div>
+    <div class="cbody">
+      <figure class="cfig"><canvas id="cellcv" aria-label="x–y projection of ${esc(c.name)}"></canvas>
+        <figcaption class="legend"><span><i style="background:var(--apical)"></i>apical</span><span><i style="background:var(--basal)"></i>basal / dendrite</span><span><i style="background:var(--axon)"></i>axon</span><span>x–y projection, soma at origin</span></figcaption></figure>
+      <div class="cinfo">
+        ${c.layer ? `<p><b>Where.</b> ${esc(c.layer)}</p>` : ""}${c.role ? `<p><b>Role.</b> ${esc(c.role)}</p>` : ""}${c.how ? `<p class="muted"><b>How it was traced.</b> ${esc(c.how)}</p>` : ""}
+        <div class="two-t"><table class="kvt"><caption>Morphology</caption><tbody>
+          ${row("Dendrite length", m.dendrite_um, "µm")}${m.apical_um ? row("Apical / basal", `${fmt(m.apical_um)} / ${fmt(m.basal_um)}`, "µm") : ""}
+          ${row("Dendritic area", m.dend_area_um2, "µm²")}${row("Branch points", m.branch)}${row("Tips", m.tips)}${row("Longest path", m.maxpath_um, "µm")}${m.axon_um ? row("Axon traced", m.axon_um, "µm") : ""}
+        </tbody></table>
+        ${n ? `<table class="kvt"><caption>Passive NEURON check <span class="muted">R<sub>m</sub> 20 kΩ·cm², R<sub>a</sub> 150 Ω·cm, C<sub>m</sub> 1 µF/cm²</span></caption><tbody>
+          ${row("Input resistance (soma)", n.rin, "MΩ")}${row("Length constant, steady", n.lam0, "µm")}${row("Length constant, 100 Hz", n.lam100, "µm")}</tbody></table>` : ""}</div>
+        <div class="cite"><b>Cite</b><p id="citetxt">${esc(citeText(c))}</p><p class="ids">${idsHTML(c.prov || {})}</p>
+          <div class="btns"><button class="btn" id="cpcite">Copy citation</button><a class="btn" href="morphologies/references.bib" download>All BibTeX</a></div></div>
+      </div>
+    </div>
+    ${near.length ? `<div><h3>More ${esc(c.group.toLowerCase())} in ${esc(c.region)}</h3><div class="cgrid small">${near.map(x => `<article class="ccard"><a class="cmain" href="#cell/${esc(x.id)}">${thumbSVG(x)}<span class="ctxt"><b>${esc(x.name)}</b><span class="mono">${esc(x.code || x.id)}</span></span></a></article>`).join("")}</div></div>` : ""}`;
+  $("cpcite").onclick = e => copy($("citetxt").textContent, e.currentTarget);
+  document.title = `${c.name} ${c.code || ""} · hippsim cells`;
+  try { drawSWC($("cellcv"), await loadText(c.file)); }
+  catch (err) { $("cellcv").replaceWith(Object.assign(document.createElement("p"), {className: "note", textContent: `Could not load ${c.file}: ${err.message}`})); }
+}
+async function copy(text, btn) {
+  const old = btn.textContent;
+  try { await navigator.clipboard.writeText(text); btn.textContent = "Copied"; }
+  catch { btn.textContent = "Select and copy"; }
+  setTimeout(() => btn.textContent = old, 1400);
+}
+
+/* ---------------- files ---------------- */
+const byPath = Object.fromEntries(D.files.map(f => [f.path, f]));
+function buildTree() {
+  const root = {};
+  D.files.forEach(f => { let n = root; const parts = f.path.split("/"); parts.slice(0, -1).forEach(p => n = (n[p] ||= {})); (n["\u0000"] ||= []).push(f); });
+  const count = n => Object.entries(n).reduce((s, [k, v]) => s + (k === "\u0000" ? v.length : count(v)), 0);
+  const html = (n, depth) => Object.keys(n).filter(k => k !== "\u0000").sort().map(k =>
+      `<details${depth < 1 ? " open" : ""}><summary>${esc(k)}/ <span class="n">${count(n[k])}</span></summary>${html(n[k], depth + 1)}</details>`).join("")
+    + (n["\u0000"] || []).sort((a, b) => a.path.localeCompare(b.path)).map(f =>
+      `<button data-path="${esc(f.path)}" title="${esc(f.desc)}"><span>${esc(f.path.split("/").pop())}</span><span>${kb(f.bytes)} kB</span></button>`).join("");
+  $("ftree").innerHTML = html(root, 0);
+}
+buildTree();
+$("ftree").addEventListener("click", e => { const b = e.target.closest("button[data-path]"); if (b) openFile(b.dataset.path, false); });
+const LIMIT = 400 * 1024;
+async function openFile(path, jump = true) {
+  if (jump && location.hash !== "#files") { location.hash = "files"; }
+  const f = byPath[path] || {path, bytes: 0, desc: ""};
+  document.querySelectorAll("#ftree button").forEach(b => b.setAttribute("aria-current", b.dataset.path === path));
+  let el = document.querySelector(`#ftree button[data-path="${CSS.escape(path)}"]`);
+  if (el) { for (let d = el.parentElement; d && d.id !== "ftree"; d = d.parentElement) if (d.tagName === "DETAILS") d.open = true; el.scrollIntoView({block: "nearest"}); }
+  const v = $("viewer");
+  v.innerHTML = `<div class="vhead"><span class="path">${esc(path)}</span><span class="btns"><button class="btn" id="cpy">Copy contents</button><button class="btn" id="cpp">Copy path</button></span></div>
+    ${f.desc ? `<div class="vdesc">${esc(f.desc)}</div>` : ""}<pre class="src" id="src">Loading…</pre>`;
+  $("cpp").onclick = e => copy(path, e.currentTarget);
+  if (/\.(png|jpe?g|svg)$/i.test(path)) { $("src").outerHTML = `<div class="vimg"><img src="${esc(path)}" alt="${esc(path)}"></div>`; $("cpy").remove(); return; }
+  try {
+    let t = await loadText(path);
+    if (t.length > LIMIT) { $("src").insertAdjacentHTML("beforebegin", `<p class="note">Showing the first ${kb(LIMIT)} kB of ${kb(t.length)} kB.</p>`); }
+    $("src").textContent = t.length > LIMIT ? t.slice(0, LIMIT) + "\n…" : t;
+    $("cpy").onclick = e => copy(t, e.currentTarget);
+  } catch (err) { $("src").textContent = `Could not load this file (${err.message}).`; }
+}
+
+/* ---------------- router: #cells · #cell/<id> · #files ---------------- */
+function route() {
+  const h = decodeURIComponent((location.hash || "#cells").slice(1));
+  const view = h.startsWith("cell/") ? "cell" : h === "files" ? "files" : "cells";
+  document.querySelectorAll("[data-view]").forEach(s => s.hidden = s.id !== "v-" + view);
+  document.querySelectorAll(".tabs a").forEach(a => (a.dataset.v === view || (view === "cell" && a.dataset.v === "cells")) ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  if (view === "cell") { showCell(h.slice(5)); scrollTo(0, 0); } else { document.title = "hippsim Cells & data"; if (view === "cells") renderCells(); }
+}
+window.addEventListener("hashchange", route);
+route();
+</script>

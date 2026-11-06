@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: O-LM silenced
+tool: research-circuit
+kind: circuit
+what: Distal dendritic inhibition removed.
+expected_size: complete block in the model
+references:
+- klausberger2008
+ops:
+- control: '#ns-goe'
+  set: 0

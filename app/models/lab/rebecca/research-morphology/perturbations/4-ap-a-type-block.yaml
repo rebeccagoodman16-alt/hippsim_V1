@@ -1,0 +1,11 @@
+schema: hippsim.perturbation/1.0
+name: '4-AP: A-type block'
+tool: research-morphology
+kind: pharmacology
+what: A-type density × 0.
+expected_size: complete block in the model
+references:
+- hoffman1997
+ops:
+- control: '#rmc-kaS'
+  set: 0

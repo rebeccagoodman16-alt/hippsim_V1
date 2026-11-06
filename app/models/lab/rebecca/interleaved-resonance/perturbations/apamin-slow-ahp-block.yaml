@@ -1,0 +1,10 @@
+schema: hippsim.perturbation/1.0
+name: 'Apamin: slow AHP block'
+tool: interleaved-resonance
+kind: pharmacology
+what: Slow Ca²⁺-activated K⁺ removed.
+expected_size: complete block in the model
+references: []
+ops:
+- control: '#irp-gsKCa'
+  set: 0

@@ -1,0 +1,50 @@
+{
+  "little_neural_guide": {
+    "title": "Little Neural Guide",
+    "url": "https://claude.ai/code/artifact/7ae0a3a2-ada9-498e-ac86-153e3433b4b9",
+    "version": "1793081032-c073",
+    "pulled": "2026-11-02"
+  },
+  "ca1_morphology_lab": {
+    "title": "CA1 Morphology Lab",
+    "url": "https://claude.ai/code/artifact/8ae0cb34-efe9-4e10-9feb-80f1580086ea",
+    "version": "1793594558-2a1e",
+    "pulled": "2026-11-02"
+  },
+  "ca1_resonance_home": {
+    "title": "CA1 Resonance \u00b7 Home",
+    "url": "https://claude.ai/code/artifact/13a674b8-2706-4f01-89ec-f4dae206ae49",
+    "version": "1793596784-7133",
+    "pulled": "2026-11-02"
+  },
+  "ca1_resonance_lab": {
+    "title": "CA1 Resonance Lab",
+    "url": "https://claude.ai/code/artifact/407619f1-d86a-4bef-9144-b2a8f125e5b6",
+    "version": "1792189231-90d2",
+    "pulled": "2026-11-02"
+  },
+  "neurodynamics_lab": {
+    "title": "Neurodynamics Lab",
+    "url": "https://claude.ai/code/artifact/ac1a37e5-6a98-4a14-875c-6bf5a1c0990f",
+    "version": "1792203635-28d6",
+    "pulled": "2026-11-02"
+  },
+  "neuron_morphology_atlas": {
+    "title": "Neuron Morphology Atlas",
+    "url": "https://claude.ai/code/artifact/1c0c34ac-9aaf-44c4-ae5f-d62dfb9bbb50",
+    "version": "1793080833-c130",
+    "pulled": "2026-11-02"
+  },
+  "giant_fiber_axon_inputs": {
+    "title": "Giant Fiber Axon Inputs",
+    "url": "https://claude.ai/code/artifact/2bca807c-7a1d-4333-a822-2693339031d9",
+    "version": "1788118776-6dfe",
+    "pulled": "2026-11-02"
+  },
+  "ca1_graphical_abstract": {
+    "title": "CA1 Graphical Abstract",
+    "url": "https://claude.ai/code/artifact/a0fb3661-9b3f-4acf-90fa-224ab13ef18b",
+    "version": "1792178230-f70d",
+    "pulled": "2026-11-02"
+  }
+}
