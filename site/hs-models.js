@@ -331,8 +331,8 @@
         ['Source', '<span title="Hodgkin AL, Huxley AF (1952) J Physiol 117:500–544">Hodgkin &amp; Huxley 1952</span>']]
     },
     migliore: {
-      scale: 'cell', name: 'Migliore 2005 CA1 channels', tag: 'Migliore', engine: 'ngc', maxL: 20, dt: 0.025, sims: ['hippsim'], original: 'NEURON (ModelDB 55035)', tests: CELL_TESTS, tools: TOOLS_ALL,
-      desc: 'Na⁺, K_dr, A-type K⁺ rising with distance and Iₕ rising with distance, at 35 °C. The Neuron lab’s model.',
+      scale: 'cell', name: 'Migliore-derived CA1 channel model', tag: 'Migliore-derived', engine: 'ngc', maxL: 20, dt: 0.025, sims: ['hippsim'], original: 'NEURON (ModelDB 55035)', tests: CELL_TESTS, tools: TOOLS_ALL,
+      desc: 'CA1 pyramidal-cell channel parameterization (Migliore et al. 2005): Na⁺, K_dr, A-type K⁺ and Iₕ rising with distance, 35 °C. The Neuron lab’s model. On other cell types it is a CA1-derived what-if.',
       params: [
         {k: 'na', g: 'Channels', label: 'Na⁺ (na3 / nax)', min: 0, max: 2, step: 0.05, base: 1, f: v => '×' + n2(v)},
         {k: 'kdr', g: 'Channels', label: 'K⁺ delayed rectifier (kdr)', min: 0, max: 2, step: 0.05, base: 1, f: v => '×' + n2(v)},
@@ -370,7 +370,7 @@
     },
     research: {
       scale: 'cell', name: 'Your research model', tag: 'Research', engine: 'ngc', maxL: 25, dt: 0.05, sims: ['hippsim'], tests: ['thetagamma', 'step', 'fi', 'sag', 'zap', 'bap'], tools: TOOLS_ALL,
-      desc: 'Golomb 2006 I_M and I_NaP at soma and axon on the Migliore 2005 dendrites: single spikes vs bursts under θ + γ drive.',
+      desc: 'Lab model: Golomb 2006 I_M and I_NaP at soma and axon on the Migliore-derived CA1 dendrites; single spikes vs bursts under θ + γ drive.',
       when: c => /CA1/.test(c.region) && /Pyramidal|principal/.test(c.group),
       params: [
         {k: 'gM', g: 'Channels', label: 'I_M (soma, axon; Golomb kinetics)', min: 0, max: 5, step: 0.05, base: 1, f: v => n2(v) + ' mS/cm²'},
@@ -506,6 +506,86 @@
       ['Source', '<span title="Brunel N (2000) J Comput Neurosci 8:183–208">Brunel 2000</span> (scaled to 5 000 neurons, C_E·J kept at 80 mV; regime boundaries shift with network size)']]
   };
 
+
+  /* ---------- model cards: where every part of a simulation comes from (no invented provenance: unknown = unspecified) ---------- */
+  const U = 'unspecified';
+  const isCA1pyr = c => /CA1/.test(c.region) && /Pyramidal|principal/.test(c.group);
+  const CARDS = {
+    hh: c => ({
+      short: 'Hodgkin–Huxley 1952', meta: 'Na⁺ · K⁺ · leak · 6.3 °C', channels: [['Na⁺ (fast, m³h)', 'Hodgkin & Huxley 1952 squid-axon kinetics', 'Hodgkin AL, Huxley AF (1952) J Physiol 117:500–544', 'na'],
+        ['K⁺ delayed rectifier (n⁴)', 'Hodgkin & Huxley 1952 squid-axon kinetics', 'Hodgkin AL, Huxley AF (1952) J Physiol 117:500–544', 'k'],
+        ['Leak', 'linear, E_L −65 mV', U, 'leak']],
+      passive: [['R_m', '20 kΩ·cm²', 'hippsim default (also used for the passive NEURON check); no published source: ' + U],
+        ['R_a', '150 Ω·cm', 'hippsim default; ' + U], ['C_m', '1 µF/cm²', 'conventional value; ' + U],
+        ['E_Na, E_K', '50, −77 mV', 'NEURON hh.mod defaults'], ['E_L', '−65 mV', 'hippsim choice (sets rest near −65 mV)']],
+      dist: {cols: ['g_Na (S/cm²)', 'g_K (S/cm²)'], rows: [['Soma', '0.5', '0.1'], ['AIS', 'not modelled separately (= axon)', ''], ['Axon', '0.5', '0.1'],
+        ['Basal dendrites', '0.01 (2 %)', '0.002 (2 %)'], ['Apical trunk', '0.01 (2 %)', '0.002 (2 %)'], ['Obliques', '0.01 (2 %)', '0.002 (2 %)'], ['Tuft', '0.01 (2 %)', '0.002 (2 %)']],
+        source: 'hippsim choice so that typical reconstructions fire repetitively; not taken from a publication'},
+      assumptions: [['Temperature', '6.3 °C (rates × 3^((T − 6.3)/10))'], ['Time step', '0.025 ms, backward Euler (voltage), exponential Euler (gates)'],
+        ['Discretization', 'compartments ≤ 20 µm along unbranched paths; soma = one compartment with the area of a sphere of the largest traced soma radius'],
+        ['Soma–dendrite junction', 'each attached branch starts at the soma centre (NEURON starts it at its first point; see Validation)'],
+        ['Initial state', 'V −65 mV, gates at steady state'], ['Missing', 'no Iₕ, A-type, Ca²⁺ or other channels; uniform densities']],
+      adapted: ['Densities and the 2 % dendritic fraction are hippsim choices, applied identically to every cell type.', `Applied to a ${c.name} (${c.species}) morphology.`],
+      validated: ['Same model in NEURON 9 and Brian2 for every cell (spike counts, Validation page).', 'Not fitted to or validated against recordings from this cell type.']
+    }),
+    migliore: c => ({
+      short: 'Migliore 2005 · CA1', meta: 'Na⁺ · K_dr · A-type · Iₕ · 35 °C', channels: [['na3: Na⁺ with slow inactivation (soma, dendrites)', 'Migliore et al. 2005 (ModelDB 55035)', 'Migliore M, Ferrante M, Ascoli GA (2005) J Neurophysiol 94:4145–4155', 'na'],
+        ['nax: axonal Na⁺', 'Migliore et al. 2005 (ModelDB 55035)', 'as above', 'na'], ['kdr: K⁺ delayed rectifier', 'Migliore et al. 2005 (ModelDB 55035)', 'as above', 'kdr'],
+        ['kap / kad: A-type K⁺ (proximal / distal)', 'Migliore et al. 2005 (ModelDB 55035)', 'as above', 'ka'], ['hd: Iₕ (HCN)', 'Migliore et al. 2005 (ModelDB 55035)', 'as above', 'h'],
+        ['Original sources of each mechanism', 'cited in Migliore et al. 2005', 'not listed in hippsim: ' + U]],
+      passive: [['R_m', '28 kΩ·cm²', 'NGC implementation, labelled Migliore et al. 2005; not re-checked against the ModelDB 55035 files'],
+        ['R_a', '150 Ω·cm (axon 50)', 'NGC implementation, as above'], ['C_m', '1 µF/cm²', 'NGC implementation, as above'],
+        ['Rest', '−65 mV (leak reversal set per compartment so −65 mV is a steady state)', 'NGC implementation'], ['E_Na, E_K, E_h', '55, −90, −30 mV', 'NGC implementation']],
+      dist: {cols: ['Na⁺', 'K_dr', 'A-type', 'Iₕ'], rows: [['Soma', 'na3 25 mS/cm²', '10', 'kap 30', '0.05'], ['AIS', 'not modelled separately (= axon)', '', '', ''],
+        ['Axon', 'nax 125 (×5)', '10', 'kap 30', 'none'], ['Basal dendrites', 'na3 25', '10', '30 × (1 + d/100 µm); kap ≤ 100 µm, kad beyond', '0.05 × (1 + 3d/100 µm)'],
+        ['Apical trunk', 'na3 25', '10', 'as basal', 'as basal; V½ −81 mV beyond 100 µm (−73 proximal)'], ['Obliques', 'na3 25', '10', 'as basal', 'as trunk'], ['Tuft', 'na3 25', '10', 'as basal', 'as trunk']],
+        source: 'as implemented in NGC (Little Neural Guide), d = path distance from the soma. Whether the original model applies the gradients to basal dendrites: ' + U + '. If no axon is traced, a 200 µm axon stub is added.'},
+      assumptions: [['Temperature', '35 °C; Q10 Na 2, A-type 5, Iₕ 4.5 (NGC)'], ['Time step', '0.025 ms (0.05 ms for long tests), backward Euler + exponential Euler'],
+        ['Discretization', 'compartments ≤ 20 µm per section; soma diameter from its traced radius (min 8 µm)'], ['Initial state', 'V −65 mV, gates at steady state']],
+      adapted: isCA1pyr(c) ? ['Parameter set written for CA1 pyramidal cells; this is a CA1 pyramidal cell.', 'Distances are path distances on this reconstruction.']
+        : [`CA1-derived parameterization applied to a ${c.name} morphology. Not an experimentally validated ${c.region} channel model.`, 'Distances are path distances on this reconstruction.'],
+      validated: ['NGC runs the same code as the Neuron lab, whose results were compared with the NEURON model on the four Migliore 2018 / Jarsky / Golding cells (Neuron lab validation table).',
+        isCA1pyr(c) ? 'Not validated on this particular reconstruction.' : `Not validated for ${c.region} cells.`]
+    }),
+    research: c => ({
+      short: 'Golomb 2006 + Migliore 2005', meta: 'I_M · I_NaP · CA1 dendrites · 35 °C', channels: [['I_M (Kv7, Golomb kinetics), soma + axon', 'Golomb, Yue & Yaari 2006', 'Golomb D, Yue C, Yaari Y (2006) J Neurophysiol 96:1912–1926', 'gM'],
+        ['I_NaP, soma + axon', 'Golomb, Yue & Yaari 2006', 'as above', 'gNaP'], ['Dendrites: na3, kdr, kap/kad, hd', 'Migliore et al. 2005 (via NGC)', 'Migliore M, Ferrante M, Ascoli GA (2005) J Neurophysiol 94:4145–4155']],
+      passive: [['R_m, R_a, C_m, rest', 'as the Migliore-derived model', 'NGC implementation']],
+      dist: {cols: ['I_M', 'I_NaP', 'Dendritic channels'], rows: [['Soma', '1 mS/cm²', '0.2 mS/cm² (θ_p −47 mV)', 'Migliore-derived'], ['AIS', 'not modelled separately (= axon)', '', ''], ['Axon', '1 mS/cm²', '0.2 mS/cm²', 'Migliore-derived'],
+        ['Basal / trunk / obliques / tuft', 'none', 'none', 'Migliore-derived, Iₕ gradient (Magee 1998)']], source: 'lab model (Rebecca)'},
+      assumptions: [['Temperature', '35 °C'], ['Time step', '0.05 ms'], ['Discretization', 'compartments ≤ 25 µm']],
+      adapted: ['Combination of Golomb 2006 somatic currents with Migliore-derived dendrites is a lab model.', isCA1pyr(c) ? 'CA1 pyramidal morphology.' : 'Applied to a non-CA1 morphology.'],
+      validated: ['Not validated against recordings in hippsim.']
+    }),
+    circuit: c => ({
+      short: 'Migliore 2005 cell + synapses', meta: 'AMPA · NMDA · GABA-A · θ input', channels: [['Cell', 'Migliore-derived CA1 channel model', 'Migliore et al. 2005'], ['AMPA, NMDA (Mg²⁺ block), GABA-A', 'double-exponential conductances', 'NMDA block: Jahr CE, Stevens CF (1990) J Neurosci 10:3178; kinetics: NGC library']],
+      passive: [['As the Migliore-derived model', '', 'NGC implementation']], dist: null,
+      assumptions: [['Inputs', 'Poisson spike trains, θ-modulated (8 Hz)'], ['Placement', 'excitation 50–350 µm, inhibition < 50 µm, random with a fixed seed'], ['Time step', '0.05 ms']],
+      adapted: ['Input numbers, rates and weights are model choices, not taken from a publication.'], validated: ['Not validated.']
+    }),
+    population: c => ({
+      short: 'Brunel 2000', meta: '4 000 E + 1 000 I · LIF', channels: [['Leaky integrate-and-fire', 'Brunel 2000', 'Brunel N (2000) J Comput Neurosci 8:183–208']], passive: [['τ, threshold, reset, refractory', '20 ms, 20 mV, 10 mV, 2 ms', 'Brunel 2000']], dist: null,
+      assumptions: [['Network', '4 000 E + 1 000 I, p = 0.1, scaled from Brunel’s 12 500 with C_E·J kept'], ['Time step', '0.1 ms']],
+      adapted: ['Scaled-down network; the reconstruction is not used.'], validated: ['Not validated in hippsim.']
+    })
+  };
+  /* hover explanations */
+  const EX = {
+    na: 'Voltage-gated Na⁺ channels: open fast on depolarization and carry the rising phase of the action potential.',
+    k: 'Delayed-rectifier K⁺ channels: open slowly and repolarize the spike.', kdr: 'Delayed-rectifier K⁺ channels: open slowly and repolarize the spike.',
+    ka: 'A-type K⁺ channels: fast transient K⁺ current, denser in distal dendrites; damps back-propagating spikes and dendritic excitability.',
+    kaS: 'A-type K⁺ channels: fast transient K⁺ current, denser in distal dendrites; damps back-propagating spikes and dendritic excitability.',
+    h: 'Iₕ (HCN channels): opens on hyperpolarization, sets resting conductance, produces sag, rebound and θ-range resonance.', hS: 'Iₕ (HCN channels): opens on hyperpolarization, sets resting conductance, produces sag, rebound and θ-range resonance.',
+    naS: 'Na⁺ channel density relative to the published value.', gM: 'M-current (Kv7/KCNQ): slow K⁺ current active near threshold; limits repetitive firing and bursting. Blocked by XE991.',
+    leak: 'Leak: voltage-independent conductance that sets the resting potential and input resistance with R_m.',
+    gNaP: 'Persistent Na⁺ current: non-inactivating, boosts depolarization near threshold and promotes bursting.', thp: 'Voltage of half-activation of the persistent Na⁺ current.',
+    dend: 'Channel density in dendrites as a percentage of the soma density.', Rm: 'Specific membrane resistance: higher = less leaky membrane, longer time constant, larger input resistance.',
+    Ra: 'Axial (cytoplasmic) resistivity: higher = signals attenuate more along dendrites.', Cm: 'Specific membrane capacitance; spines effectively increase it.',
+    Vrest: 'Resting membrane potential imposed by the leak reversal.', celsius: 'Temperature: channel kinetics speed up with temperature (Q10).',
+    spines: 'Doubles membrane area beyond 100 µm to account for spines.', soma: 'Voltage-gated channels in the soma on/off.', basal: 'Voltage-gated channels in the basal dendrites on/off.',
+    apical: 'Voltage-gated channels in the apical dendrites on/off.', axon: 'Voltage-gated channels in the axon on/off.', gka: 'A-type density rises with distance from the soma.', gh: 'Iₕ density rises with distance from the soma.'
+  };
+  Object.entries(MODELS).forEach(([id, m]) => { m.card = CARDS[id]; m.params.forEach(q => { if (!q.ex && EX[q.k]) q.ex = EX[q.k]; }); });
   Object.values(MODELS).forEach(m => { if (!m.when) m.when = () => true; });
   const TOOLS = {electrode: ['Electrode', 'current injection site'], probe: ['Probe', 'record voltage here'], syn: ['Synapse', 'AMPA + NMDA, fires at 10 ms'],
     ttx: ['Local TTX', 'Na⁺ off on this branch'], noka: ['Block A-type', 'on this branch'], noh: ['Block Iₕ', 'on this branch'], passive: ['Make passive', 'all channels off on this branch'], cut: ['Cut', 'remove this branch']};
@@ -518,5 +598,5 @@
     if (E) R.nodeOf = E.nodeOf;
     return R;
   }
-  root.HSModels = {MODELS, EXPERIMENTS, TOOLS, ENGINES, runTest, toSections, pathDist};
+  root.HSModels = {MODELS, EXPERIMENTS, TOOLS, ENGINES, runTest, toSections, pathDist, isCA1pyr, EX};
 })(window);

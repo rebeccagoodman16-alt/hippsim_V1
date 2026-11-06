@@ -138,6 +138,40 @@ dialog#sim::backdrop{background:rgba(0,0,0,.35)}
 .readout td.v{text-align:right;font-variant-numeric:tabular-nums}
 .readout td.b{text-align:right;color:var(--muted);font-size:12px;padding-left:10px;white-space:nowrap}
 .readout td.chg{color:var(--accent);font-weight:600}
+
+/* provenance strip + panels, details, hover explanations, simulator comparison */
+.mlist .meta,.tlist .meta{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
+.warn{display:inline-block;margin-top:5px;font-style:normal;font-size:11px;line-height:1.3;padding:2px 7px;border-radius:999px;border:1px solid #b9771e;color:#8a520c;background:color-mix(in srgb,#f3c97a 25%,transparent)}
+[data-hs-theme="dark"] .warn{color:#f0c27a;border-color:#a8742b}
+.sxb{font-size:12.5px;line-height:1.45}.sxb p{margin:0 0 6px}.sxb b{font-size:12.5px}
+.prov{display:flex;flex-direction:column;gap:6px}
+.pstrip{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.pstrip .ph{margin:0;padding:6px 10px 4px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.pstrip button{all:unset;cursor:pointer;display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:6px 10px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink)}
+.pstrip button small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;min-width:0}
+.pstrip button small::after{content:" ›";color:var(--muted)}
+.pstrip button[aria-selected="true"] small::after{content:" ⌄"}
+.pstrip button i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:7px}
+.pstrip button span{white-space:nowrap}
+.pstrip button:hover,.pstrip button[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.pstrip button.alert small{color:#8a520c;font-weight:600}[data-hs-theme="dark"] .pstrip button.alert small{color:#f0c27a}
+.ppanel{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);font-size:12.5px;line-height:1.45}
+.ppanel h4{margin:0 0 6px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.ppanel h4:not(:first-child){margin-top:12px}
+.ppanel p{margin:0 0 6px}.ppanel ul{margin:0 0 6px;padding-left:18px}
+.pt{width:100%;border-collapse:collapse;font-size:12px}
+.pt th{text-align:left;font-weight:600;color:var(--muted);font-size:11px;padding:3px 6px 3px 0;border-bottom:1px solid var(--line)}
+.pt td{padding:3px 6px 3px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.pt td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pt .bad{color:var(--accent);font-weight:600}.pt .ok{color:#2f7d5b}
+.uns{color:var(--muted);font-style:italic}
+.ptw{overflow-x:auto}
+.xtip{position:fixed;z-index:1000;max-width:300px;padding:7px 10px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:12.5px;line-height:1.4;pointer-events:none;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+[data-ex]{text-decoration-skip-ink:auto}
+:root:not([data-hs-hover="off"]) .pt [data-ex]{text-decoration:underline dotted;text-underline-offset:3px;cursor:help}
+.cmp .trace{height:170px}
+.cmpk{display:flex;gap:12px;font-size:11.5px;color:var(--muted);align-items:center;flex-wrap:wrap}
+.cmpk i{display:inline-block;width:16px;height:0;border-top:2px solid;margin-right:4px;vertical-align:3px}
 .bdet summary{cursor:pointer;font-size:13px;font-weight:600}
 .bdet[open] summary{margin-bottom:8px}
 .mhead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
@@ -210,15 +244,23 @@ aside.side > *{flex:none}
       <div class="mlist" id="smodels" role="radiogroup" aria-label="Model"></div>
       <p class="step"><b>3</b> Test</p>
       <div class="tlist" id="stests" role="radiogroup" aria-label="Test"></div>
+      <details class="bdet" id="sxd"><summary>Details</summary><div class="sxb" id="sxb"></div></details>
       <div class="simrow" id="ssimrow"><span class="lbl">Run in</span><div class="seg sm" id="ssims" role="radiogroup" aria-label="Simulator"></div></div>
       <button class="btn primary run" id="sgo">▶ Run baseline</button>
     </div>
     <div class="chosen" id="schosen" hidden><span id="schosent"></span> <button class="linkish" id="schange">change</button></div>
+    <div class="prov" id="sprov">
+      <div class="pstrip" id="spstrip" role="tablist" aria-label="Where each part comes from"></div>
+      <div class="ppanel" id="sppanel" hidden>
+        <section data-pv="morph" id="pv-morph"></section><section data-pv="model" id="pv-model"></section><section data-pv="adapt" id="pv-adapt"></section>
+        <section data-pv="test" id="pv-test"><div id="pv-testh"></div><h4>Values in this run</h4><dl class="base" id="sbase"></dl><div id="pv-testa"></div></section>
+        <section data-pv="valid" id="pv-valid"><div id="pv-validh"></div><div class="cmp" id="scmp" hidden></div></section>
+      </div>
+    </div>
     <div class="out" id="sout" hidden>
       <div class="trace"><canvas id="trace" aria-label="Simulation result"></canvas></div>
       <p class="sres" id="sres" aria-live="polite"></p>
       <table class="readout" id="sread"></table>
-      <details class="bdet" id="sbdet"><summary>Baseline values and sources</summary><dl class="base" id="sbase"></dl></details>
       <button class="btn primary run" id="smanip" aria-expanded="false" aria-controls="sman">Manipulate the baseline</button>
       <div class="sman" id="sman" hidden>
         <div class="mhead"><span id="snch">At baseline</span><button class="linkish" id="sreset">back to baseline</button></div>
@@ -299,14 +341,14 @@ const PARTS = [
   ["trunk", "Apical trunk", "--trunk"], ["oblique", "Oblique dendrites", "--oblique"], ["tuft", "Apical tuft", "--tuft"],
   ["apical", "Apical dendrites", "--apical"], ["axon", "Axon", "--axon"]];
 const PART_NOTE = {
-  soma: "Cell body: integrates input and starts the action potential (with the axon initial segment).",
-  basal: "Basal dendrites: below the soma (stratum oriens in CA1/CA3); local recurrent and Schaffer input.",
-  dend: "Dendrites of a cell without an apical tree.",
-  trunk: "Main apical shaft from the soma toward the tuft; carries back-propagating spikes and has the highest I_h gradient in CA1.",
-  oblique: "Thin side branches off the trunk (stratum radiatum in CA1): most Schaffer-collateral synapses.",
-  tuft: "Distal branches at the end of the trunk (stratum lacunosum-moleculare in CA1): entorhinal (perforant / temporo-ammonic) input.",
-  apical: "Apical dendrites.",
-  axon: "Traced axon. Where the file's axon was added by modellers it starts hidden."};
+  soma: "Cell body. Anatomy: holds the nucleus; all dendrites and the axon join here. Electrophysiology: sums dendritic input; with the axon initial segment it is where the action potential starts.",
+  basal: "Basal dendrites. Anatomy: grow from the base of the soma (stratum oriens in CA1/CA3). Electrophysiology: close to the soma, so their input reaches it with little attenuation; recurrent and Schaffer input.",
+  dend: "Dendrites of a cell without a separate apical tree. Electrophysiology: receive synaptic input and conduct it passively (and partly actively) to the soma.",
+  trunk: "Apical trunk (estimated). Anatomy: the main shaft from the soma toward the tuft. Electrophysiology: carries back-propagating spikes outward and distal input inward; in CA1, I_h and A-type K⁺ rise along it.",
+  oblique: "Oblique dendrites (estimated). Anatomy: thin side branches off the trunk (stratum radiatum in CA1). Electrophysiology: most Schaffer-collateral synapses; can produce local Na⁺ spikes.",
+  tuft: "Apical tuft (estimated). Anatomy: distal branches at the end of the trunk (stratum lacunosum-moleculare in CA1). Electrophysiology: entorhinal (perforant / temporo-ammonic) input, strongly filtered on its way to the soma; site of dendritic Ca²⁺/NMDA spikes.",
+  apical: "Apical dendrites. Electrophysiology: receive most excitatory input, at a distance from the soma.",
+  axon: "Axon. Anatomy: the output fibre; where the file's axon was added by modellers it starts hidden. Electrophysiology: its initial segment has the lowest spike threshold; the axon carries the spike to synapses."};
 const cache = {};
 async function loadCell(c) {
   if (cache[c.id]) return cache[c.id];
@@ -412,7 +454,7 @@ function pick(ev) {
 function showTip(ev, i) {
   const t = $("tip"); if (i == null) { t.hidden = true; return; }
   const p = G.part[i], L = layer(C, i), r = cv.getBoundingClientRect();
-  t.innerHTML = `<b>${esc((PARTS.find(x => x[0] === p) || [, p])[1])}</b>${p === "soma" ? "" : `path ${fmt(G.dist[i])} µm from soma · ⌀ ${fmt(2 * G.P[i][3])} µm`}${L ? `<br>${L} (approx.)` : ""}${R && R.frames && vf >= 0 ? `<br>V = ${fmt(R.frames[vf][R.nodeOf[i]])} mV at ${fmt(vf * R.frameDt)} ms` : ""}`;
+  t.innerHTML = `<b>${esc((PARTS.find(x => x[0] === p) || [, p])[1])}</b>${p === "soma" ? "" : `path ${fmt(G.dist[i])} µm from soma · ⌀ ${fmt(2 * G.P[i][3])} µm`}${L ? `<br>${L} (approx.)` : ""}${R && R.frames && vf >= 0 ? `<br>V = ${fmt(R.frames[vf][R.nodeOf[i]])} mV at ${fmt(vf * R.frameDt)} ms` : ""}${hoverOn() && PART_NOTE[p] ? `<br><span style="opacity:.8">${esc(PART_NOTE[p])}</span>` : ""}`;
   t.hidden = false; const x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
   t.style.left = Math.min(x, r.width - t.offsetWidth - 8) + "px"; t.style.top = Math.min(y, r.height - t.offsetHeight - 8) + "px";
   document.querySelectorAll(".part").forEach(b => b.classList.toggle("hl", b.dataset.p === p));
@@ -453,7 +495,7 @@ addEventListener("keydown", e => {
 /* parts bar: toggle compartments, colour by part or path distance */
 function renderParts() {
   const ps = PARTS.filter(p => G.parts.includes(p[0]));
-  $("parts").innerHTML = `<span class="lbl">Show</span>` + ps.map(([k, l, v]) => `<button class="part" data-p="${k}" aria-pressed="${on[k] !== false}" title="${esc(PART_NOTE[k])}"><i style="background:var(${v})"></i>${l}</button>`).join("") +
+  $("parts").innerHTML = `<span class="lbl">Show</span>` + ps.map(([k, l, v]) => `<button class="part" data-p="${k}" aria-pressed="${on[k] !== false}" data-ex="${esc(PART_NOTE[k])}"><i style="background:var(${v})"></i>${l}</button>`).join("") +
     `<span style="flex:1"></span><span class="lbl">Colour</span><span class="seg"><button data-c="part" aria-pressed="${colorBy === "part"}">Compartment</button><button data-c="dist" aria-pressed="${colorBy === "dist"}">Distance from soma</button>${R && R.frames ? `<button data-c="volt" aria-pressed="${colorBy === "volt"}">Voltage</button>` : ""}${R && R.vmax ? `<button data-c="peak" aria-pressed="${colorBy === "peak"}">Peak V</button>` : ""}</span>`;
 }
 $("parts").addEventListener("click", e => {
@@ -489,7 +531,7 @@ function renderSide() {
       ${G.hasApical ? `<p class="note">Trunk, obliques and tuft are estimated: the trunk follows the largest apical branch; the tuft starts at 60 % of the apical height.</p>` : ""}</div>
     <div><h3>Sholl profile</h3>${shSvg}<p class="note">Dendrite crossings of spheres every ${step} µm from the soma: where branching is densest.</p></div>
     ${nrn ? `<div><h3>Passive NEURON check</h3><dl class="kv"><dt>Input resistance</dt><dd>${fmt(nrn.rin)} MΩ</dd><dt>Length constant (steady)</dt><dd>${fmt(nrn.lam0)} µm</dd><dt>Length constant (100 Hz)</dt><dd>${fmt(nrn.lam100)} µm</dd></dl><p class="note">R<sub>m</sub> 20 kΩ·cm², R<sub>a</sub> 150 Ω·cm, C<sub>m</sub> 1 µF/cm².</p></div>` : ""}
-    <div><h3>Source</h3><p class="note">${esc(C.cite)}</p><p><a href="library.html#cell/${encodeURIComponent(C.id)}">Full record, citation and SWC →</a></p></div>`;
+    <div><h3>Morphology source</h3><p class="note">${esc((C.prov || {}).archive || "")}${C.code ? " · " + esc(C.code) : ""}<br>${esc(C.cite)}</p><p class="note">The reconstruction only: channel models and their sources are under Simulate → Where this comes from.</p><p><a href="library.html#cell/${encodeURIComponent(C.id)}">Full record, citation and SWC →</a></p></div>`;
 }
 
 /* screenshot and video */
@@ -536,13 +578,178 @@ let cfg = {scale: "cell", model: "hh", test: "step", sim: "hippsim"}, R = null, 
 const model = () => MOD[cfg.model], test = () => TESTS[cfg.test];
 const modelsFor = sc => Object.entries(MOD).filter(([, m]) => m.scale === sc && m.when(C));
 const allParams = () => [...test().params, ...model().params];
+/* ---------- hover explanations (Display → "Show explanations on hover") ---------- */
+function hoverOn() { return document.documentElement.getAttribute("data-hs-hover") !== "off"; }
+const strip = h => String(h || "").replace(/<[^>]+>/g, "");
+const xtip = document.createElement("div"); xtip.className = "xtip"; xtip.hidden = true; xtip.setAttribute("role", "tooltip"); document.body.appendChild(xtip);
+let xel = null;
+function xshow(el) {
+  xel = el; if (!el || !hoverOn() || !el.dataset.ex) { xtip.hidden = true; return; }
+  xtip.textContent = el.dataset.ex; xtip.hidden = false;
+  const r = el.getBoundingClientRect(), w = xtip.offsetWidth, h = xtip.offsetHeight;
+  let top = r.bottom + 6; if (top + h > innerHeight - 6) top = Math.max(6, r.top - h - 6);
+  xtip.style.top = top + "px"; xtip.style.left = Math.max(6, Math.min(r.left, innerWidth - w - 6)) + "px";
+}
+document.addEventListener("pointerover", e => { const el = e.target.closest && e.target.closest("[data-ex]"); if (el !== xel) xshow(el); });
+document.addEventListener("pointerout", e => { if (xel && !(e.relatedTarget && xel.contains(e.relatedTarget))) { xel = null; xtip.hidden = true; } });
+document.addEventListener("focusin", e => xshow(e.target.closest && e.target.closest("[data-ex]")));
+document.addEventListener("scroll", () => { xtip.hidden = true; xel = null; }, true);
+
+/* ---------- where each part of a simulation comes from: morphology · published model · adapted · tested · validated ---------- */
+const UNS = '<span class="uns">unspecified</span>';
+const cellText = v => v == null || v === "" ? UNS : /unspecified/.test(v) ? esc(v).replace(/unspecified/g, UNS) : esc(v);
+function cellWarn(k) {
+  const isCA1 = HSModels.isCA1pyr(C);
+  if ((k === "migliore" || k === "research" || k === "circuit") && !isCA1) return `CA1-derived parameters on a ${C.region} ${/pyramidal/i.test(C.name) ? "pyramidal cell" : "cell"}: not validated for ${C.region}`;
+  return "";
+}
+const PV = [["morph", "Experimental morphology", "--basal"], ["model", "Published model", "--trunk"], ["adapt", "Adapted here", "#b9771e"], ["test", "Tested computationally", "--accent"], ["valid", "Validated", "#2f7d5b"]];
+let pvOpen = null;
+const tbl = (head, rows) => `<div class="ptw"><table class="pt">${head ? `<tr>${head.map(h => `<th>${h}</th>`).join("")}</tr>` : ""}${rows.join("")}</table></div>`;
+function morphFacts() {
+  const P = G.P, rs = Math.max(0, ...P.filter(p => p[4] === 1).map(p => p[3]));
+  let zero = 0, att = 0, inside = 0;
+  P.forEach((p, i) => { const q = p[5]; if (q < 0 || p[4] === 1) return; if (G.seglen(i) === 0) zero++;
+    if (P[q][4] === 1) { att++; if (Math.hypot(p[0], p[1], p[2]) < rs) inside++; } });
+  return {rs, nsoma: P.filter(p => p[4] === 1).length, zero, att, inside, n: P.length, axon: P.some(p => p[4] === 2)};
+}
+const ROWPART = {"Soma": ["soma"], "Axon": ["axon"], "Basal dendrites": ["basal", "dend"], "Apical trunk": ["trunk"], "Obliques": ["oblique"], "Tuft": ["tuft"], "Basal / trunk / obliques / tuft": ["basal", "dend", "trunk", "oblique", "tuft"]};
+function renderProv() {
+  if (!C || !G) return;
+  const pos = $("sout").hidden ? $("schosen") : $("sread"); if (pos.nextElementSibling !== $("sprov")) pos.after($("sprov"));   // below the setup, or below the results once run
+  const m = model(), cd = m.card(C), t = test(), w = cellWarn(cfg.model), nch = $("sout").hidden ? 0 : changes().length, e = (D.eng || {})[C.id] || {};
+  const engOK = e.neuron && e.js ? e.neuron.spikes === e.js.spikes : null;
+  const sub = {morph: m.pop ? "not used" : (C.code || C.id).replace(/\s*\(.*\)/, ""), model: cd.short, adapt: w ? `CA1 → ${C.region}` : nch ? `${nch} change${nch > 1 ? "s" : ""}` : "conventions",
+    test: t.name, valid: cfg.model === "hh" && engOK != null ? (engOK ? "NEURON agrees" : "NEURON differs") : "not vs recordings"};
+  $("spstrip").innerHTML = `<p class="ph">Where this comes from</p>` + PV.map(([k, l, col]) => `<button role="tab" data-pv="${k}" aria-selected="${pvOpen === k}" aria-controls="sppanel"${(k === "adapt" && w) || (k === "valid" && engOK === false && cfg.model === "hh") ? ' class="alert"' : ""}><span><i style="background:${col.startsWith("--") ? `var(${col})` : col}"></i>${l}</span><small>${esc(sub[k])}</small></button>`).join("");
+  $("sppanel").hidden = !pvOpen; document.querySelectorAll("#sppanel > section").forEach(x => x.hidden = x.dataset.pv !== pvOpen);
+  if (!pvOpen) return;
+  // 1 experimental morphology
+  if (pvOpen === "morph") {
+    const f = morphFacts(), pv = C.prov || {}, links = (C.links || []).map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.label)}</a>`);
+    if (pv.neuromorpho_url) links.push(`<a href="${esc(pv.neuromorpho_url)}" target="_blank" rel="noopener">NeuroMorpho.Org</a>`);
+    $("pv-morph").innerHTML = m.pop ? `<p>Point neurons: no reconstruction is used.</p>` : `<h4>From the experimental reconstruction</h4>` + tbl(null, [
+      `<tr><td>Cell identity</td><td>${esc(C.species)} · ${esc(C.region)} · ${esc(C.name)}</td></tr>`,
+      `<tr><td>Morphology source</td><td>${cellText(pv.archive)}${/Turner/.test(C.code || "") ? " (Turner archive)" : ""}${pv.neuromorpho_id ? ` · NeuroMorpho ${esc(pv.neuromorpho_id)}` : ""}${pv.modeldb ? ` · ModelDB ${esc(pv.modeldb)}` : ""}</td></tr>`,
+      `<tr><td>Reconstruction ID</td><td>${cellText((C.code || "").replace(/\s*\(.*\)/, ""))}</td></tr>`,
+      `<tr><td>Original reconstruction paper</td><td>${cellText(C.original)}</td></tr>`,
+      `<tr><td>Paper this copy comes from</td><td>${cellText(C.cite)}</td></tr>`,
+      `<tr><td>How it was obtained</td><td>${cellText(C.how)}</td></tr>`,
+      `<tr><td>File</td><td>${f.n.toLocaleString()} points · ${f.nsoma} soma points · ${f.axon ? "axon traced" : "no axon traced"}${C.axonHidden ? " (modellers' axon, hidden)" : ""}</td></tr>`]) +
+      `<h4>Modified or estimated by hippsim</h4><ul>
+        ${G.hasApical ? `<li><b>Estimated:</b> apical trunk, obliques and tuft are not labelled in the file; the trunk follows the largest apical branch and the tuft starts at 60 % of the apical height (${fmt(G.tuftStart)} µm).</li>` : ""}
+        ${G.hasApical && /^CA[13]$/.test(C.region) ? `<li><b>Estimated:</b> layer names on hover come from depth along the apical axis.</li>` : ""}
+        <li><b>Soma:</b> modelled as one compartment with the area of a sphere of the largest traced soma radius (${fmt(f.rs)} µm).</li>
+        <li><b>Soma–dendrite junction:</b> ${f.att} branches attach to the soma${f.inside ? `, ${f.inside} starting inside the soma radius` : ""}. hippsim's cable model starts each at the soma centre; NEURON's import starts it at its first point (see Validated).</li>
+        <li><b>Zero-length points:</b> ${f.zero} (kept in the drawing; they add no membrane).</li>
+        ${!f.axon ? `<li><b>Axon:</b> none traced; the Migliore-derived models add an axon stub.</li>` : ""}
+        <li>Compartments: ≤ 20 µm (≤ 25 µm in the research model) along unbranched paths.</li></ul>
+      <p>${links.join(" · ")}${links.length ? " · " : ""}<a href="library.html#cell/${encodeURIComponent(C.id)}">Full record and SWC →</a></p>`;
+  }
+  // 2 published electrophysiological model
+  if (pvOpen === "model") {
+    const ex = k => k && HSModels.EX[k] ? ` data-ex="${esc(HSModels.EX[k])}"` : "";
+    const present = new Set(G.parts);
+    $("pv-model").innerHTML = `<h4>${m.name}</h4>${w ? `<p><em class="warn">${esc(w)}</em></p>` : ""}<h4>Mechanisms and original references</h4>` +
+      tbl(["Mechanism", "Model source", "Reference"], cd.channels.map(([a, b, c, k]) => `<tr><td><span${ex(k)}>${esc(a)}</span></td><td>${cellText(b)}</td><td>${cellText(c)}</td></tr>`)) +
+      `<h4>Passive properties</h4>` + tbl(["", "Value", "Source"], cd.passive.map(([a, b, c]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td><td>${cellText(c)}</td></tr>`)) +
+      (cd.dist ? `<h4>Channel distribution by compartment</h4>` + tbl(["", ...cd.dist.cols], cd.dist.rows.map(r => { const ps = ROWPART[r[0]], here = !ps || ps.some(x => present.has(x));
+        return `<tr${here ? "" : ' class="muted"'}><td>${esc(r[0])}${here ? "" : " <small>(none in this cell)</small>"}</td>${r.slice(1).map(x => `<td>${esc(x)}</td>`).join("")}</tr>`; })) + `<p class="note">${cellText(cd.dist.source)}</p>` : "");
+  }
+  // 3 adapted
+  if (pvOpen === "adapt") {
+    const ch = $("sout").hidden ? [] : changes();
+    $("pv-adapt").innerHTML = `<h4>Adapted for this cell</h4><ul>${cd.adapted.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` +
+      `<h4>Your manipulations</h4>${ch.length ? `<ul>${ch.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : `<p class="muted">None: published / default values.</p>`}`;
+  }
+  // 4 tested computationally
+  if (pvOpen === "test") {
+    $("pv-testh").innerHTML = `<h4>Computational test</h4><p><b>${t.name}</b>: ${esc(t.desc)}</p><p>Measures: ${esc(t.short || "")} · run in <b>${esc(cfg.sim)}</b>${cfg.sim === "hippsim" ? " (this browser)" : " (precomputed baseline)"}</p>`;
+    $("sbase").hidden = $("sbase").previousElementSibling.hidden = $("sout").hidden;
+    $("pv-testa").innerHTML = `<h4>Simulation assumptions</h4>` + tbl(null, cd.assumptions.map(([a, b]) => `<tr><td>${esc(a)}</td><td>${cellText(b)}</td></tr>`));
+  }
+  // 5 validated
+  if (pvOpen === "valid") {
+    const sp = x => x ? `${x.spikes}${x.first_ms != null ? ` <small class="muted">(${fmt(x.first_ms)} ms)</small>` : ""}` : "–";
+    $("pv-validh").innerHTML = `<h4>What has been checked</h4><ul>${cd.validated.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` +
+      (m.pop ? "" : `<h4>Same HH model in three simulators (this cell, 0.5 nA step)</h4>` + tbl(["", "hippsim", "NEURON 9", "Brian2"], [`<tr><td>Spikes</td><td class="n">${sp(e.js)}</td><td class="n">${sp(e.neuron)}</td><td class="n">${sp(e.brian2)}</td></tr>`]) +
+      `<p><button class="btn" id="scmpgo">${$("scmp").hidden ? "Compare hippsim and NEURON in detail" : "Hide the detailed comparison"}</button></p>`) +
+      `<p class="uns">Not compared with recordings from this cell.</p>`;
+  }
+}
+$("spstrip").onclick = e => { const b = e.target.closest("[data-pv]"); if (!b) return; pvOpen = pvOpen === b.dataset.pv ? null : b.dataset.pv; renderProv(); };
+$("sppanel").addEventListener("click", e => { if (e.target.id === "scmpgo") { if ($("scmp").hidden) openCompare(); else $("scmp").hidden = true; renderProv(); } });
+
+/* ---------- simulator comparison: hippsim vs NEURON, same HH model, traces at soma / AIS / dendrites (tools/compare_engines.py) ---------- */
+let CMP = null, cmpSite = "soma", cmpZoom = "full", cmpR = null, cmpT = null;
+const cmpTr = {};
+const SITEN = {soma: "Soma", ais: "AIS (axon ~30 µm)", dend100: "Dendrite ~100 µm", dend300: "Dendrite ~300 µm"};
+async function openCompare() {
+  const box = $("scmp"); box.hidden = false; box.innerHTML = `<p class="note">Loading the comparison…</p>`;
+  try { if (!CMP) CMP = await (await fetch("compare/index.json")).json(); } catch (err) { CMP = {}; }
+  cmpR = CMP[C.id]; if (!cmpR) { box.innerHTML = `<p class="note">No comparison has been run for this cell.</p>`; return; }
+  try { if (!cmpTr[cmpR.shard]) cmpTr[cmpR.shard] = await (await fetch(`compare/traces-${cmpR.shard}.json`)).json(); cmpT = cmpTr[cmpR.shard][C.id]; } catch (err) { cmpT = null; }
+  renderCompare();
+}
+function renderCompare() {
+  const r = cmpR, box = $("scmp"), N = r.metrics.neuron, H = r.metrics.hippsim, dv = r.diverge || {};
+  const sites = Object.keys(SITEN).filter(k => N[k] && H[k]); if (!sites.includes(cmpSite)) cmpSite = "soma";
+  const n = N[cmpSite], h = H[cmpSite], d1 = x => x == null ? "–" : fmt(x), dd = (a, b, u = "") => a == null || b == null ? "" : `${b - a >= 0 ? "+" : "−"}${fmt(Math.abs(b - a))}${u}`;
+  const row = (l, a, b, u, bad) => `<tr><td>${l}</td><td class="n">${d1(a)}</td><td class="n">${d1(b)}</td><td class="n${bad ? " bad" : ""}">${dd(a, b)}</td></tr>`;
+  const big = (a, b, tol) => a != null && b != null && Math.abs(a - b) > tol;
+  const st = r.sites || {}, sl = k => `${SITEN[k]}${st[k] && st[k].path_um != null ? ` <small>${fmt(st[k].path_um)} µm</small>` : ""}`;
+  const MN = r.morphology.neuron, MH = r.morphology.hippsim, ty = {soma: "Soma", axon: "Axon", dend: "Basal / dendrites", apic: "Apical"};
+  const nN = N.soma.spikes, diag = r.diagnostics || [], fix = diag.filter(x => x.spikes === nN && H.soma.spikes !== nN);
+  const setupDiff = (r.setup || []).filter(x => !x[3]);
+  const finding = nN === H.soma.spikes
+    ? `Same spike count at the soma (${nN}).${dv.t_ms != null ? ` Traces first differ by more than 1 mV at ${fmt(dv.t_ms)} ms${dv.t_ms > 50 && nN ? " (spike timing drifts slightly)" : ""}.` : " Traces stay within 1 mV."}`
+    : `Spike count differs: NEURON ${nN}, hippsim ${H.soma.spikes}. Traces first differ by more than 1 mV at ${fmt(dv.t_ms)} ms. ${fix.length ? `hippsim matches NEURON's count when: ${fix.map(x => esc(x.run)).join("; ")}.` : "No single diagnostic change reproduces NEURON's count."} Passive input resistance: NEURON ${fmt(r.passive.neuron.rin_MOhm)} MΩ, hippsim ${fmt(r.passive.hippsim.rin_MOhm)} MΩ.`;
+  box.innerHTML = `<h4>hippsim vs NEURON · Hodgkin–Huxley model · 0.5 nA step at the soma, 50–350 ms</h4>
+    <div class="seg sm" id="cmps" role="radiogroup" aria-label="Recording site">${sites.map(k => `<button role="radio" data-cs="${k}" aria-checked="${k === cmpSite}">${{soma: "Soma", ais: "AIS", dend100: "100 µm", dend300: "300 µm"}[k]}</button>`).join("")}</div>
+    <div class="seg sm" id="cmpz" role="radiogroup" aria-label="Time window"><button role="radio" data-cz="full" aria-checked="${cmpZoom === "full"}">All</button><button role="radio" data-cz="div" aria-checked="${cmpZoom === "div"}" ${dv.t_ms == null ? "disabled" : ""}>Divergence</button><button role="radio" data-cz="on" aria-checked="${cmpZoom === "on"}">Onset</button></div>
+    <div class="trace"><canvas id="cmpc" aria-label="Voltage at ${SITEN[cmpSite]}: NEURON and hippsim"></canvas></div>
+    <div class="cmpk"><span><i style="border-color:var(--ink)"></i>NEURON 9</span><span><i style="border-color:var(--accent);border-top-style:dashed"></i>hippsim</span>${dv.t_ms != null ? `<span>┆ first > 1 mV apart (soma): ${fmt(dv.t_ms)} ms</span>` : ""}</div>
+    <h4>${sl(cmpSite)}</h4>` + tbl(["", "NEURON", "hippsim", "Δ"], [row("Rest (mV)", n.rest_mV, h.rest_mV, "", big(n.rest_mV, h.rest_mV, 0.5)), row("Peak (mV)", n.peak_mV, h.peak_mV, "", big(n.peak_mV, h.peak_mV, 3)),
+      row("Spikes", n.spikes, h.spikes, "", n.spikes !== h.spikes), row("First spike latency (ms)", n.latency_ms, h.latency_ms, "", big(n.latency_ms, h.latency_ms, 1)),
+      row("Threshold (mV, dV/dt > 10)", n.threshold_mV, h.threshold_mV, "", big(n.threshold_mV, h.threshold_mV, 2)), row("Max dV/dt (mV/ms)", n.max_dVdt, h.max_dVdt, "", big(n.max_dVdt, h.max_dVdt, 20)),
+      row("V at end of step (mV)", n.v_end_mV, h.v_end_mV, "", big(n.v_end_mV, h.v_end_mV, 2))]) +
+    `<h4>Soma Na⁺ and K⁺ currents</h4>` + tbl(["", "NEURON", "hippsim", "Δ"], [row("I_Na, most inward (nA)", r.currents.neuron.ina_min_nA, r.currents.hippsim.ina_min_nA), row("I_K, most outward (nA)", r.currents.neuron.ik_max_nA, r.currents.hippsim.ik_max_nA)]) +
+    `<h4>Set-up: equations, parameters, units, stimulus</h4>` + tbl(["", "hippsim", "NEURON", ""], (r.setup || []).map(([l, a, b, ok]) => `<tr><td>${esc(l)}</td><td>${esc(a)}</td><td>${esc(b)}</td><td class="${ok ? "ok" : "bad"}">${ok ? "✓ same" : "differs"}</td></tr>`)) +
+    `<h4>Morphology and discretization</h4>` + tbl(["", "NEURON", "hippsim", "Δ"], [
+      ...Object.keys(ty).filter(k => MN.area_um2[k] || MH.area_um2[k]).map(k => row(`${ty[k]} membrane (µm²)`, MN.area_um2[k], MH.area_um2[k], "", big(MN.area_um2[k], MH.area_um2[k], 0.02 * (MN.area_um2[k] || 1)))),
+      row("Compartments", MN.compartments, MH.compartments), row("Passive R_in (MΩ)", r.passive.neuron.rin_MOhm, r.passive.hippsim.rin_MOhm, "", big(r.passive.neuron.rin_MOhm, r.passive.hippsim.rin_MOhm, 0.03 * r.passive.neuron.rin_MOhm)),
+      row("Passive τ (ms)", r.passive.neuron.tau_ms, r.passive.hippsim.tau_ms)]) +
+    (r.junction ? `<p class="note">Soma junction: ${r.junction.branches} branches attach to the soma${r.junction.inside_soma ? `, ${r.junction.inside_soma} start inside it` : ""}; hippsim's centre-to-first-point segments add ${fmt(r.junction.area_um2)} µm² of membrane that NEURON does not have.</p>` : "") +
+    `<h4>Diagnostics: one change at a time (hippsim's default is unchanged)</h4>` + tbl(["Run", "Soma spikes", "Latency (ms)"], diag.map(x => `<tr><td>${esc(x.run)}</td><td class="n${x.spikes !== nN ? " bad" : ""}">${x.spikes}</td><td class="n">${d1(x.latency_ms)}</td></tr>`)) +
+    `<h4>Finding</h4><p>${finding}</p>${setupDiff.length ? `<p class="note">Set-up rows that differ: ${setupDiff.map(x => esc(x[0])).join("; ")}.</p>` : ""}<p class="note">Nothing was tuned to make the simulators agree. <a href="docs.html#validation" target="_blank" rel="noopener">How the comparison is run</a></p>`;
+  drawCompare();
+}
+function drawCompare() {
+  const c = $("cmpc"); if (!c || !cmpT) return; const d = devicePixelRatio || 1, W = c.clientWidth, Hh = c.clientHeight; c.width = W * d; c.height = Hh * d;
+  const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, W, Hh);
+  const t = cmpT.t, a = cmpT.neuron[cmpSite], b = cmpT.hippsim[cmpSite], dv = cmpR.diverge || {};
+  const [t0, t1] = cmpZoom === "div" && dv.t_ms != null ? [Math.max(0, dv.t_ms - 15), dv.t_ms + 25] : cmpZoom === "on" ? [45, 75] : [0, t[t.length - 1]];
+  const ks = t.map((x, k) => k).filter(k => t[k] >= t0 && t[k] <= t1), vs = ks.flatMap(k => [a[k], b[k]]);
+  const lo = Math.min(-80, ...vs), hi = Math.max(-40, ...vs), X = x => 30 + (x - t0) / (t1 - t0) * (W - 36), Y = v => 6 + (hi - v) / (hi - lo) * (Hh - 22);
+  g.font = "10px " + (css("--f-mono") || "monospace"); g.fillStyle = css("--muted"); g.fillText(`${Math.round(hi)} mV`, 2, 12); g.fillText(`${Math.round(lo)}`, 2, Hh - 16);
+  g.textAlign = "right"; g.fillText(`${fmt(t1)} ms`, W - 4, Hh - 3); g.textAlign = "left"; g.fillText(`${fmt(t0)}`, 30, Hh - 3);
+  if (dv.t_ms != null && dv.t_ms >= t0 && dv.t_ms <= t1) { g.strokeStyle = css("--muted"); g.setLineDash([2, 3]); g.beginPath(); g.moveTo(X(dv.t_ms), 4); g.lineTo(X(dv.t_ms), Hh - 14); g.stroke(); g.setLineDash([]); }
+  const line = (v, col, dash, lw) => { g.strokeStyle = col; g.lineWidth = lw; g.setLineDash(dash); g.beginPath(); ks.forEach((k, j) => j ? g.lineTo(X(t[k]), Y(v[k])) : g.moveTo(X(t[k]), Y(v[k]))); g.stroke(); g.setLineDash([]); };
+  line(a, css("--ink"), [], 1.4); line(b, css("--accent"), [4, 3], 1.4);
+}
+$("scmp").addEventListener("click", e => { const s = e.target.closest("[data-cs]"), z = e.target.closest("[data-cz]"); if (s) { cmpSite = s.dataset.cs; renderCompare(); } if (z && !z.disabled) { cmpZoom = z.dataset.cz; renderCompare(); } });
+addEventListener("resize", () => { if (!$("scmp").hidden) drawCompare(); });
 function renderSetup() {
   const ms = modelsFor(cfg.scale); if (!ms.some(([k]) => k === cfg.model)) cfg.model = ms[0][0];
   const m = model(); if (!m.tests.includes(cfg.test)) cfg.test = m.tests[0];
   const sims = cfg.test === "step" ? m.sims : ["hippsim"]; if (!sims.includes(cfg.sim)) cfg.sim = "hippsim";
   document.querySelectorAll("#sscale [data-s]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.s === cfg.scale)));
-  $("smodels").innerHTML = ms.map(([k, x]) => `<button role="radio" data-m="${k}" aria-checked="${k === cfg.model}"><b>${x.name}</b><span>${x.desc}</span></button>`).join("");
-  $("stests").innerHTML = m.tests.map(k => `<button role="radio" data-t="${k}" aria-checked="${k === cfg.test}" title="${esc(TESTS[k].desc)}"><b>${TESTS[k].name}</b><span>${esc(TESTS[k].short || "")}</span></button>`).join("");
+  $("smodels").innerHTML = ms.map(([k, x]) => { const cd = x.card(C), w = cellWarn(k);
+    return `<button role="radio" data-m="${k}" aria-checked="${k === cfg.model}" data-ex="${esc(strip(x.desc))}"><b>${x.name}</b><span class="meta">${esc(cd.short)} · ${esc(cd.meta)}</span>${w ? `<em class="warn">${esc(w)}</em>` : ""}</button>`; }).join("");
+  $("stests").innerHTML = m.tests.map(k => `<button role="radio" data-t="${k}" aria-checked="${k === cfg.test}" data-ex="${esc(TESTS[k].desc)}"><b>${TESTS[k].name}</b><span class="meta">${esc(TESTS[k].short || "")}</span></button>`).join("");
+  const cd = m.card(C);
+  $("sxb").innerHTML = `<p><b>${m.name}</b> · ${esc(cd.short)}</p><p>${m.desc}</p>${cellWarn(cfg.model) ? `<p><em class="warn">${esc(cellWarn(cfg.model))}</em></p>` : ""}<p><b>${TESTS[cfg.test].name}</b>: ${esc(TESTS[cfg.test].desc)}</p><p class="muted">Sources, channel distributions and assumptions: the strip below (Morphology · Published model · Adapted · Tested · Validated).</p>`;
+  renderProv();
   $("ssims").innerHTML = sims.map(x => `<button role="radio" data-sim="${x}" aria-checked="${x === cfg.sim}">${x}</button>`).join("");
   $("ssims").hidden = sims.length < 2;
   let fx = $("ssimrow").querySelector(".fixed"); if (!fx) { fx = document.createElement("span"); fx.className = "fixed"; $("ssimrow").appendChild(fx); }
@@ -560,15 +767,16 @@ $("schange").onclick = () => { cancelAnimationFrame(playT); R = RB = X = null; v
 const pbase = () => Object.fromEntries(allParams().map(q => [q.k, q.base]));
 function pnow() { const o = {}; allParams().forEach(q => { const el = $("sp-" + q.k); o[q.k] = !el ? q.base : q.type === "toggle" ? el.checked : q.type === "choice" ? el.value : +el.value; }); return o; }
 function ctl(q) {
-  if (q.type === "toggle") return `<label class="tg"><input type="checkbox" id="sp-${q.k}" ${q.base ? "checked" : ""}> ${q.label}</label>`;
-  if (q.type === "choice") return `<label class="sel">${q.label}<select id="sp-${q.k}">${q.options.map(([v, l]) => `<option value="${v}"${v === q.base ? " selected" : ""}>${l}</option>`).join("")}</select></label>`;
-  return `<label class="sl">${q.label} <output id="so-${q.k}"></output><input type="range" id="sp-${q.k}" min="${q.min}" max="${q.max}" step="${q.step}" value="${q.base}"></label>`;
+  const ex = q.ex ? ` data-ex="${esc(q.ex)}"` : "";
+  if (q.type === "toggle") return `<label class="tg"${ex}><input type="checkbox" id="sp-${q.k}" ${q.base ? "checked" : ""}> ${q.label}</label>`;
+  if (q.type === "choice") return `<label class="sel"${ex}>${q.label}<select id="sp-${q.k}">${q.options.map(([v, l]) => `<option value="${v}"${v === q.base ? " selected" : ""}>${l}</option>`).join("")}</select></label>`;
+  return `<label class="sl"${ex}>${q.label} <output id="so-${q.k}"></output><input type="range" id="sp-${q.k}" min="${q.min}" max="${q.max}" step="${q.step}" value="${q.base}"></label>`;
 }
 function buildControls() {
   const m = model(), ps = allParams(), groups = [...new Set(ps.map(q => q.g))].filter(g => g !== "Branch tools").sort((a, b) => GROUP_ORDER.indexOf(a) - GROUP_ORDER.indexOf(b));
-  $("spre").innerHTML = m.presets.map(x => `<button data-pre="${x.id}" title="${esc(x.title || "")}">${x.label}</button>`).join("");
+  $("spre").innerHTML = m.presets.map(x => `<button data-pre="${x.id}" data-ex="${esc(x.title || "")}">${x.label}</button>`).join("");
   $("stoolg").hidden = !m.tools.length;
-  $("stools").innerHTML = m.tools.map(k => `<button data-tool="${k}" aria-pressed="false" title="${esc(TOOLS[k][1])}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${MARKCOL[k]};margin-right:5px"></i>${TOOLS[k][0]}</button>`).join("");
+  $("stools").innerHTML = m.tools.map(k => `<button data-tool="${k}" aria-pressed="false" data-ex="${esc(TOOLS[k][1])}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${MARKCOL[k]};margin-right:5px"></i>${TOOLS[k][0]}</button>`).join("");
   $("sctl").innerHTML = groups.map((g, i) => `<details class="pg" data-g="${esc(g)}"${i === 0 ? " open" : ""}><summary>${g} <em></em></summary>${ps.filter(q => q.g === g).map(ctl).join("")}</details>`).join("");
   $("stoolp").innerHTML = ps.filter(q => q.g === "Branch tools").map(ctl).join("");
   ps.forEach(q => { const el = $("sp-" + q.k); el.addEventListener(q.type === "toggle" || q.type === "choice" ? "change" : "input", syncOut); });
@@ -585,6 +793,7 @@ function syncOut() {
   $("sbase").innerHTML = t.base(p).concat(m.base(p)).map(([k, v, ch]) => `<dt>${k}</dt><dd${ch ? ' class="chg"' : ""}>${v}</dd>`).join("")
     + (m.tools.length ? `<dt>Branch tools</dt><dd${marks.length ? ' class="chg"' : ""}>${marks.length ? marks.map(markText).map(esc).join("; ") : "none"}</dd>` : "")
     + `<dt>Morphology</dt><dd>${m.pop ? "not used (point neurons)" : esc(C.cite || (C.prov && C.prov.archive) || C.name)}</dd>`;
+  renderProv();
   document.querySelectorAll("#spre [data-pre]").forEach(el => { const x = m.presets.find(y => y.id === el.dataset.pre); el.setAttribute("aria-pressed", String(Object.entries(x.set).every(([k, v]) => same(p[k], v)))); });
   document.querySelectorAll("#sctl details.pg").forEach(d => { const n = allParams().filter(q => q.g === d.dataset.g && !same(p[q.k], b[q.k])).length; d.querySelector("summary em").textContent = n ? `${n} changed` : ""; });
   const n = changes(p).length; $("snch").textContent = n ? `${n} change${n > 1 ? "s" : ""} from baseline` : "At baseline";
@@ -606,7 +815,7 @@ function renderMarks() { $("smarks").innerHTML = marks.map((m, k) => `<li><i sty
 $("smarks").onclick = e => { const el = e.target.closest("[data-rm]"); if (!el) return; marks.splice(+el.dataset.rm, 1); renderMarks(); syncOut(); draw(); };
 function setBaseline() { allParams().forEach(q => setCtl(q.k, q.base)); marks = []; renderMarks(); syncOut(); draw(); }
 $("sreset").onclick = () => { setBaseline(); if (RB) { R = RB; showResult(); play(); } };
-function simReset() { cancelAnimationFrame(playT); R = RB = X = null; vf = -1; tool = null; marks = []; mcache = {}; if (colorBy === "volt" || colorBy === "peak") colorBy = "part";
+function simReset() { pvOpen = null; cmpR = cmpT = null; $("scmp").hidden = true; cancelAnimationFrame(playT); R = RB = X = null; vf = -1; tool = null; marks = []; mcache = {}; if (colorBy === "volt" || colorBy === "peak") colorBy = "part";
   cfg = {scale: "cell", model: "hh", test: "step", sim: "hippsim"}; $("ssetup").hidden = false; $("schosen").hidden = true; $("sout").hidden = true; $("stitle").textContent = "Simulate";
   renderSetup(); renderParts(); vLegend(); draw(); }
 function openSim(on) { $("simp").hidden = !on; $("vsim").setAttribute("aria-pressed", String(on));

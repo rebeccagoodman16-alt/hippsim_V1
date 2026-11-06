@@ -53,12 +53,13 @@
   /* ---------- Display: how each person likes things shown (saved on this device) ---------- */
   const DKEY = 'hs-display';
   const SWATCH = {"rose": ["#f8cddd", "#a62962", "#fff9f2"], "slate": ["#dbe5ef", "#1f5f99", "#f7f9fb"], "sage": ["#d9e7da", "#2d6a46", "#f8faf5"], "contrast": ["#ffffff", "#0050a0", "#000000"]};
-  const DEFAULTS = {size: 'm', theme: 'light', palette: 'rose', explain: 'short', guide: 'off', layout: 'web'};
+  const DEFAULTS = {size: 'm', theme: 'light', palette: 'rose', explain: 'short', guide: 'off', layout: 'web', hover: 'on'};
   const OPTIONS = [
     ['size', 'Text size', '', [['m', 'Standard'], ['l', 'Large'], ['xl', 'Extra large']]],
     ['palette', 'Colours', 'High contrast also uses colour-blind-safe colours for cell parts.', [['rose', 'Rose'], ['slate', 'Slate'], ['sage', 'Sage'], ['contrast', 'High contrast']]],
     ['theme', 'Light or dark', '', [['light', 'Light'], ['dark', 'Dark']]],
     ['layout', 'View', 'Phone shows the app at phone size on a computer.', [['web', 'Web'], ['phone', 'Phone']]],
+    ['hover', 'Show explanations on hover', 'Point at (or tap) a model, test, channel or part of the cell for what it is and does. Cards stay short either way; Details holds the full information.', [['on', 'On'], ['off', 'Off']]],
     ['explain', 'Explanations', 'Short shows controls and results; Full also shows the background text.', [['short', 'Short'], ['full', 'Full']]]];
   const D = (() => { let v = {}; try { v = JSON.parse(localStorage.getItem(DKEY) || '{}'); } catch (e) {}
     try { if (!v.explain) { const m = localStorage.getItem('hs-mode'); if (m) v.explain = m === 'learn' ? 'full' : 'short'; }
@@ -72,7 +73,8 @@
     if (D.palette && D.palette !== 'rose') r.setAttribute('data-hs-palette', D.palette); else r.removeAttribute('data-hs-palette');
     if (window.hsSetMode) hsSetMode(D.explain !== 'full');
     if (window.hsGuide) hsGuide.refresh();
-    if (window.hsExplain) hsExplain.set(true);   // hover explanations are always available
+    r.setAttribute('data-hs-hover', D.hover === 'off' ? 'off' : 'on');
+    if (window.hsExplain) hsExplain.set(D.hover !== 'off');
   }
   applyDisplay();
   window.addEventListener('load', applyDisplay);

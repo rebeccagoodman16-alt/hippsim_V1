@@ -191,7 +191,9 @@ def main() -> None:
     eng = {k: {e: {f: x[f] for f in ("spikes", "first_ms") if f in x} for e, x in v.items() if isinstance(x, dict) and "spikes" in x} | {"date": v.get("date", "")}
            for k, v in (json.loads(ef.read_text()) if ef.exists() else {}).items()}
     acells = [{k: c[k] for k in ["id", "file", "name", "code", "region", "system", "group", "species", "layer", "cite", "nrn", "thumb"]}
-              | {"prov": {"archive": c["prov"].get("archive", "")}, "axonHidden": bool(cat[c["id"]].get("axon_hidden"))} for c in cells]
+              | {"prov": {k: c["prov"].get(k, "") for k in ("archive", "neuromorpho_id", "neuromorpho_url", "modeldb", "doi", "pmid")},
+                 "axonHidden": bool(cat[c["id"]].get("axon_hidden")), "how": c["how"],
+                 "links": cat[c["id"]].get("links", []), "original": cat[c["id"]].get("original", ""), "src": cat[c["id"]].get("provenance", "")} for c in cells]
     atlas = (ROOT / "tools/atlas_template.html").read_text().replace("/*__DATA__*/null", json.dumps({"cells": acells, "scripts": scripts, "eng": eng}, ensure_ascii=False, separators=(",", ":")))
     atlas = atlas.replace('<div class="wrap">', '<header></header>\n<div class="wrap">', 1)
     # the atlas is the home page: index.html is the artifact's main page (a fragment the host wraps in a document)

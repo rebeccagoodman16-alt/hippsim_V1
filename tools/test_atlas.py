@@ -48,10 +48,28 @@ try:
             check(f"{name}: three scales, models for this cell, 8 tests, simulator choice for HH",
                   pg.locator("#sscale [data-s]").count() == 3 and pg.locator("#smodels [data-m]").count() == 2 and pg.locator("#stests [data-t]").count() == 8 and pg.locator("#ssims [data-sim]").count() == 3,
                   pg.locator("#stests [data-t]").count())
+            check(f"{name}: Migliore option named as CA1-derived and flagged on this CA3 cell",
+                  "Migliore-derived CA1 channel model" in pg.inner_text('#smodels [data-m="migliore"]') and "not validated for CA3" in pg.inner_text('#smodels [data-m="migliore"] .warn'))
+            if name == "web":
+                pg.hover('#smodels [data-m="migliore"]'); pg.wait_for_timeout(150); on_ = pg.is_visible(".xtip") and "CA1" in pg.inner_text(".xtip")
+                pg.evaluate("document.documentElement.setAttribute('data-hs-hover', 'off')"); pg.mouse.move(5, 5); pg.hover('#stests [data-t="fi"]'); pg.wait_for_timeout(150); off_ = not pg.is_visible(".xtip")
+                pg.evaluate("document.documentElement.setAttribute('data-hs-hover', 'on')")
+                check("web: hover explanations follow Display → Show explanations on hover", on_ and off_)
             pg.click("#sgo"); pg.wait_for_function(DONE, timeout=60000)
             txt = pg.inner_text("#sres")
             check(f"{name}: HH baseline gives NEURON's spike count (18 at 0.5 nA)", "18 spikes" in txt, txt)
             check(f"{name}: baseline values and sources shown, setup folded, controls hidden", "Hodgkin" in pg.text_content("#sbase") and not pg.is_visible("#ssetup") and pg.is_visible("#schosen") and not pg.is_visible("#sp-amp"))
+            check(f"{name}: five provenance rows", pg.locator("#spstrip [data-pv]").count() == 5)
+            pg.click('#spstrip [data-pv="model"]'); t = pg.inner_text("#sppanel")
+            check(f"{name}: published model: references, unspecified sources, distribution by compartment", "Hodgkin AL" in t and "unspecified" in t and "Apical trunk" in t and "Obliques" in t, t[:200])
+            pg.click('#spstrip [data-pv="morph"]'); t = pg.inner_text("#sppanel")
+            check(f"{name}: morphology: source, reconstruction ID and what hippsim estimated", "Reconstruction ID" in t and "Estimated" in t and "Soma–dendrite junction" in t, t[:200])
+            if name == "web":
+                pg.click('#spstrip [data-pv="valid"]'); pg.click("#scmpgo"); pg.wait_for_function("!document.getElementById('scmp').textContent.includes('Loading')", timeout=30000)
+                t = pg.inner_text("#scmp")
+                check("web: hippsim vs NEURON comparison: traces, metrics, set-up, morphology, diagnostics", all(x in t for x in ["Set-up", "Morphology and discretization", "Diagnostics", "Max dV/dt"]) and pg.locator("#cmpc").count() == 1, t[:200])
+                pg.click('#scmp [data-cs="ais"]'); check("web: comparison switches to the AIS", "AIS" in pg.inner_text("#scmp h4:nth-of-type(2)"))
+            pg.click('#spstrip [aria-selected="true"]')
             pg.wait_for_timeout(4300)
             check(f"{name}: voltage plays on the cell, with legend", pg.evaluate("vf === R.frames.length - 1 && colorBy === 'volt'") and pg.is_visible("#vleg"))
             check(f"{name}: parts and colour modes stay available", pg.is_visible("#parts") and pg.locator('[data-c="volt"]').count() == 1)

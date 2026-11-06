@@ -5,36 +5,38 @@
    Numerics: compartments of ≤ 20 µm along unbranched paths, backward Euler for voltage solved exactly on the tree
    (Hines), exponential Euler for the gates, dt 0.025 ms.
 
-   HSCable.build(points, {Rm, Ra, Cm}) where points = [[x, y, z, r, swcType, parentIndex], ...] (parents first)
+   HSCable.build(points, {Rm, Ra, Cm, Lmax (µm, default 20), somaArea (µm², default sphere of the largest soma radius),
+                          somaJoin ('centre' default: a dendrite's first segment runs from the soma centre; 'neuron': it starts at its own first point)}) where points = [[x, y, z, r, swcType, parentIndex], ...] (parents first)
    model.run({
      tstop, dt, na, k, dend, celsius,
      inj: [{site, I: t => nA}],                 // current injections (or legacy amp/site/delay/dur: a step)
      syn: [{site, g: (t, v) => µS, E}],         // conductance synapses
      naMask, kMask: Float32Array(N),            // per-compartment multipliers (branch blocks)
-     rec: [site, ...], frameDt })
-   -> {t, vSoma, vSite, rec: {site: [...]}, frames, frameDt, spikes, vmax}
+     rec: [site, ...], frameDt, recDt (ms, default 0.1), currents (true: soma I_Na, I_K in nA) })
+   -> {t, vSoma, vSite, rec: {site: [...]}, frames, frameDt, spikes, vmax, iNa, iK}
    Units inside: mV, ms, nA, µS, nF. */
 (function (root) {
   'use strict';
-  const EL = -65, ENA = 50, EK = -77, GNA = 0.5, GK = 0.1, LMAX = 20e-4;   // cm
+  const EL = -65, ENA = 50, EK = -77, GNA = 0.5, GK = 0.1;
   const exprel = x => Math.abs(x) < 1e-6 ? 1 - x / 2 : x / (Math.exp(x) - 1);
   const am = v => 1.0 * exprel(-(v + 40) / 10), bm = v => 4 * Math.exp(-(v + 65) / 18);
   const ah = v => 0.07 * Math.exp(-(v + 65) / 20), bh = v => 1 / (1 + Math.exp(-(v + 35) / 10));
   const an = v => 0.1 * exprel(-(v + 55) / 10), bn = v => 0.125 * Math.exp(-(v + 65) / 80);
 
   function build(P, opt) {
-    const RM = (opt && opt.Rm) || 20000, RA = (opt && opt.Ra) || 150, CM = (opt && opt.Cm) || 1;
+    const RM = (opt && opt.Rm) || 20000, RA = (opt && opt.Ra) || 150, CM = (opt && opt.Cm) || 1, LMAX = ((opt && opt.Lmax) || 20) * 1e-4;   // cm
     const n0 = P.length, kids = new Int32Array(n0);
     P.forEach(p => { if (p[5] >= 0) kids[p[5]]++; });
     const um = 1e-4;                                       // µm -> cm
     // soma: one node, area of a sphere with the largest traced soma radius (= NEURON's 3-point soma cylinder)
     let rs = 0; P.forEach(p => { if (p[4] === 1) rs = Math.max(rs, p[3]); }); if (!rs) rs = 5;
-    const node = {par: [-1], area: [4 * Math.PI * (rs * um) ** 2], R: [0], len: [0], type: [1], last: [-1], kids: [0], dist: [0]};
+    const node = {par: [-1], area: [opt && opt.somaArea ? opt.somaArea * um * um : 4 * Math.PI * (rs * um) ** 2], R: [0], len: [0], type: [1], last: [-1], kids: [0], dist: [0]};
     const nodeOf = new Int32Array(n0).fill(0);
     for (let i = 0; i < n0; i++) {
       const p = P[i], q = p[5];
       if (p[4] === 1 || q < 0) { nodeOf[i] = 0; continue; }
-      const Q = P[q], L = Math.hypot(p[0] - Q[0], p[1] - Q[1], p[2] - Q[2]) * um;
+      const Q = P[q], join = Q[4] === 1 && opt && opt.somaJoin === 'neuron';   // NEURON convention: a dendrite joins the soma at soma(0.5) with no membrane between the soma centre and its first point
+      const L = join ? 0 : Math.hypot(p[0] - Q[0], p[1] - Q[1], p[2] - Q[2]) * um;
       const r1 = (Q[4] === 1 ? p[3] : Q[3]) * um, r2 = p[3] * um, rm = Math.max((r1 + r2) / 2, 0.05 * um);
       const A = Math.PI * (r1 + r2) * Math.hypot(L, r1 - r2), Rax = RA * L / (Math.PI * rm * rm);
       const np = nodeOf[q];
@@ -77,12 +79,13 @@
     { const x = (EL - V0) / DV | 0; for (let i = 0; i < N; i++) { m[i] = TB[x * 6]; h[i] = TB[x * 6 + 2]; n[i] = TB[x * 6 + 4]; } }
     const d = new Float64Array(N), b = new Float64Array(N), a = new Float64Array(N);
     for (let i = 1; i < N; i++) a[i] = -gAx[i];
-    const steps = Math.round(tstop / dt), recEvery = Math.max(1, Math.round(0.1 / dt));
-    const t = [], vSoma = [], vSite = [], frames = [], spikes = [], R = {}; rec.forEach(s => R[s] = []);
+    const steps = Math.round(tstop / dt), recEvery = Math.max(1, Math.round((o.recDt ?? 0.1) / dt));
+    const t = [], vSoma = [], vSite = [], frames = [], spikes = [], R = {}, iNa = [], iK = []; rec.forEach(s => R[s] = []);
     let above = false;
     for (let s = 0; s <= steps; s++) {
       const tt = s * dt;
-      if (s % recEvery === 0) { t.push(tt); vSoma.push(V[0]); vSite.push(V[site0]); rec.forEach(k => R[k].push(V[k])); }
+      if (s % recEvery === 0) { t.push(tt); vSoma.push(V[0]); vSite.push(V[site0]); rec.forEach(k => R[k].push(V[k]));
+        if (o.currents) { iNa.push(gNa[0] * m[0] ** 3 * h[0] * (V[0] - ENA)); iK.push(gK[0] * n[0] ** 4 * (V[0] - EK)); } }
       if (s % every === 0) frames.push(Float32Array.from(V));
       if (V[0] > 0 && !above) { spikes.push(tt); above = true; } else if (V[0] < -20) above = false;
       if (s === steps) break;
@@ -106,7 +109,7 @@
       for (let i = 1; i < N; i++) V[i] = (b[i] - a[i] * V[par[i]]) / d[i];
       for (let i = 0; i < N; i++) if (V[i] > vmax[i]) vmax[i] = V[i];
     }
-    return {t, vSoma, vSite, rec: R, frames, frameDt: every * dt, spikes, vmax};
+    return {t, vSoma, vSite, rec: R, frames, frameDt: every * dt, spikes, vmax, iNa, iK};
   }
   root.HSCable = {build};
 })(typeof window !== 'undefined' ? window : globalThis);
