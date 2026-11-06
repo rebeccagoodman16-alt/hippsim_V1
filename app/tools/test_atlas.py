@@ -45,9 +45,9 @@ try:
             DONE = "() => typeof RB !== 'undefined' && RB && !busy"
             pg.click("#vsim")
             check(f"{name}: Simulate opens the setup in the same view", pg.is_visible("#ssetup") and pg.is_visible("#cv") and not pg.is_visible("#sout") and "index.html" in pg.url)
-            check(f"{name}: three scales, models for this cell, simulator choice for HH",
-                  pg.locator("#sscale [data-s]").count() == 3 and pg.locator("#smodels [data-m]").count() == 2 and pg.locator("#ssims [data-sim]").count() == 3,
-                  pg.locator("#smodels [data-m]").count())
+            check(f"{name}: three scales, models for this cell, 8 tests, simulator choice for HH",
+                  pg.locator("#sscale [data-s]").count() == 3 and pg.locator("#smodels [data-m]").count() == 2 and pg.locator("#stests [data-t]").count() == 8 and pg.locator("#ssims [data-sim]").count() == 3,
+                  pg.locator("#stests [data-t]").count())
             pg.click("#sgo"); pg.wait_for_function(DONE, timeout=60000)
             txt = pg.inner_text("#sres")
             check(f"{name}: HH baseline gives NEURON's spike count (18 at 0.5 nA)", "18 spikes" in txt, txt)
@@ -60,35 +60,41 @@ try:
             check(f"{name}: hover shows the voltage there", "mV at" in pg.inner_text("#tip"), pg.inner_text("#tip"))
             # manipulate
             pg.click("#smanip")
-            check(f"{name}: Manipulate shows the controls", pg.is_visible("#sp-amp") and pg.is_visible("#spre"))
+            check(f"{name}: Manipulate shows grouped controls, presets and branch tools", pg.is_visible("#sp-amp") and pg.is_visible("#spre") and pg.locator("#sctl details.pg").count() >= 4 and pg.locator("#stools [data-tool]").count() >= 5)
             pg.click('[data-pre="ttx"]'); pg.click("#srun"); pg.wait_for_function("R !== RB && !busy", timeout=30000)
             txt = pg.inner_text("#sres")
             check(f"{name}: TTX abolishes spikes, compared with baseline", "No spikes" in txt and "baseline 18" in txt and "1 change" in pg.inner_text("#snch"), txt)
             pg.click('[data-pre="ttx"]')
-            pg.click("#spick"); xy = pg.evaluate(TUFT); pg.mouse.click(*xy); pg.wait_for_timeout(200)
-            check(f"{name}: electrode moves to a tapped branch", "tuft" in pg.inner_text("#ssite").lower() and pg.evaluate("sitePt >= 0"), pg.inner_text("#ssite"))
+            pg.click('#stools [data-tool="electrode"]'); xy = pg.evaluate(TUFT); pg.mouse.click(*xy); pg.wait_for_timeout(200)
+            check(f"{name}: electrode moves to a tapped branch", "tuft" in pg.inner_text("#smarks").lower() and pg.evaluate("marks.some(m => m.kind === 'electrode')"), pg.inner_text("#smarks"))
             pg.evaluate("document.getElementById('sp-amp').value = 1; document.getElementById('sp-amp').dispatchEvent(new Event('input'))")
-            pg.click("#srun"); pg.wait_for_function("R !== RB && R.siteIdx > 0 && !busy", timeout=30000)
-            check(f"{name}: dendritic run records both sites", pg.evaluate("R.vSite.some((v, k) => Math.abs(v - R.vSoma[k]) > 1)"))
+            pg.click("#srun"); pg.wait_for_function("R !== RB && !busy && R.series.some(s => s.role === 'site')", timeout=30000)
+            check(f"{name}: dendritic run records both sites", pg.evaluate("(() => { const s = R.series.find(x => x.role === 'site'); return s.v.some((v, k) => Math.abs(v - R.vSoma[k]) > 1); })()"))
             if MOCK:
                 pg.click("#ssave"); pg.wait_for_function("/Saved|Not/.test(document.getElementById('ssave').textContent)", timeout=10000)
                 check(f"{name}: Save run stores it online", "Saved" in pg.inner_text("#ssave"), pg.get_attribute("#ssave", "title"))
             if name == "web":
                 # other models, other scales, other simulators: same panel, same cell
-                for scale, mk, want in [("cell", "migliore", "spike"), ("circuit", "circuit", "spike"), ("population", "population", "Mean rate")]:
-                    pg.click("#schange"); pg.click(f'[data-s="{scale}"]'); pg.click(f'[data-m="{mk}"]'); pg.click("#sgo"); pg.wait_for_function(DONE, timeout=90000)
+                for scale, mk, tst, want in [("cell", "migliore", "step", "spike"), ("cell", "migliore", "bap", "at the soma"), ("cell", "migliore", "sag", "MΩ"), ("cell", "hh", "fi", "nA"),
+                                             ("circuit", "circuit", "circuit", "spike"), ("population", "population", "network", "Mean rate")]:
+                    pg.click("#schange"); pg.click(f'[data-s="{scale}"]'); pg.click(f'[data-m="{mk}"]'); pg.click(f'[data-t="{tst}"]'); pg.click("#sgo"); pg.wait_for_function(DONE, timeout=120000)
                     txt = pg.inner_text("#sres")
-                    check(f"{name}: {mk} runs on this cell in the panel", want in txt and pg.is_visible("#cv") and pg.evaluate("C.id") == "ca3-c62563", txt)
+                    check(f"{name}: {mk} · {tst} runs on this cell in the panel", want in txt and pg.is_visible("#cv") and pg.evaluate("C.id") == "ca3-c62563" and pg.locator("#sread tr").count() >= 1, txt)
+                # manipulate with a preset + a branch tool, compare with baseline (Migliore, sag)
+                pg.click("#schange"); pg.click('[data-s="cell"]'); pg.click('[data-m="migliore"]'); pg.click('[data-t="sag"]'); pg.click("#sgo"); pg.wait_for_function(DONE, timeout=60000)
+                pg.click("#smanip"); pg.click('[data-pre="zd"]'); pg.click('#stools [data-tool="cut"]'); xy = pg.evaluate(TUFT); pg.mouse.click(*xy); pg.wait_for_timeout(200)
+                pg.click("#srun"); pg.wait_for_function("R !== RB && !busy", timeout=60000)
+                check(f"{name}: ZD7288 + cut branch: sag gone, readout compared with baseline", "sag ratio 0 " in pg.inner_text("#sres") + " " and pg.locator("#sread td.b").count() >= 3 and pg.evaluate("R.nodeOf.some(x => x < 0)"), pg.inner_text("#sres"))
                 pg.click("#schange"); pg.click('[data-s="cell"]'); pg.click('[data-m="hh"]'); pg.click('[data-sim="NEURON"]'); pg.click("#sgo"); pg.wait_for_function(DONE + " && X", timeout=60000)
                 txt = pg.inner_text("#sres")
                 check(f"{name}: NEURON baseline shown next to hippsim's", txt.startswith("NEURON:") and "hippsim: 18" in txt, txt)
             if MOCK:
                 pg.goto(B + "runs.html"); pg.wait_for_timeout(1500)
                 check(f"{name}: run appears in Runs", "c62563" in pg.inner_text("#rows"))
-                pg.locator("#rows tr", has_text="1 change").first.locator("[data-i]").click() if pg.locator("#rows tr", has_text="2 change").count() == 0 else pg.locator("#rows tr", has_text="2 change").first.locator("[data-i]").click()
+                pg.locator("#rows tr", has_text="2 change").first.locator("[data-i]").click()
                 pg.wait_for_function("typeof R !== 'undefined' && R && R !== RB && !busy", timeout=60000)
                 check(f"{name}: Open from Runs restores cell, model, current and electrode",
-                      pg.evaluate("C.id") == "ca3-c62563" and pg.evaluate("cfg.model") == "hh" and pg.input_value("#sp-amp") == "1" and pg.evaluate("sitePt >= 0"))
+                      pg.evaluate("C.id") == "ca3-c62563" and pg.evaluate("cfg.model") == "hh" and pg.input_value("#sp-amp") == "1" and pg.evaluate("marks.some(m => m.kind === 'electrode')"))
             pg.goto(B + "atlas.html#ca3-c62563"); pg.wait_for_timeout(1500)
             check(f"{name}: old atlas address redirects home", "index.html#ca3-c62563" in pg.url and pg.is_visible("#viewer"), pg.url)
             check(f"{name}: no page errors", not errs, errs[:2])
@@ -98,7 +104,7 @@ try:
         pg.goto(B + "docs.html"); pg.wait_for_timeout(1500)
         check("docs: every page in the sidebar, menu links to Docs", pg.locator(".dx nav a").count() >= 14 and pg.locator('header a[href="docs.html"]').count() >= 1)
         pg.goto(B + "docs.html#models"); pg.wait_for_timeout(800)
-        check("docs: Models page generated from the panel's models", pg.locator("#doc-models h2[id^=model-]").count() == len(__import__("re").findall(r"^    (?:hh|migliore|research):|^  MODELS\.(?:circuit|population) =", (ROOT / "site/hs-models.js").read_text(), __import__("re").M)))
+        check("docs: Models page generated from the panel's models", pg.locator("#doc-models h2[id^=model-]:not(#model-tests):not(#model-tools)").count() == len(__import__("re").findall(r"^    (?:hh|migliore|research):|^  MODELS\.(?:circuit|population) =", (ROOT / "site/hs-models.js").read_text(), __import__("re").M)))
         pg.goto(B + "docs.html#equations"); pg.wait_for_timeout(2500)
         check("docs: equations render (offline MathJax)", pg.locator("#doc-equations mjx-container").count() >= 3, pg.locator("#doc-equations mjx-container").count())
         pg.fill("#dq", "Brunel"); check("docs: search narrows the pages", 0 < pg.locator(".dx nav a:not(.dim)").count() < 14)

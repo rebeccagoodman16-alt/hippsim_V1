@@ -125,6 +125,39 @@ dialog#sim::backdrop{background:rgba(0,0,0,.35)}
 .chosen{font-size:13px;color:var(--muted);margin:0}
 .chosen b{color:var(--ink)}
 .out{display:flex;flex-direction:column;gap:12px}
+.step{margin:4px 0 -2px;font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.step b{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:11px;margin-right:6px}
+.tlist{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tlist button{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:var(--surface);font-size:12.5px;line-height:1.3}
+.tlist button b{display:block;font-size:13px}
+.tlist button span{color:var(--muted);font-size:11.5px}
+.tlist button[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.readout{width:100%;border-collapse:collapse;font-size:13px}
+.readout td{padding:4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.readout td:first-child{color:var(--muted)}
+.readout td.v{text-align:right;font-variant-numeric:tabular-nums}
+.readout td.b{text-align:right;color:var(--muted);font-size:12px;padding-left:10px;white-space:nowrap}
+.readout td.chg{color:var(--accent);font-weight:600}
+.bdet summary{cursor:pointer;font-size:13px;font-weight:600}
+.bdet[open] summary{margin-bottom:8px}
+.mhead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
+.grp{display:flex;flex-direction:column;gap:6px}
+.gh{margin:0;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+details.pg{border:1px solid var(--rule);border-radius:10px;padding:8px 10px;background:var(--surface)}
+details.pg summary{cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between}
+details.pg summary em{font-style:normal;color:var(--accent);font-weight:600;font-size:12px}
+details.pg[open] summary{margin-bottom:8px}
+details.pg .sl{margin-bottom:8px}
+#sctl{display:flex;flex-direction:column;gap:8px}
+.tg{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:4px 0}
+.tg input{accent-color:var(--accent)}
+.sel{display:flex;flex-direction:column;gap:4px;font-size:13.5px;margin-bottom:8px}
+.sel select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.chips.tools button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.marks{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.marks li{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 9px;display:flex;align-items:center;gap:4px}
+.marks li i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.marks li button{all:unset;cursor:pointer;padding:0 5px;color:var(--muted)}
 aside.side > *{flex:none}
 .sman{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--rule);padding-top:12px}
 .sman[hidden]{display:none}
@@ -171,8 +204,12 @@ aside.side > *{flex:none}
   <aside class="side simp" id="simp" hidden aria-label="Simulate">
     <div class="sh"><h3 id="stitle">Simulate</h3><button class="linkish" id="sclose" aria-label="Close simulator">Close</button></div>
     <div class="setup" id="ssetup">
+      <p class="step"><b>1</b> Scale</p>
       <div class="seg" id="sscale" role="radiogroup" aria-label="Scale"><button data-s="cell">Single cell</button><button data-s="circuit">Circuit</button><button data-s="population">Population</button></div>
+      <p class="step"><b>2</b> Model</p>
       <div class="mlist" id="smodels" role="radiogroup" aria-label="Model"></div>
+      <p class="step"><b>3</b> Test</p>
+      <div class="tlist" id="stests" role="radiogroup" aria-label="Test"></div>
       <div class="simrow" id="ssimrow"><span class="lbl">Run in</span><div class="seg sm" id="ssims" role="radiogroup" aria-label="Simulator"></div></div>
       <button class="btn primary run" id="sgo">▶ Run baseline</button>
     </div>
@@ -180,13 +217,14 @@ aside.side > *{flex:none}
     <div class="out" id="sout" hidden>
       <div class="trace"><canvas id="trace" aria-label="Simulation result"></canvas></div>
       <p class="sres" id="sres" aria-live="polite"></p>
-      <dl class="base" id="sbase"></dl>
+      <table class="readout" id="sread"></table>
+      <details class="bdet" id="sbdet"><summary>Baseline values and sources</summary><dl class="base" id="sbase"></dl></details>
       <button class="btn primary run" id="smanip" aria-expanded="false" aria-controls="sman">Manipulate the baseline</button>
       <div class="sman" id="sman" hidden>
-        <div class="chips" id="spre" role="group" aria-label="Manipulations"></div>
+        <div class="mhead"><span id="snch">At baseline</span><button class="linkish" id="sreset">back to baseline</button></div>
+        <div class="grp"><p class="gh">Published manipulations</p><div class="chips" id="spre" role="group" aria-label="Manipulations"></div></div>
+        <div class="grp" id="stoolg"><p class="gh">Branch tools <span class="muted">· pick one, tap the cell</span></p><div class="chips tools" id="stools"></div><ul class="marks" id="smarks"></ul><div id="stoolp"></div></div>
         <div id="sctl"></div>
-        <p class="srow" id="spickrow">Electrode: <b id="ssite">soma</b> · <button class="linkish" id="spick" aria-pressed="false">tap a branch to move it</button></p>
-        <p class="srow"><span id="snch">No changes yet</span> · <button class="linkish" id="sreset">back to baseline</button></p>
         <button class="btn primary run" id="srun">▶ Run</button>
         <p class="note" id="sextnote" hidden></p>
       </div>
@@ -319,7 +357,9 @@ function layer(c, i) {                            // rough CA1/CA3 strata from d
   return d < -20 ? "stratum oriens" : d < 30 ? "stratum pyramidale" : d < G.tuftStart ? (c.region === "CA3" && d < 100 ? "stratum lucidum / radiatum" : "stratum radiatum") : "stratum lacunosum-moleculare";
 }
 let colorOf = function (i) {
+  if (R && R.nodeOf && R.nodeOf[i] < 0) return css("--line");
   if (colorBy === "volt" && R && R.frames && vf >= 0) return vColor(R.frames[vf][R.nodeOf[i]]);
+  if (colorBy === "peak" && R && R.vmax) return vColor(R.vmax[R.nodeOf[i]]);
   if (colorBy === "dist" && G.part[i] !== "soma" && G.part[i] !== "axon") {
     const t = Math.min(1, G.dist[i] / G.maxDist); return `hsl(${250 - 230 * t} 70% ${45 + 5 * t}%)`; }
   return css((PARTS.find(p => p[0] === G.part[i]) || [, , "--basal"])[2]);
@@ -350,8 +390,10 @@ function draw(target) {
   c2.globalAlpha = 1;
   if (on.soma !== false) { const so = P.map((p, i) => i).filter(i => P[i][4] === 1); if (so.length) {
     const r = Math.max(3 * d, Math.max(...so.map(i => P[i][3])) * s); c2.fillStyle = css("--ink"); c2.beginPath(); c2.arc(ox + 0, oy, r, 0, 7); c2.fill(); } }
-  if (sitePt >= 0 && G.P[sitePt]) { const i = sitePt; c2.fillStyle = css("--accent"); c2.strokeStyle = css("--bg"); c2.lineWidth = 2 * d;
-    c2.beginPath(); c2.arc(X[i], Y[i], 6 * d, 0, 7); c2.fill(); c2.stroke(); }
+  (typeof marks !== "undefined" ? marks : []).forEach(m => { const i = m.pt; if (!G.P[i]) return; c2.fillStyle = MARKCOL[m.kind] || css("--accent"); c2.strokeStyle = css("--bg"); c2.lineWidth = 2 * d; c2.beginPath();
+    if (m.kind === "cut") { c2.moveTo(X[i] - 6 * d, Y[i] - 6 * d); c2.lineTo(X[i] + 6 * d, Y[i] + 6 * d); c2.moveTo(X[i] + 6 * d, Y[i] - 6 * d); c2.lineTo(X[i] - 6 * d, Y[i] + 6 * d); c2.strokeStyle = MARKCOL.cut; c2.lineWidth = 3 * d; c2.stroke(); return; }
+    if (m.kind === "probe") c2.rect(X[i] - 5 * d, Y[i] - 5 * d, 10 * d, 10 * d); else c2.arc(X[i], Y[i], 6 * d, 0, 7);
+    c2.fill(); c2.stroke(); });
   // scale bar + source line (part of every screenshot and video)
   const bar = [10, 20, 50, 100, 200, 500, 1000].find(b => b * s > W * .12) || 1000;
   c2.strokeStyle = css("--ink"); c2.fillStyle = css("--ink"); c2.lineWidth = 2 * d;
@@ -391,7 +433,7 @@ let downAt = null;
 cv.addEventListener("pointerdown", e => { downAt = [e.clientX, e.clientY]; }, true);
 const up = e => { ptr.delete(e.pointerId);                      // a tap (no drag) names the branch: touch screens have no hover
   if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 5) { const i = pick(e);
-    if (picking && i != null) placeElectrode(i); else { hover = i; draw(); showTip(e, i); } } downAt = null; };
+    if (tool && i != null) placeMark(i); else { hover = i; draw(); showTip(e, i); } } downAt = null; };
 cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
 cv.addEventListener("pointerleave", () => { hover = null; $("tip").hidden = true; document.querySelectorAll(".part").forEach(b => b.classList.remove("hl")); draw(); });
 cv.addEventListener("wheel", e => { e.preventDefault(); view.zoom = Math.max(.3, Math.min(12, view.zoom * Math.exp(-e.deltaY * .0015))); draw(); }, {passive: false});
@@ -412,7 +454,7 @@ addEventListener("keydown", e => {
 function renderParts() {
   const ps = PARTS.filter(p => G.parts.includes(p[0]));
   $("parts").innerHTML = `<span class="lbl">Show</span>` + ps.map(([k, l, v]) => `<button class="part" data-p="${k}" aria-pressed="${on[k] !== false}" title="${esc(PART_NOTE[k])}"><i style="background:var(${v})"></i>${l}</button>`).join("") +
-    `<span style="flex:1"></span><span class="lbl">Colour</span><span class="seg"><button data-c="part" aria-pressed="${colorBy === "part"}">Compartment</button><button data-c="dist" aria-pressed="${colorBy === "dist"}">Distance from soma</button>${R && R.frames ? `<button data-c="volt" aria-pressed="${colorBy === "volt"}">Voltage</button>` : ""}</span>`;
+    `<span style="flex:1"></span><span class="lbl">Colour</span><span class="seg"><button data-c="part" aria-pressed="${colorBy === "part"}">Compartment</button><button data-c="dist" aria-pressed="${colorBy === "dist"}">Distance from soma</button>${R && R.frames ? `<button data-c="volt" aria-pressed="${colorBy === "volt"}">Voltage</button>` : ""}${R && R.vmax ? `<button data-c="peak" aria-pressed="${colorBy === "peak"}">Peak V</button>` : ""}</span>`;
 }
 $("parts").addEventListener("click", e => {
   const b = e.target.closest(".part"), c = e.target.closest("[data-c]");
@@ -486,116 +528,155 @@ async function open(id, push = true) {
 }
 function close() { $("viewer").hidden = true; document.body.style.overflow = ""; cancelAnimationFrame(raf); raf = 0; spinOff(); history.replaceState(null, "", location.pathname); document.title = "hippsim Neuron atlas"; }
 
-/* ================= simulate: choose scale, model and simulator → baseline → manipulate ================= */
-const MOD = HSModels.MODELS, wide = () => matchMedia("(min-width:1200px)").matches, nTrim = x => (+x).toFixed(2).replace(/\.?0+$/, "");
-let cfg = {scale: "cell", model: "hh", sim: "hippsim"}, R = null, RB = null, X = null, vf = -1, playT = 0, sitePt = -1, picking = false, mcache = {}, busy = false, extTr = null;
-const model = () => MOD[cfg.model];
+/* ================= simulate: scale → model → test → baseline → manipulate (everything grouped) ================= */
+const MOD = HSModels.MODELS, TESTS = HSModels.EXPERIMENTS, TOOLS = HSModels.TOOLS, wide = () => matchMedia("(min-width:1200px)").matches, nTrim = x => (+x).toFixed(2).replace(/\.?0+$/, "");
+const MARKCOL = {electrode: "#a62961", probe: "#d08a2e", syn: "#2f7d5b", ttx: "#7a3fa6", noka: "#c0507f", noh: "#6f4c27", passive: "#888888", cut: "#141111"};
+const GROUP_ORDER = ["Stimulus", "Excitation", "Inhibition", "Rhythm", "Channels", "Where channels are", "Gradients", "Cell", "Synapses", "Drive", "Passive", "Temperature", "Branch tools"];
+let cfg = {scale: "cell", model: "hh", test: "step", sim: "hippsim"}, R = null, RB = null, X = null, vf = -1, playT = 0, marks = [], tool = null, mcache = {}, busy = false, extTr = null;
+const model = () => MOD[cfg.model], test = () => TESTS[cfg.test];
 const modelsFor = sc => Object.entries(MOD).filter(([, m]) => m.scale === sc && m.when(C));
+const allParams = () => [...test().params, ...model().params];
 function renderSetup() {
   const ms = modelsFor(cfg.scale); if (!ms.some(([k]) => k === cfg.model)) cfg.model = ms[0][0];
-  const m = model(); if (!m.sims.includes(cfg.sim)) cfg.sim = m.sims[0];
+  const m = model(); if (!m.tests.includes(cfg.test)) cfg.test = m.tests[0];
+  const sims = cfg.test === "step" ? m.sims : ["hippsim"]; if (!sims.includes(cfg.sim)) cfg.sim = "hippsim";
   document.querySelectorAll("#sscale [data-s]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.s === cfg.scale)));
   $("smodels").innerHTML = ms.map(([k, x]) => `<button role="radio" data-m="${k}" aria-checked="${k === cfg.model}"><b>${x.name}</b><span>${x.desc}</span></button>`).join("");
-  $("ssims").innerHTML = m.sims.map(x => `<button role="radio" data-sim="${x}" aria-checked="${x === cfg.sim}">${x}</button>`).join("");
-  $("ssims").hidden = m.sims.length < 2;
+  $("stests").innerHTML = m.tests.map(k => `<button role="radio" data-t="${k}" aria-checked="${k === cfg.test}" title="${esc(TESTS[k].desc)}"><b>${TESTS[k].name}</b><span>${esc(TESTS[k].short || "")}</span></button>`).join("");
+  $("ssims").innerHTML = sims.map(x => `<button role="radio" data-sim="${x}" aria-checked="${x === cfg.sim}">${x}</button>`).join("");
+  $("ssims").hidden = sims.length < 2;
   let fx = $("ssimrow").querySelector(".fixed"); if (!fx) { fx = document.createElement("span"); fx.className = "fixed"; $("ssimrow").appendChild(fx); }
-  fx.hidden = m.sims.length > 1; fx.textContent = `hippsim (this browser)${m.original ? " · original model in " + m.original : ""}`;
+  fx.hidden = sims.length > 1; fx.textContent = `hippsim (this browser)${m.original ? " · original model in " + m.original : ""}`;
   $("sgo").textContent = cfg.sim === "hippsim" ? "▶ Run baseline" : `▶ Show the ${cfg.sim} baseline`;
 }
 $("sscale").onclick = e => { const b = e.target.closest("[data-s]"); if (b && !busy) { cfg.scale = b.dataset.s; renderSetup(); } };
 $("smodels").onclick = e => { const b = e.target.closest("[data-m]"); if (b && !busy) { cfg.model = b.dataset.m; renderSetup(); } };
+$("stests").onclick = e => { const b = e.target.closest("[data-t]"); if (b && !busy) { cfg.test = b.dataset.t; renderSetup(); } };
 $("ssims").onclick = e => { const b = e.target.closest("[data-sim]"); if (b && !busy) { cfg.sim = b.dataset.sim; renderSetup(); } };
-$("schange").onclick = () => { cancelAnimationFrame(playT); R = RB = X = null; vf = -1; if (colorBy === "volt") colorBy = "part"; renderParts(); vLegend(); draw();
+$("schange").onclick = () => { cancelAnimationFrame(playT); R = RB = X = null; vf = -1; marks = []; tool = null; if (colorBy === "volt" || colorBy === "peak") colorBy = "part"; renderParts(); vLegend(); draw();
   $("ssetup").hidden = false; $("schosen").hidden = true; $("sout").hidden = true; $("stitle").textContent = "Simulate"; renderSetup(); };
 
-/* parameters: sliders built from the model; values read back as numbers */
-const pbase = () => Object.fromEntries(model().params.map(q => [q.k, q.base]));
-function pnow() { const o = {}; model().params.forEach(q => { const el = $("sp-" + q.k); o[q.k] = el ? +el.value : q.base; }); return o; }
-function buildControls() {
-  const m = model();
-  $("spre").innerHTML = m.presets.map(x => `<button data-pre="${x.id}" title="${esc(x.title || "")}">${x.label}</button>`).join("");
-  $("sctl").innerHTML = m.params.map(q => `<label class="sl">${q.label} <output id="so-${q.k}"></output><input type="range" id="sp-${q.k}" min="${q.min}" max="${q.max}" step="${q.step}" value="${q.base}"></label>`).join("");
-  m.params.forEach(q => $("sp-" + q.k).addEventListener("input", syncOut));
-  $("spickrow").hidden = !m.electrode; sitePt = -1; $("ssite").textContent = "soma"; syncOut();
+/* parameters: built from the model and the test, grouped; values read back as numbers / booleans / choices */
+const pbase = () => Object.fromEntries(allParams().map(q => [q.k, q.base]));
+function pnow() { const o = {}; allParams().forEach(q => { const el = $("sp-" + q.k); o[q.k] = !el ? q.base : q.type === "toggle" ? el.checked : q.type === "choice" ? el.value : +el.value; }); return o; }
+function ctl(q) {
+  if (q.type === "toggle") return `<label class="tg"><input type="checkbox" id="sp-${q.k}" ${q.base ? "checked" : ""}> ${q.label}</label>`;
+  if (q.type === "choice") return `<label class="sel">${q.label}<select id="sp-${q.k}">${q.options.map(([v, l]) => `<option value="${v}"${v === q.base ? " selected" : ""}>${l}</option>`).join("")}</select></label>`;
+  return `<label class="sl">${q.label} <output id="so-${q.k}"></output><input type="range" id="sp-${q.k}" min="${q.min}" max="${q.max}" step="${q.step}" value="${q.base}"></label>`;
 }
-function changes() {
-  const m = model(), b = pbase(), p = pnow(), out = m.params.filter(q => Math.abs(p[q.k] - b[q.k]) > 1e-9).map(q => `${q.label} ${q.f(b[q.k])} → ${q.f(p[q.k])}`);
-  if (m.electrode && sitePt >= 0) out.push(`Electrode → ${$("ssite").textContent}`);
-  return out;
+function buildControls() {
+  const m = model(), ps = allParams(), groups = [...new Set(ps.map(q => q.g))].filter(g => g !== "Branch tools").sort((a, b) => GROUP_ORDER.indexOf(a) - GROUP_ORDER.indexOf(b));
+  $("spre").innerHTML = m.presets.map(x => `<button data-pre="${x.id}" title="${esc(x.title || "")}">${x.label}</button>`).join("");
+  $("stoolg").hidden = !m.tools.length;
+  $("stools").innerHTML = m.tools.map(k => `<button data-tool="${k}" aria-pressed="false" title="${esc(TOOLS[k][1])}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${MARKCOL[k]};margin-right:5px"></i>${TOOLS[k][0]}</button>`).join("");
+  $("sctl").innerHTML = groups.map((g, i) => `<details class="pg" data-g="${esc(g)}"${i === 0 ? " open" : ""}><summary>${g} <em></em></summary>${ps.filter(q => q.g === g).map(ctl).join("")}</details>`).join("");
+  $("stoolp").innerHTML = ps.filter(q => q.g === "Branch tools").map(ctl).join("");
+  ps.forEach(q => { const el = $("sp-" + q.k); el.addEventListener(q.type === "toggle" || q.type === "choice" ? "change" : "input", syncOut); });
+  marks = []; tool = null; renderMarks(); syncOut();
+}
+const same = (a, b) => typeof a === "number" ? Math.abs(a - b) < 1e-9 : a === b;
+const markText = mk => `${TOOLS[mk.kind][0]} · ${G.part[mk.pt] === "soma" ? "soma" : `${(PARTS.find(x => x[0] === G.part[mk.pt]) || [, G.part[mk.pt]])[1].toLowerCase()}, ${fmt(G.dist[mk.pt])} µm`}`;
+function changes(ps = pnow(), mk = marks) {
+  const b = pbase(); return allParams().filter(q => !same(ps[q.k], b[q.k])).map(q => `${q.label}: ${q.f(b[q.k])} → ${q.f(ps[q.k])}`).concat(mk.map(markText));
 }
 function syncOut() {
-  const m = model(), p = pnow(); m.params.forEach(q => { const o = $("so-" + q.k); if (o) o.textContent = q.f(p[q.k]); });
-  $("sbase").innerHTML = m.base(p).map(([k, v, ch]) => `<dt>${k}</dt><dd${ch ? ' class="chg"' : ""}>${v}</dd>`).join("") + (m.electrode ? `<dt>Electrode</dt><dd${sitePt >= 0 ? ' class="chg"' : ""}>${esc($("ssite").textContent)}</dd>` : "")
+  const m = model(), t = test(), p = pnow(), b = pbase();
+  allParams().forEach(q => { const o = $("so-" + q.k); if (o) o.textContent = q.f(p[q.k]); });
+  $("sbase").innerHTML = t.base(p).concat(m.base(p)).map(([k, v, ch]) => `<dt>${k}</dt><dd${ch ? ' class="chg"' : ""}>${v}</dd>`).join("")
+    + (m.tools.length ? `<dt>Branch tools</dt><dd${marks.length ? ' class="chg"' : ""}>${marks.length ? marks.map(markText).map(esc).join("; ") : "none"}</dd>` : "")
     + `<dt>Morphology</dt><dd>${m.pop ? "not used (point neurons)" : esc(C.cite || (C.prov && C.prov.archive) || C.name)}</dd>`;
-  document.querySelectorAll("#spre [data-pre]").forEach(b => { const x = m.presets.find(y => y.id === b.dataset.pre); b.setAttribute("aria-pressed", String(Object.entries(x.set).every(([k, v]) => Math.abs(p[k] - v) < 1e-9))); });
-  const n = changes().length; $("snch").textContent = n ? `${n} change${n > 1 ? "s" : ""} from baseline` : "No changes yet";
+  document.querySelectorAll("#spre [data-pre]").forEach(el => { const x = m.presets.find(y => y.id === el.dataset.pre); el.setAttribute("aria-pressed", String(Object.entries(x.set).every(([k, v]) => same(p[k], v)))); });
+  document.querySelectorAll("#sctl details.pg").forEach(d => { const n = allParams().filter(q => q.g === d.dataset.g && !same(p[q.k], b[q.k])).length; d.querySelector("summary em").textContent = n ? `${n} changed` : ""; });
+  const n = changes(p).length; $("snch").textContent = n ? `${n} change${n > 1 ? "s" : ""} from baseline` : "At baseline";
   $("stitle").textContent = n ? "Manipulated" : "Baseline";
 }
-$("spre").onclick = e => { const b = e.target.closest("[data-pre]"); if (!b) return; const m = model(), x = m.presets.find(y => y.id === b.dataset.pre), on = b.getAttribute("aria-pressed") === "true", bb = pbase();
-  Object.entries(x.set).forEach(([k, v]) => { $("sp-" + k).value = on ? bb[k] : v; }); syncOut(); };
-function setBaseline() { model().params.forEach(q => { const el = $("sp-" + q.k); if (el) el.value = q.base; }); sitePt = -1; $("ssite").textContent = "soma"; syncOut(); draw(); }
+function setCtl(k, v) { const el = $("sp-" + k); if (!el) return; if (el.type === "checkbox") el.checked = !!v; else el.value = v; }
+$("spre").onclick = e => { const el = e.target.closest("[data-pre]"); if (!el) return; const m = model(), x = m.presets.find(y => y.id === el.dataset.pre), on = el.getAttribute("aria-pressed") === "true", bb = pbase();
+  Object.entries(x.set).forEach(([k, v]) => setCtl(k, on ? bb[k] : v)); syncOut(); };
+/* branch tools: pick one, then tap the cell; marks listed with a remove button */
+$("stools").onclick = e => { const el = e.target.closest("[data-tool]"); if (!el) return; tool = tool === el.dataset.tool ? null : el.dataset.tool;
+  document.querySelectorAll("#stools [data-tool]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.tool === tool))); };
+function placeMark(i) {
+  if (tool === "electrode") marks = marks.filter(m => m.kind !== "electrode");
+  if (G.part[i] === "soma" && tool !== "probe" && tool !== "electrode") return;
+  if (!(tool === "electrode" && G.part[i] === "soma")) marks.push({kind: tool, pt: i});
+  renderMarks(); syncOut(); draw();
+}
+function renderMarks() { $("smarks").innerHTML = marks.map((m, k) => `<li><i style="background:${MARKCOL[m.kind]}"></i>${esc(markText(m))}<button data-rm="${k}" aria-label="Remove">✕</button></li>`).join(""); }
+$("smarks").onclick = e => { const el = e.target.closest("[data-rm]"); if (!el) return; marks.splice(+el.dataset.rm, 1); renderMarks(); syncOut(); draw(); };
+function setBaseline() { allParams().forEach(q => setCtl(q.k, q.base)); marks = []; renderMarks(); syncOut(); draw(); }
 $("sreset").onclick = () => { setBaseline(); if (RB) { R = RB; showResult(); play(); } };
-function simReset() { cancelAnimationFrame(playT); R = RB = X = null; vf = -1; picking = false; mcache = {}; if (colorBy === "volt") colorBy = "part";
-  cfg.scale = "cell"; cfg.model = "hh"; cfg.sim = "hippsim"; $("ssetup").hidden = false; $("schosen").hidden = true; $("sout").hidden = true; $("stitle").textContent = "Simulate";
-  renderSetup(); renderParts(); vLegend(); }
+function simReset() { cancelAnimationFrame(playT); R = RB = X = null; vf = -1; tool = null; marks = []; mcache = {}; if (colorBy === "volt" || colorBy === "peak") colorBy = "part";
+  cfg = {scale: "cell", model: "hh", test: "step", sim: "hippsim"}; $("ssetup").hidden = false; $("schosen").hidden = true; $("sout").hidden = true; $("stitle").textContent = "Simulate";
+  renderSetup(); renderParts(); vLegend(); draw(); }
 function openSim(on) { $("simp").hidden = !on; $("vsim").setAttribute("aria-pressed", String(on));
   if (on && !wide()) { $("side").hidden = true; $("vside").setAttribute("aria-pressed", "false"); }
   if (on) renderSetup(); setTimeout(() => { resize(); drawTrace(); }, 0); }
 $("vsim").onclick = () => openSim($("simp").hidden);
 $("sclose").onclick = () => openSim(false);
 $("smanip").onclick = () => { $("sman").hidden = false; $("smanip").hidden = true; $("smanip").setAttribute("aria-expanded", "true"); };
-$("spick").onclick = () => { picking = !picking; $("spick").setAttribute("aria-pressed", String(picking)); $("spick").textContent = picking ? "now tap a branch on the cell…" : "tap a branch to move it"; };
-function placeElectrode(i) {
-  picking = false; $("spick").setAttribute("aria-pressed", "false"); $("spick").textContent = "tap a branch to move it";
-  if (G.part[i] === "soma") { sitePt = -1; $("ssite").textContent = "soma"; }
-  else { sitePt = i; $("ssite").textContent = `${(PARTS.find(x => x[0] === G.part[i]) || [, G.part[i]])[1].toLowerCase()}, ${fmt(G.dist[i])} µm from soma`; }
-  syncOut(); draw();
-}
 /* voltage colours: −80 mV blue → −50 grey-blue → +30 red */
 function vColor(v) { const t = Math.max(0, Math.min(1, (v + 80) / 110)); return t < .3 ? `hsl(220 70% ${35 + t * 80}%)` : `hsl(${220 - (t - .3) / .7 * 220} 75% ${55 - (t - .3) * 15}%)`; }
 $("vgrad").style.background = `linear-gradient(90deg,${[-80, -58, -36, -14, 8, 30].map(vColor).join(",")})`;
-function vLegend() { const on = colorBy === "volt" && R && R.frames && vf >= 0; $("vleg").hidden = !on; if (on) $("vt").textContent = `· ${fmt(vf * R.frameDt)} ms`; }
+function vLegend() { const on = (colorBy === "volt" && R && R.frames && vf >= 0) || (colorBy === "peak" && R && R.vmax); $("vleg").hidden = !on; if (on) $("vt").textContent = colorBy === "peak" ? "· peak during the run" : `· ${fmt(vf * R.frameDt)} ms`; }
+
+/* plots: voltage traces, x–y curves (F–I, impedance, bAP), raster + rate */
+const SERCOL = r => r.role === "soma" ? css("--ink") : r.role === "site" ? css("--basal") : MARKCOL.probe;
 function drawTrace() {
   const c = $("trace"); if (!c || $("simp").hidden || $("sout").hidden) return; const d = devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
   c.width = W * d; c.height = H * d; const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, W, H);
   g.font = "10px " + (css("--f-mono") || "monospace"); g.fillStyle = css("--muted"); g.strokeStyle = css("--line"); g.lineWidth = 1;
   if (!R) { g.fillText(busy || "", 10, H / 2); return; }
-  const T = R.tstop, X0 = 30, Xt = t => X0 + t / T * (W - X0 - 6);
-  g.textAlign = "right"; g.fillText(`${T} ms`, W - 4, H - 3); g.textAlign = "left";
-  if (R.pop) {                                                   // raster (top) + population rate (bottom)
-    const h1 = (H - 16) * 0.68, Yr = i => 4 + i / R.show * (h1 - 4);
+  const cmp = RB && R !== RB && RB.plot === R.plot, keys = [];
+  if (R.plot === "pop") {
+    const T = R.tstop, Xt = t => 30 + t / T * (W - 36), h1 = (H - 16) * 0.68, Yr = i => 4 + i / R.show * (h1 - 4);
+    g.textAlign = "right"; g.fillText(`${T} ms`, W - 4, H - 3); g.textAlign = "left";
     R.raster.forEach(([t, i]) => { g.fillStyle = i < R.show * 0.8 ? css("--ink") : css("--accent"); g.fillRect(Xt(t), Yr(i), 1.2, 1.2); });
-    const mx = Math.max(1, ...R.rate.map(x => x[1])), Yq = v => H - 14 - v / mx * (H - 16 - h1 - 6);
-    g.strokeStyle = css("--ink"); g.lineWidth = 1; g.beginPath(); R.rate.forEach(([t, v], k) => k ? g.lineTo(Xt(t), Yq(v)) : g.moveTo(Xt(t), Yq(v))); g.stroke();
+    const mx = Math.max(1, ...R.rate.map(x => x[1]), ...(cmp ? RB.rate.map(x => x[1]) : [])), Yq = v => H - 14 - v / mx * (H - 16 - h1 - 6);
+    const line = (rate, col, a) => { g.globalAlpha = a; g.strokeStyle = col; g.lineWidth = 1; g.beginPath(); rate.forEach(([t, v], k) => k ? g.lineTo(Xt(t), Yq(v)) : g.moveTo(Xt(t), Yq(v))); g.stroke(); g.globalAlpha = 1; };
+    if (cmp) line(RB.rate, css("--muted"), .5); line(R.rate, css("--ink"), 1);
     g.fillStyle = css("--muted"); g.fillText("E", 2, Yr(R.show * 0.4)); g.fillStyle = css("--accent"); g.fillText("I", 2, Yr(R.show * 0.9)); g.fillStyle = css("--muted"); g.fillText(`${Math.round(mx)} Hz`, 2, Yq(mx) + 8);
     return;
   }
-  const Y = v => 8 + (40 - v) / 130 * (H - 22);
-  [-80, -40, 0, 40].forEach(v => { g.fillText(v === 40 ? "mV" : v, 2, Y(v) + 3); g.beginPath(); g.moveTo(28, Y(v)); g.lineTo(W, Y(v)); g.globalAlpha = .4; g.stroke(); g.globalAlpha = 1; });
-  if (R.stim) { g.fillStyle = css("--accent"); g.globalAlpha = .18; g.fillRect(Xt(R.stim[0]), H - 10, Xt(R.stim[1]) - Xt(R.stim[0]), 4); g.globalAlpha = 1; }
-  const line = (t, v, col, w, a = 1) => { g.globalAlpha = a; g.strokeStyle = col; g.lineWidth = w; g.beginPath(); v.forEach((y, k) => { const x = Xt(t[k]), yy = Y(y); k ? g.lineTo(x, yy) : g.moveTo(x, yy); }); g.stroke(); g.globalAlpha = 1; };
-  const cmp = RB && R !== RB, keys = [];
-  if (cmp) { line(RB.t, RB.vSoma, css("--muted"), 1, .45); keys.push(["baseline", css("--muted")]); }
-  if (X && R === RB) { line(R.t, R.vSoma, css("--muted"), 1, .5); line(X.t, X.v, css("--ink"), 1.3); keys.push([cfg.sim, css("--ink")], ["hippsim", css("--muted")]); }
-  else { if (R.siteIdx && R.vSite) { line(R.t, R.vSite, css("--basal"), 1); keys.push(["electrode", css("--basal")]); } line(R.t, R.vSoma, css("--ink"), 1.3); keys.unshift(["soma", css("--ink")]); }
+  if (R.plot === "xy") {
+    const xs = R.x.concat(cmp ? RB.x : []), ys = R.y.concat(cmp ? RB.y : []), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(0, ...ys), y1 = Math.max(...ys) * 1.08 || 1;
+    const L = 46, Xp = v => L + (v - x0) / (x1 - x0 || 1) * (W - L - 8), Yp = v => 10 + (y1 - v) / (y1 - y0 || 1) * (H - 34);
+    g.textAlign = "right"; [y0, (y0 + y1) / 2, y1].forEach(v => { g.fillText(nTrim(+v.toPrecision(3)), L - 4, Yp(v) + 3); g.globalAlpha = .4; g.beginPath(); g.moveTo(L, Yp(v)); g.lineTo(W, Yp(v)); g.stroke(); g.globalAlpha = 1; });
+    g.textAlign = "center"; [x0, (x0 + x1) / 2, x1].forEach(v => g.fillText(nTrim(+v.toPrecision(3)), Xp(v), H - 14)); g.fillText(R.xl, (L + W) / 2, H - 2);
+    g.save(); g.translate(8, (H - 24) / 2); g.rotate(-Math.PI / 2); g.fillText(R.yl, 0, 0); g.restore(); g.textAlign = "left";
+    const plot = (Q, col, a) => { g.globalAlpha = a; g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1.4;
+      if (Q.scatter) Q.x.forEach((v, k) => g.fillRect(Xp(v) - 1, Yp(Q.y[k]) - 1, 2, 2));
+      else { g.beginPath(); Q.x.forEach((v, k) => k ? g.lineTo(Xp(v), Yp(Q.y[k])) : g.moveTo(Xp(v), Yp(Q.y[k]))); g.stroke(); Q.x.forEach((v, k) => { g.beginPath(); g.arc(Xp(v), Yp(Q.y[k]), 2.2, 0, 7); g.fill(); }); }
+      g.globalAlpha = 1; };
+    if (cmp) { plot(RB, css("--muted"), .45); keys.push(["baseline", css("--muted")]); }
+    plot(R, css("--ink"), 1); keys.unshift([R === RB ? "baseline" : "this run", css("--ink")]);
+  } else {
+    const T = R.tstop, all = R.series.flatMap(s => s.v), lo = Math.min(-90, ...all), hi = Math.max(40, ...all);
+    const X0 = 30, Xt = t => X0 + t / T * (W - X0 - 6), Y = v => 14 + (hi - v) / (hi - lo) * (H - 28);
+    g.textAlign = "right"; g.fillText(`${T} ms`, W - 4, H - 3); g.textAlign = "left";
+    [-80, -40, 0].filter(v => v >= lo && v <= hi).forEach(v => { g.fillText(v, 2, Y(v) + 3); g.globalAlpha = .4; g.beginPath(); g.moveTo(28, Y(v)); g.lineTo(W, Y(v)); g.stroke(); g.globalAlpha = 1; });
+    g.fillText("mV", 2, 10);
+    if (R.stim) { g.fillStyle = css("--accent"); g.globalAlpha = .18; g.fillRect(Xt(R.stim[0]), H - 10, Math.max(2, Xt(R.stim[1]) - Xt(R.stim[0])), 4); g.globalAlpha = 1; }
+    const line = (t, v, col, w, a = 1) => { g.globalAlpha = a; g.strokeStyle = col; g.lineWidth = w; g.beginPath(); v.forEach((y, k) => { const x = Xt(t[k]), yy = Y(y); k ? g.lineTo(x, yy) : g.moveTo(x, yy); }); g.stroke(); g.globalAlpha = 1; };
+    if (cmp) { line(RB.t, RB.vSoma, css("--muted"), 1, .45); keys.push(["baseline", css("--muted")]); }
+    if (X && R === RB) { line(R.t, R.vSoma, css("--muted"), 1, .5); line(X.t, X.v, css("--ink"), 1.3); keys.push([cfg.sim, css("--ink")], ["hippsim", css("--muted")]); }
+    else R.series.slice().reverse().forEach(s => { line(R.t, s.v, SERCOL(s), s.role === "soma" ? 1.3 : 1); keys.unshift([s.name, SERCOL(s)]); });
+    if (vf >= 0 && R.frames) { g.strokeStyle = css("--accent"); g.lineWidth = 1.5; const x = Xt(vf * R.frameDt); g.beginPath(); g.moveTo(x, 14); g.lineTo(x, H - 12); g.stroke(); }
+  }
   let lx = W - 6; g.textAlign = "right"; keys.forEach(([txt, col]) => { g.fillStyle = col; g.fillText(txt, lx, 10); lx -= g.measureText(txt).width + 10; }); g.textAlign = "left";
-  if (vf >= 0 && R.frames) { g.strokeStyle = css("--accent"); g.lineWidth = 1.5; const x = Xt(vf * R.frameDt); g.beginPath(); g.moveTo(x, 14); g.lineTo(x, H - 12); g.stroke(); }
 }
-$("trace").addEventListener("pointerdown", e => { if (!R || !R.frames) return; const r = $("trace").getBoundingClientRect(); const t = Math.max(0, Math.min(R.tstop, (e.clientX - r.left - 30) / (r.width - 36) * R.tstop));
+$("trace").addEventListener("pointerdown", e => { if (!R || !R.frames || R.plot !== "v") return; const r = $("trace").getBoundingClientRect(); const t = Math.max(0, Math.min(R.tstop, (e.clientX - r.left - 30) / (r.width - 36) * R.tstop));
   cancelAnimationFrame(playT); vf = Math.min(R.frames.length - 1, Math.round(t / R.frameDt)); draw(); drawTrace(); vLegend(); });
 function play() { if (!R.frames) { vf = -1; draw(); drawTrace(); vLegend(); return; } const t0 = performance.now(), T = R.tstop > 500 ? 6000 : 4000;
   const tick = () => { if (!R || !R.frames || $("viewer").hidden) return; const f = Math.min(1, (performance.now() - t0) / T); vf = Math.round(f * (R.frames.length - 1)); draw(); drawTrace(); vLegend(); if (f < 1) playT = requestAnimationFrame(tick); };
   cancelAnimationFrame(playT); tick(); }
 function showResult() {
-  const m = model(); let html;
-  if (X && R === RB) {                                            // NEURON / Brian2 baseline (precomputed with the same model)
-    const mine = m.summary(RB);
-    html = `<b>${cfg.sim}: ${X.n} spike${X.n === 1 ? "" : "s"}</b>${X.first != null ? ` · first ${fmt(X.first)} ms after the step` : ""} · hippsim: ${mine.n} <span class="muted">(${esc(X.note)})</span>`;
-  } else {
-    html = m.summary(R).html;
-    if (RB && R !== RB) { const b = m.summary(RB); html += ` <span class="muted">(baseline ${typeof b.n === "number" && !Number.isInteger(b.n) ? fmt(b.n) + " Hz" : b.n})</span>`; }
-  }
+  let html;
+  if (X && R === RB) { html = `<b>${cfg.sim}: ${X.n} spike${X.n === 1 ? "" : "s"}</b>${X.first != null ? ` · first ${fmt(X.first)} ms after the step` : ""} · hippsim: ${RB.key} <span class="muted">(${esc(X.note)})</span>`; }
+  else { html = R.summary; if (RB && R !== RB) html += ` <span class="muted">(baseline ${RB.key})</span>`; }
   $("sres").innerHTML = html;
+  const cmp = RB && R !== RB, bmap = cmp ? Object.fromEntries(RB.readout.map(([k, v]) => [k, v])) : {};
+  $("sread").innerHTML = (cmp ? `<tr><td></td><td class="v muted">this run</td><td class="b">baseline</td></tr>` : "") + R.readout.map(([k, v]) => `<tr><td>${k}</td><td class="v${cmp && String(bmap[k]) !== String(v) ? " chg" : ""}">${v}</td>${cmp ? `<td class="b">${bmap[k] ?? "–"}</td>` : ""}</tr>`).join("");
   const ext = cfg.sim !== "hippsim" && R !== RB; $("sextnote").hidden = !ext;
   if (ext) $("sextnote").innerHTML = `Manipulations run here in hippsim's engine. To run them in ${cfg.sim}, <button class="linkish" id="sextpy">download the ${cfg.sim} script with these settings</button>.`;
   const sc = scriptKind(); $("spy").hidden = !sc; if (sc) $("spy").textContent = `${sc.startsWith("neuron") ? "NEURON" : "Brian2"} script`;
@@ -607,31 +688,33 @@ async function loadExt() {                                        // precomputed
   return {t, v, spikes: sp, n: r.spikes ?? sp.filter(x => x >= 50 && x < 350).length, first: r.first_ms, note: `${cfg.sim} run ${e.date || ""}, same model; the 3D colours are hippsim's run`};
 }
 async function runModel(baseline) {
-  if (busy) return; const m = model(), btn = baseline ? $("sgo") : $("srun"), label = btn.textContent; busy = "running…"; btn.disabled = true;
+  if (busy) return; const m = model(), btn = baseline ? $("sgo") : $("srun"); busy = "running…"; btn.disabled = true;
   if (baseline) { R = RB = X = null; $("ssetup").hidden = true; $("schosen").hidden = false; $("sout").hidden = false; $("sman").hidden = true; $("smanip").hidden = false; buildControls(); }
   $("sdoc").href = `docs.html#model-${cfg.model}`;
-  $("schosent").innerHTML = `<b>${{cell: "Single cell", circuit: "Circuit", population: "Population"}[cfg.scale]}</b> · ${m.name} · ${cfg.sim}`;
+  $("schosent").innerHTML = `<b>${{cell: "Single cell", circuit: "Circuit", population: "Population"}[cfg.scale]}</b> · ${m.name} · <b>${test().name}</b> · ${cfg.sim}`;
   const prog = f => { btn.textContent = `Running… ${Math.round(f * 100)} %`; if (!R) { busy = `running… ${Math.round(f * 100)} %`; drawTrace(); } };
   prog(0); await new Promise(r => setTimeout(r, 30));
   try {
-    const p = baseline ? pbase() : pnow(), out = await m.run(G.P, mcache, p, baseline ? -1 : sitePt, prog);
-    out.p = p; out.stim = m.stim; out.model = cfg.model; R = out; if (baseline) RB = R;
+    const p = baseline ? pbase() : pnow(), mk = baseline ? [] : marks.slice();
+    const out = await HSModels.runTest(G.P, mcache, cfg.model, cfg.test, p, mk, prog);
+    out.p = p; out.marks = mk; out.model = cfg.model; out.test = cfg.test; R = out; if (baseline) RB = R;
     if (baseline && cfg.sim !== "hippsim") { X = await loadExt(); if (!X) $("sres").textContent = `No ${cfg.sim} trace for this cell.`; }
-    if (R.frames) colorBy = "volt"; renderParts(); $("ssave").disabled = false; $("ssave").textContent = "Save run";
+    if (R.peakColour && R.vmax) colorBy = "peak"; else if (R.frames) colorBy = "volt"; else if (colorBy === "volt" || colorBy === "peak") colorBy = "part";
+    renderParts(); $("ssave").disabled = false; $("ssave").textContent = "Save run";
     showResult(); play(); $("simp").scrollTo({top: 0, behavior: "smooth"});
-  } catch (e) { $("sres").textContent = "Could not simulate this cell: " + e.message; }
+  } catch (e) { $("sres").textContent = "Could not simulate this cell: " + e.message; console.error(e); }
   busy = false; btn.disabled = false; btn.textContent = baseline ? "▶ Run baseline" : "▶ Run"; drawTrace();
 }
 $("sgo").onclick = () => runModel(true);
 $("srun").onclick = () => runModel(false);
-/* scripts: the HH model and the population have NEURON / Brian2 versions that take the current settings */
-const scriptKind = () => cfg.model === "hh" ? (cfg.sim === "Brian2" ? "brian2_single" : "neuron_single") : cfg.model === "population" ? "brian2_network" : null;
+/* scripts: the HH current step and the population have NEURON / Brian2 versions that take the current settings */
+const scriptKind = () => cfg.model === "hh" && cfg.test === "step" ? (cfg.sim === "Brian2" ? "brian2_single" : "neuron_single") : cfg.model === "population" ? "brian2_network" : null;
 function script(kind) {
-  const swc = C.file.split("/").pop(), t = D.scripts[kind], p = R ? R.p : pbase(), at = R && R !== RB && sitePt >= 0 ? G.P[sitePt] : null;
+  const swc = C.file.split("/").pop(), t = D.scripts[kind], p = R ? R.p : pbase(), el = R && R !== RB ? (R.marks || []).find(m => m.kind === "electrode") : null, at = el ? G.P[el.pt] : null;
   const xyz = at ? `(${[0, 1, 2].map(j => +(at[j] + G.off[j]).toFixed(3)).join(", ")})` : "None";
   return t.replaceAll("{SWC_FILE}", swc).replaceAll("{NAME}", C.name.replace(/"/g, "'")).replaceAll("{ID}", C.id).replaceAll("{AMP_NA}", nTrim(p.amp ?? 0.5))
     .replaceAll("{NA_SCALE}", nTrim(p.na ?? 1)).replaceAll("{K_SCALE}", nTrim(p.k ?? 1)).replaceAll("{DEND_FRAC}", nTrim((p.dend ?? 2) / 100)).replaceAll("{SITE_XYZ}", xyz)
-    .replaceAll("{SITE_LABEL}", at ? $("ssite").textContent : "soma").replaceAll("{G_RATIO}", nTrim(p.g ?? 5)).replaceAll("{NU_RATIO}", nTrim(p.nu ?? 2));
+    .replaceAll("{SITE_LABEL}", el ? markText(el) : "soma").replaceAll("{G_RATIO}", nTrim(p.g ?? 5)).replaceAll("{NU_RATIO}", nTrim(p.nu ?? 2));
 }
 async function giveScript(kind) {
   await saveFile(`${C.id}_${kind}.py`, new Blob([script(kind)], {type: "text/x-python"}));
@@ -643,19 +726,22 @@ $("sman").addEventListener("click", async e => { if (e.target.id === "sextpy") {
 const capDb = n => window.HS_BACKEND ? window.HS_BACKEND.use(n).catch(() => null) : (window.claude && typeof window.claude.use === "function") ? window.claude.use(n).catch(() => null) : Promise.resolve(null);
 $("ssave").onclick = async () => {
   const b = $("ssave"), m = model(), p = R.p, isBase = R === RB; b.disabled = true; b.textContent = "Saving…";
-  const chg = isBase ? [] : changes(), sum = m.summary(R).html.replace(/<[^>]+>/g, "").split(" · ")[0];
-  const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), created = new Date().toISOString();
-  const q = new URLSearchParams({model: cfg.model, sim: cfg.sim, ...(isBase ? {} : Object.fromEntries(Object.entries(p).map(([k, v]) => [k, String(v)]))), ...(!isBase && sitePt >= 0 ? {site: sitePt} : {})});
+  const chg = isBase ? [] : changes(p, R.marks || []), sum = R.summary.replace(/<[^>]+>/g, "").split(" · ")[0];
+  const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), created = new Date().toISOString(), base = pbase();
+  const q = new URLSearchParams({model: cfg.model, test: cfg.test, sim: cfg.sim});
+  if (!isBase) { Object.entries(p).forEach(([k, v]) => { if (!same(v, base[k])) q.set(k, String(v)); }); if ((R.marks || []).length) q.set("marks", R.marks.map(x => x.kind + ":" + x.pt).join(",")); }
   const href = `index.html#${encodeURIComponent(C.id)}?${q}`;
-  const entry = {id, created, label: `${C.name} ${C.code || ""} · ${m.tag} · ${isBase ? "baseline" : chg.length + " change" + (chg.length > 1 ? "s" : "")} · ${sum}`.replace(/\s+/g, " "), note: "", tool: "atlas", route: "/atlas/", tool_name: "Neurons · " + m.name,
+  const entry = {id, created, label: `${C.name} ${C.code || ""} · ${m.tag} · ${test().name} · ${isBase ? "baseline" : chg.length + " change" + (chg.length > 1 ? "s" : "")} · ${sum}`.replace(/\s+/g, " "), note: "", tool: "atlas", route: "/atlas/", tool_name: "Neurons · " + m.name,
     page: "index.html", href, perturbations: [], n_changed: chg.length, changes: chg, values: [], stored: true, n_figs: 1};
   try {
     const [db, user] = await Promise.all([capDb("db"), capDb("user")]); if (!db || !user) throw new Error("saving needs the online version");
     const uid = await user.id(), ref = db.doc("runs/" + uid), cur = await ref.get(), v = cur.exists ? cur.data() : {entries: [], folders: []};
     const fig = $("trace").toDataURL("image/png"), item = db.doc(`runs/${uid}/items/${id}`);
-    const data = R.pop ? {rate: R.rate.map(([t, r]) => [t, +r.toFixed(1)])} : {spikes: R.spikes, t: R.t.filter((_, k) => k % 5 === 0), vSoma: R.vSoma.filter((_, k) => k % 5 === 0).map(x => +x.toFixed(2))};
-    await item.set({figures: ["figures/result.png"], run: {schema: "hippsim.atlas-run/1.1", id, created, cell: {id: C.id, name: C.name, code: C.code, source: C.cite}, scale: cfg.scale, model: cfg.model, model_name: m.name,
-      simulator: cfg.sim, params: p, baseline: isBase, changes: chg, site: isBase || sitePt < 0 ? "soma" : $("ssite").textContent, summary: m.summary(R).html.replace(/<[^>]+>/g, ""), ...data}, saved: created});
+    const data = R.plot === "pop" ? {rate: R.rate.map(([t, r]) => [t, +r.toFixed(1)])} : R.plot === "xy" ? {x: R.x, y: R.y.map(y => +y.toFixed(3)), xl: R.xl, yl: R.yl}
+      : {t: R.t.filter((_, k) => k % 5 === 0), vSoma: R.vSoma.filter((_, k) => k % 5 === 0).map(x => +x.toFixed(2))};
+    await item.set({figures: ["figures/result.png"], run: {schema: "hippsim.atlas-run/1.2", id, created, cell: {id: C.id, name: C.name, code: C.code, source: C.cite}, scale: cfg.scale, model: cfg.model, model_name: m.name,
+      test: cfg.test, test_name: test().name, simulator: cfg.sim, params: p, marks: (R.marks || []).map(x => ({kind: x.kind, point: x.pt, where: markText(x)})), baseline: isBase, changes: chg,
+      summary: R.summary.replace(/<[^>]+>/g, ""), readout: R.readout, ...data}, saved: created});
     if (fig.length < 180000) await item.collection("figs").doc("0").set({name: "figures/result.png", data: fig});
     v.entries = [entry, ...(v.entries || [])]; await ref.set({entries: v.entries, folders: v.folders || [], updated: created});
     b.textContent = "Saved ✓ in Runs";
@@ -663,7 +749,7 @@ $("ssave").onclick = async () => {
 };
 
 renderIndex();
-/* address: #<cell id>[?model=…&sim=…&<param>=…&site=<point>] (Runs reopens saved runs this way) */
+/* address: #<cell id>[?model=…&test=…&sim=…&<param>=…&marks=kind:point,…] (Runs reopens saved runs this way) */
 async function route() {
   const [h, q] = location.hash.slice(1).split("?"), start = decodeURIComponent(h || "");
   if (!start) { if (!$("viewer").hidden) close(); return; }
@@ -671,11 +757,14 @@ async function route() {
   await open(start, false);
   if (!q) return;
   const a = new URLSearchParams(q), mk = a.get("model") || (a.has("amp") ? "hh" : null); if (!mk || !MOD[mk]) return;
-  cfg = {scale: MOD[mk].scale, model: mk, sim: a.get("sim") || "hippsim"}; openSim(true); renderSetup();
+  if (!a.has("test") && a.has("site")) a.set("marks", "electrode:" + a.get("site"));      // 0.9–0.10 links
+  cfg = {scale: MOD[mk].scale, model: mk, test: a.get("test") || MOD[mk].tests[0], sim: a.get("sim") || "hippsim"}; openSim(true); renderSetup();
   await runModel(true);
-  let any = false; model().params.forEach(x => { if (a.has(x.k)) { $("sp-" + x.k).value = a.get(x.k); any = true; } });
-  syncOut(); if (a.has("site") && G && G.P[+a.get("site")]) placeElectrode(+a.get("site"));
+  allParams().forEach(x => { if (a.has(x.k)) setCtl(x.k, x.type === "toggle" ? a.get(x.k) === "true" : a.get(x.k)); });
+  marks = (a.get("marks") || "").split(",").filter(Boolean).map(s => { const [kind, pt] = s.split(":"); return {kind, pt: +pt}; }).filter(m => TOOLS[m.kind] && G.P[m.pt]);
+  renderMarks(); syncOut(); draw();
   if (changes().length) { $("smanip").click(); await runModel(false); }
 }
 route(); addEventListener("hashchange", route);
+
 </script>

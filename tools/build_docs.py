@@ -36,26 +36,37 @@ def md(text: str) -> str:
 def models_page() -> str:
     """Reference for every Simulate-panel model, read from site/hs-models.js itself."""
     js = """global.window = global; require(process.argv[1]);
-const out = Object.entries(HSModels.MODELS).map(([id, m]) => { const p = {}; m.params.forEach(q => p[q.k] = q.base);
-  return {id, scale: m.scale, name: m.name, desc: m.desc, sims: m.sims, original: m.original || '', electrode: !!m.electrode, tstop: m.tstop,
-    params: m.params.map(q => ({label: q.label, base: q.f(q.base), lo: q.f(q.min), hi: q.f(q.max)})),
+const rng = q => q.type === 'toggle' ? 'on / off' : q.type === 'choice' ? q.options.map(o => o[1]).join(' · ') : `${q.f(q.min)} to ${q.f(q.max)}`;
+const prm = q => ({group: q.g, label: q.label, base: q.f(q.base), range: rng(q)});
+const out = {models: Object.entries(HSModels.MODELS).map(([id, m]) => { const p = {}; m.params.forEach(q => p[q.k] = q.base);
+  return {id, scale: m.scale, name: m.name, desc: m.desc, sims: m.sims, original: m.original || '', tools: m.tools.map(k => HSModels.TOOLS[k][0]), tests: m.tests.map(k => HSModels.EXPERIMENTS[k].name),
+    params: m.params.map(prm),
     presets: m.presets.map(x => ({label: x.label, title: x.title || '', set: Object.entries(x.set).map(([k, v]) => { const q = m.params.find(z => z.k === k); return `${q.label} → ${q.f(v)}`; }).join('; ')})),
-    base: m.base(p).map(r => [r[0], r[1]]), cell: m.when.toString().includes('CA1') ? 'CA1 pyramidal cells' : 'any cell'}; });
+    base: m.base(p).map(r => [r[0], r[1]]), cell: m.when.toString().includes('CA1') ? 'CA1 pyramidal cells' : 'any cell'}; }),
+  tests: Object.entries(HSModels.EXPERIMENTS).map(([id, t]) => ({id, name: t.name, desc: t.desc, params: t.params.map(prm)})),
+  tools: Object.values(HSModels.TOOLS)};
 process.stdout.write(JSON.stringify(out));"""
-    M = json.loads(subprocess.run(["node", "-e", js, str(SITE / "hs-models.js")], capture_output=True, text=True, check=True).stdout)
+    J = json.loads(subprocess.run(["node", "-e", js, str(SITE / "hs-models.js")], capture_output=True, text=True, check=True).stdout)
+    M, T, TOOLS = J["models"], J["tests"], J["tools"]
     scale = {"cell": "Single cell", "circuit": "Circuit", "population": "Population"}
-    parts = ['<p class="lead">Five models run in the Simulate panel. This page is generated from the code that runs them '
+    parts = ['<p class="lead">Five models and eleven tests run in the Simulate panel. This page is generated from the code that runs them '
              '(<code>site/hs-models.js</code>), so the values below are exactly what the panel uses.</p>',
-             '<div class="tbl"><table><thead><tr><th>Scale</th><th>Model</th><th>Cells</th><th>Runs in</th><th>Length</th></tr></thead><tbody>'
-             + "".join(f'<tr><td>{scale[m["scale"]]}</td><td><a href="#model-{m["id"]}">{e(m["name"])}</a></td><td>{m["cell"]}</td>'
-                       f'<td>{", ".join(m["sims"])}{" (original: " + e(m["original"]) + ")" if m["original"] else ""}</td><td>{m["tstop"]} ms</td></tr>' for m in M)
-             + "</tbody></table></div>"]
+             '<div class="tbl"><table><thead><tr><th>Scale</th><th>Model</th><th>Cells</th><th>Tests</th><th>Runs in</th></tr></thead><tbody>'
+             + "".join(f'<tr><td>{scale[m["scale"]]}</td><td><a href="#model-{m["id"]}">{e(m["name"])}</a></td><td>{m["cell"]}</td><td>{len(m["tests"])}</td>'
+                       f'<td>{", ".join(m["sims"])}{" (original: " + e(m["original"]) + ")" if m["original"] else ""}</td></tr>' for m in M)
+             + "</tbody></table></div>",
+             '<h2 id="model-tests">Tests</h2><p>A test is the experiment you run on a model: its stimulus, what is measured, and the plot. '
+             'Each test has its own baseline; manipulations are compared with it.</p><div class="tbl"><table><thead><tr><th>Test</th><th>What it does</th><th>Stimulus you can change</th></tr></thead><tbody>'
+             + "".join(f'<tr><td>{e(t["name"])}</td><td>{e(t["desc"])}</td><td>{"; ".join(e(q["label"] + " " + q["base"] + " (" + q["range"] + ")") for q in t["params"]) or "fixed"}</td></tr>' for t in T)
+             + "</tbody></table></div>",
+             '<h2 id="model-tools">Branch tools</h2><p>Pick a tool under <b>Manipulate the baseline</b>, then tap a branch on the cell. Blocks apply from that point outward. Marks are listed and can be removed one by one.</p>'
+             '<div class="tbl"><table><thead><tr><th>Tool</th><th>Effect</th></tr></thead><tbody>' + "".join(f"<tr><td>{e(a)}</td><td>{e(b)}</td></tr>" for a, b in TOOLS) + "</tbody></table></div>"]
     for m in M:
-        parts.append(f'<h2 id="model-{m["id"]}">{e(m["name"])} <span class="tag">{scale[m["scale"]]}</span></h2><p>{e(m["desc"])}</p>')
+        parts.append(f'<h2 id="model-{m["id"]}">{e(m["name"])} <span class="tag">{scale[m["scale"]]}</span></h2><p>{e(m["desc"])}</p>'
+                     f'<p><b>Tests:</b> {e(", ".join(m["tests"]))}.' + (f' <b>Branch tools:</b> {e(", ".join(m["tools"]))}.' if m["tools"] else "") + "</p>")
         parts.append('<h3>Baseline</h3><dl class="base">' + "".join(f"<dt>{e(k)}</dt><dd>{v}</dd>" for k, v in m["base"]) + "</dl>")
-        parts.append('<h3>Parameters you can change</h3><div class="tbl"><table><thead><tr><th>Parameter</th><th>Baseline</th><th>Range</th></tr></thead><tbody>'
-                     + "".join(f'<tr><td>{e(q["label"])}</td><td>{e(q["base"])}</td><td>{e(q["lo"])} to {e(q["hi"])}</td></tr>' for q in m["params"])
-                     + ("<tr><td>Electrode site</td><td>soma</td><td>any branch (tap it on the cell)</td></tr>" if m["electrode"] else "")
+        parts.append('<h3>Parameters you can change</h3><div class="tbl"><table><thead><tr><th>Group</th><th>Parameter</th><th>Baseline</th><th>Range</th></tr></thead><tbody>'
+                     + "".join(f'<tr><td>{e(q["group"])}</td><td>{e(q["label"])}</td><td>{e(q["base"])}</td><td>{e(q["range"])}</td></tr>' for q in m["params"])
                      + "</tbody></table></div>")
         parts.append('<h3>Manipulations</h3><div class="tbl"><table><thead><tr><th>Button</th><th>Sets</th><th>Source</th></tr></thead><tbody>'
                      + "".join(f'<tr><td>{e(x["label"])}</td><td>{e(x["set"])}</td><td>{e(x["title"])}</td></tr>' for x in m["presets"])

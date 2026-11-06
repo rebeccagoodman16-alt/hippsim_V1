@@ -1,5 +1,17 @@
 # Release notes
 
+## 0.12 · 5 Nov 2026
+- **Tests**: choose the experiment before running. Current step, F–I curve, Iₕ sag and input resistance,
+  back-propagating spike (peak vs distance, cell coloured by peak voltage), clustered tuft input, scattered input,
+  theta-burst, resonance (ZAP impedance), and θ + γ drive for the research model. Each has its own baseline,
+  plot and readout table; manipulated runs are shown next to the baseline values.
+- **Everything is manipulable again**, grouped: every channel, where channels are (soma, basal, apical, axon),
+  distance gradients, passive properties (R_m, R_a, C_m, rest, spines), temperature, and the test's stimulus.
+  All the Neuron lab's presets are back (incl. Aβ-like A-type × 0.5, uniform densities, Na⁺ + K_dr only).
+- **Branch tools**: electrode, probe, synapse, local TTX, block A-type, block Iₕ, make passive, cut, applied by
+  tapping the cell; listed and removable.
+- Saved runs keep the test and the branch marks, and reopen with them.
+
 ## 0.11 · 5 Nov 2026
 - **Docs** in the menu and the tab bar: overview, quick start, the Simulate panel, models, equations and numerics,
   validation, cells and data, saved runs and scripts, tools, sharing and accounts, developers, citing, limitations,
