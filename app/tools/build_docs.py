@@ -228,7 +228,7 @@ def welcome_page(APP_HEAD: str, APP_TAIL: str, ver: str) -> str:
   <p class="kick">hippsim {e(ver)} · lab simulator</p>
   <h1>Simulate real neurons, and know where every number comes from.</h1>
   <p class="lead">hippsim runs published neuron models on reconstructed cells, right in the browser. Pick a cell, run its baseline, change anything, and compare. Every value is tied to its source, and the solver is checked against NEURON and Brian2.</p>
-  <div class="cta"><a class="go" href="index.html">Explore the neurons →</a><a href="docs.html#quick-start">Quick start (2 min)</a><a href="docs.html">Read the documentation</a></div>
+  <div class="cta"><a class="go" href="index.html">Explore the neurons →</a><a href="index.html#qhome">Start from a biological question</a><a href="docs.html#quick-start">Quick start (2 min)</a><a href="docs.html">Read the documentation</a></div>
   <h2>How it works</h2>
   <div class="steps">{"".join(f'<a href="{h}"><span class="n"><b>{i + 1}</b>{svg(k)}</span><h3>{t}</h3><p>{d}</p><span class="more">Read more →</span></a>' for i, (k, t, d, h) in enumerate(steps))}</div>
   <h2>What is measured and what is modelled</h2>
@@ -248,6 +248,23 @@ def welcome_page(APP_HEAD: str, APP_TAIL: str, ver: str) -> str:
 {APP_TAIL}
 </body></html>"""
 
+
+def questions_page() -> str:
+    """Start from a question: generated from site/hs-questions.js (the same data the Simulate panel uses)."""
+    js = "global.window = global; require(process.argv[1]); process.stdout.write(JSON.stringify(HSQuestions.Q.map(({read, ...x}) => x)))"
+    Q = json.loads(subprocess.run(["node", "-e", js, str(SITE / "hs-questions.js")], capture_output=True, text=True, check=True).stdout)
+    out = ['<p class="lead">Coming from the wet lab? Start from what you want to know, not from a model. Each question picks the neuron and the model '
+           'that show it best, says why, runs the experiment, and explains the result in biological terms.</p>'
+           '<p>In the app: <b>Neurons</b> → <i>Start from a question</i>, or in any neuron press <b>Simulate</b> → <i>Start from a question</i>. '
+           'After the baseline, one button applies the manipulation (the drug) and compares.</p>']
+    for x in Q:
+        out.append(f'<h2 id="q-{x["id"]}">{e(x["q"])} <span class="tag">{e(x["tag"])}</span></h2>'
+                   f'<p><a class="try" href="index.html#{x["cell"]}?q={x["id"]}">Run this question →</a></p><dl class="base">'
+                   + "".join(f"<dt>{k}</dt><dd>{e(v)}</dd>" for k, v in [("Why this neuron", x["whyCell"]), ("Why this model", x["whyModel"]), ("What we simulate", x["sim"]),
+                                                                        ("In the lab", x["lab"]), ("What to expect", x["expect"]), ("What it means", x["meaning"]), ("Sources", ", ".join(x["refs"]))])
+                   + "</dl>")
+    return "".join(out)
+
 def main() -> None:
     from build_simulator import APP_HEAD, APP_TAIL, changelog_html, version
     ver = version().split(" · ")[0]
@@ -259,7 +276,8 @@ def main() -> None:
         body = body.replace("{VERSION}", ver)
         if "validation" in f.stem: body = validation_numbers(body)
         pages.append((f.stem.split("-", 1)[1], title, md(body)))
-    pages.insert(3, ("models", "Models", models_page()))
+    pages.insert(2, ("questions", "Start from a question", questions_page()))
+    pages.insert(4, ("models", "Models", models_page()))
     pages.append(("release-notes", "Release notes", changelog_html()))
     nav = "".join(f'<a href="#{s}" data-p="{s}">{e(t)}</a>' for s, t, _ in pages)
     arts = "".join(f'<article id="doc-{s}" data-p="{s}" data-title="{e(t)}" hidden><h1>{e(t)}</h1>{b}</article>' for s, t, b in pages)

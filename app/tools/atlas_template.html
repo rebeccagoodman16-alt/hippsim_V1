@@ -139,6 +139,26 @@ dialog#sim::backdrop{background:rgba(0,0,0,.35)}
 .readout td.b{text-align:right;color:var(--muted);font-size:12px;padding-left:10px;white-space:nowrap}
 .readout td.chg{color:var(--accent);font-weight:600}
 
+/* start from a question */
+.qhome{margin:6px 0 22px}
+.qhome h2{font:600 13px system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.qhome .qs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.qhome a{flex:0 0 240px;display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);text-decoration:none;font-size:14px;line-height:1.35}
+.qhome a:hover{border-color:var(--accent)}
+.qtag{font:600 10.5px system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.qlist{display:flex;flex-direction:column;gap:6px}
+.qlist button{all:unset;cursor:pointer;display:block;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface);font-size:13.5px;line-height:1.35}
+.qlist button[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.qbrief{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);font-size:13px;line-height:1.45}
+.qbrief dl{display:grid;grid-template-columns:1fr;gap:2px;margin:6px 0 0}
+.qbrief dt{font:600 11px system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.qbrief dd{margin:0}
+.qbrief .refs{font-size:12px;color:var(--muted);margin-top:8px}
+.qread{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;background:color-mix(in srgb,var(--accent) 5%,var(--surface));font-size:13.5px;line-height:1.5}
+.qread h4{margin:0 0 4px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.qread p{margin:0 0 6px}
+.qread .exp{color:var(--muted);font-size:12.5px}
+
 /* app tab bar inside the neuron view: hidden, pulled up with the handle, by hovering the bottom edge, or with M */
 body.hs-viewer-open .hs-tabbar{display:grid !important;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:1100;
   background:rgba(255,249,242,.97);border-top:1px solid #d6c8bd;padding:4px max(6px,env(safe-area-inset-left,0px)) calc(4px + env(safe-area-inset-bottom,0px));
@@ -229,6 +249,7 @@ aside.side > *{flex:none}
       <div class="sugg" id="sugg" role="listbox" hidden></div>
     </div>
   </div>
+  <section class="qhome" id="qhome" aria-label="Start from a question"><h2>Start from a question <a href="docs.html#questions" style="font-weight:500;text-transform:none;letter-spacing:0;margin-left:6px">all questions, explained →</a></h2><div class="qs" id="qhs"></div></section>
   <nav class="jump" id="jump" aria-label="Regions"></nav>
   <main id="list"></main>
 </div>
@@ -251,6 +272,9 @@ aside.side > *{flex:none}
   <aside class="side simp" id="simp" hidden aria-label="Simulate">
     <div class="sh"><h3 id="stitle">Simulate</h3><button class="linkish" id="sclose" aria-label="Close simulator">Close</button></div>
     <div class="setup" id="ssetup">
+      <div class="seg sm" id="smode" role="radiogroup" aria-label="How to start"><button data-mode="q">Start from a question</button><button data-mode="own">Choose myself</button></div>
+      <div id="sqpane" hidden><div class="qlist" id="sqlist" role="radiogroup" aria-label="Questions"></div><div class="qbrief" id="sqbrief" hidden></div></div>
+      <div id="sownpane">
       <p class="step"><b>1</b> Scale</p>
       <div class="seg" id="sscale" role="radiogroup" aria-label="Scale"><button data-s="cell">Single cell</button><button data-s="circuit">Circuit</button><button data-s="population">Population</button></div>
       <p class="step"><b>2</b> Model</p>
@@ -260,6 +284,7 @@ aside.side > *{flex:none}
       <details class="bdet" id="sxd"><summary>Details</summary><div class="sxb" id="sxb"></div></details>
       <div class="simrow" id="ssimrow"><span class="lbl">Run in</span><div class="seg sm" id="ssims" role="radiogroup" aria-label="Simulator"></div></div>
       <button class="btn primary run" id="sgo">▶ Run baseline</button>
+      </div>
     </div>
     <div class="chosen" id="schosen" hidden><span id="schosent"></span> <button class="linkish" id="schange">change</button></div>
     <div class="prov" id="sprov">
@@ -273,6 +298,7 @@ aside.side > *{flex:none}
     <div class="out" id="sout" hidden>
       <div class="trace"><canvas id="trace" aria-label="Simulation result"></canvas></div>
       <p class="sres" id="sres" aria-live="polite"></p>
+      <div class="qread" id="sqread" hidden></div>
       <table class="readout" id="sread"></table>
       <button class="btn primary run" id="smanip" aria-expanded="false" aria-controls="sman">Manipulate the baseline</button>
       <div class="sman" id="sman" hidden>
@@ -295,6 +321,7 @@ aside.side > *{flex:none}
 <script src="hs-cable.js"></script>
 <script src="hs-ngc.js"></script>
 <script src="hs-models.js"></script>
+<script src="hs-questions.js"></script>
 <script>
 "use strict";
 const D = /*__DATA__*/null;
@@ -316,6 +343,7 @@ const SYS = ["Hippocampal formation", "Beyond the hippocampus"];
 const thumb = c => { const t = c.thumb || {}; return `<svg viewBox="0 0 100 100" aria-hidden="true">${t.x ? `<path d="${t.x}" class="ax"/>` : ""}${t.b ? `<path d="${t.b}" class="ba"/>` : ""}${t.a ? `<path d="${t.a}" class="ap"/>` : ""}${t.s ? `<circle cx="${t.s[0]}" cy="${t.s[1]}" r="2.2" class="so"/>` : ""}</svg>`; };
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 function renderIndex() {
+  renderQHome();
   $("sub").innerHTML = `${D.cells.length} reconstructed neurons. Pick one to see it in 3D and simulate it. <a href="welcome.html">How hippsim works →</a>`;
   const by = {};
   D.cells.forEach(c => ((by[c.system] = by[c.system] || {})[c.region] = by[c.system][c.region] || []).push(c));
@@ -769,7 +797,60 @@ function drawCompare() {
 }
 $("scmp").addEventListener("click", e => { const s = e.target.closest("[data-cs]"), z = e.target.closest("[data-cz]"); if (s) { cmpSite = s.dataset.cs; renderCompare(); } if (z && !z.disabled) { cmpZoom = z.dataset.cz; renderCompare(); } });
 addEventListener("resize", () => { if (!$("scmp").hidden) drawCompare(); });
+
+/* ---------- start from a question: why this neuron, why this model, what to expect, what it means ---------- */
+const QS = window.HSQuestions ? HSQuestions.Q : [];
+let smode = "own", qSel = null, qActive = null;
+const cellName = id => { const c = D.cells.find(x => x.id === id); return c ? `${c.name} ${(c.code || "").replace(/\s*\(.*\)/, "")}`.trim() : id; };
+const refText = k => ({hodgkin1952: "Hodgkin & Huxley 1952", magee1998: "Magee 1998", hu2002: "Hu et al. 2002", narayanan2007: "Narayanan & Johnston 2007", stuart1994: "Stuart & Sakmann 1994",
+  hoffman1997: "Hoffman et al. 1997", golding2002: "Golding et al. 2002", magee2000: "Magee 2000", golomb2006: "Golomb et al. 2006", pouille2001: "Pouille & Scanziani 2001", palop2007: "Palop et al. 2007"}[k] || k);
+function renderQHome() {
+  $("qhome").hidden = !QS.length;
+  $("qhs").innerHTML = QS.map(x => `<a href="#${encodeURIComponent(x.cell)}?q=${x.id}" data-ex="${esc(x.expect)}"><span class="qtag">${esc(x.tag)}</span>${esc(x.q)}</a>`).join("");
+}
+function renderQ() {
+  $("smode").querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.mode === smode)));
+  $("sqpane").hidden = smode !== "q"; $("sownpane").hidden = smode === "q";
+  if (smode !== "q") return;
+  $("sqlist").innerHTML = QS.map(x => `<button role="radio" data-q="${x.id}" aria-checked="${x.id === qSel}"><span class="qtag">${esc(x.tag)}</span><br>${esc(x.q)}</button>`).join("");
+  const x = QS.find(y => y.id === qSel); $("sqbrief").hidden = !x; if (!x) return;
+  const m = MOD[x.model], here = C.id === x.cell, ok = m.when(C), mp = m.presets.find(y => y.id === x.manip);
+  $("sqbrief").innerHTML = `<b>${esc(x.q)}</b><dl>
+    <dt>Neuron</dt><dd>${esc(cellName(x.cell))}. ${esc(x.whyCell)}</dd>
+    <dt>Model</dt><dd>${esc(m.name)}. ${esc(x.whyModel)}</dd>
+    <dt>What we simulate</dt><dd>${esc(x.sim)}</dd>
+    <dt>In the lab this is</dt><dd>${esc(x.lab)}</dd>
+    <dt>What to expect</dt><dd>${esc(x.expect)}</dd></dl>
+    <p class="refs">Sources: ${x.refs.map(refText).map(esc).join("; ")}${mp ? ` · manipulation: ${esc(mp.title || mp.label)}` : ""}</p>
+    <p>${here ? `<button class="btn primary run" id="sqgo">▶ Run it on this neuron</button>`
+      : `<a class="btn primary run" href="#${encodeURIComponent(x.cell)}?q=${x.id}" style="text-decoration:none">▶ Open ${esc(cellName(x.cell))} and run it</a>${ok ? ` <button class="linkish" id="sqgo">or run it on this ${esc(C.name.toLowerCase())}</button>` : ""}`}</p>`;
+}
+$("smode").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b || busy) return; smode = b.dataset.mode; renderQ(); };
+$("sqlist").onclick = e => { const b = e.target.closest("[data-q]"); if (!b) return; qSel = b.dataset.q; renderQ(); };
+$("sqbrief").addEventListener("click", e => { if (e.target.id === "sqgo") startQ(qSel); });
+async function startQ(id) {
+  const x = QS.find(y => y.id === id); if (!x || !MOD[x.model].when(C)) return;
+  qActive = id; cfg = {scale: MOD[x.model].scale, model: x.model, test: x.test, sim: "hippsim"}; renderSetup();
+  await runModel(true);
+}
+function renderQRead() {
+  const x = qActive && QS.find(y => y.id === qActive), box = $("sqread");
+  if (!x || !R || cfg.model !== x.model || cfg.test !== x.test) { box.hidden = true; return; }
+  const m = MOD[x.model], mp = m.presets.find(y => y.id === x.manip), manipulated = RB && R !== RB;
+  box.hidden = false;
+  box.innerHTML = `<h4>Your question</h4><p><b>${esc(x.q)}</b></p>
+    <h4>What happened</h4><p>${esc(x.read(R, manipulated ? RB : null))}</p>
+    <p class="exp">Expected: ${esc(x.expect)}</p>
+    <h4>What it means</h4><p>${esc(x.meaning)}</p>
+    ${mp && !manipulated ? `<p><button class="btn primary" id="sqman">▶ Now: ${esc(mp.label)}, and compare</button></p>` : ""}
+    ${manipulated ? `<p class="exp">Compare the two traces above (grey = baseline). Try other manipulations under <b>Manipulate the baseline</b>.</p>` : ""}`;
+}
+$("sqread").addEventListener("click", async e => {
+  if (e.target.id !== "sqman") return; const x = QS.find(y => y.id === qActive), mp = MOD[x.model].presets.find(y => y.id === x.manip);
+  setBaseline(); Object.entries(mp.set).forEach(([k, v]) => setCtl(k, v)); syncOut(); $("smanip").click(); await runModel(false);
+});
 function renderSetup() {
+  if (typeof renderQ === "function") renderQ();
   const ms = modelsFor(cfg.scale); if (!ms.some(([k]) => k === cfg.model)) cfg.model = ms[0][0];
   const m = model(); if (!m.tests.includes(cfg.test)) cfg.test = m.tests[0];
   const sims = cfg.test === "step" ? m.sims : ["hippsim"]; if (!sims.includes(cfg.sim)) cfg.sim = "hippsim";
@@ -790,7 +871,7 @@ $("sscale").onclick = e => { const b = e.target.closest("[data-s]"); if (b && !b
 $("smodels").onclick = e => { const b = e.target.closest("[data-m]"); if (b && !busy) { cfg.model = b.dataset.m; renderSetup(); } };
 $("stests").onclick = e => { const b = e.target.closest("[data-t]"); if (b && !busy) { cfg.test = b.dataset.t; renderSetup(); } };
 $("ssims").onclick = e => { const b = e.target.closest("[data-sim]"); if (b && !busy) { cfg.sim = b.dataset.sim; renderSetup(); } };
-$("schange").onclick = () => { cancelAnimationFrame(playT); R = RB = X = null; vf = -1; marks = []; tool = null; if (colorBy === "volt" || colorBy === "peak") colorBy = "part"; renderParts(); vLegend(); draw();
+$("schange").onclick = () => { qActive = null; $("sqread").hidden = true; cancelAnimationFrame(playT); R = RB = X = null; vf = -1; marks = []; tool = null; if (colorBy === "volt" || colorBy === "peak") colorBy = "part"; renderParts(); vLegend(); draw();
   $("ssetup").hidden = false; $("schosen").hidden = true; $("sout").hidden = true; $("stitle").textContent = "Simulate"; renderSetup(); };
 
 /* parameters: built from the model and the test, grouped; values read back as numbers / booleans / choices */
@@ -845,7 +926,7 @@ function renderMarks() { $("smarks").innerHTML = marks.map((m, k) => `<li><i sty
 $("smarks").onclick = e => { const el = e.target.closest("[data-rm]"); if (!el) return; marks.splice(+el.dataset.rm, 1); renderMarks(); syncOut(); draw(); };
 function setBaseline() { allParams().forEach(q => setCtl(q.k, q.base)); marks = []; renderMarks(); syncOut(); draw(); }
 $("sreset").onclick = () => { setBaseline(); if (RB) { R = RB; showResult(); play(); } };
-function simReset() { pvOpen = null; cmpR = cmpT = null; $("scmp").hidden = true; cancelAnimationFrame(playT); R = RB = X = null; vf = -1; tool = null; marks = []; mcache = {}; if (colorBy === "volt" || colorBy === "peak") colorBy = "part";
+function simReset() { qActive = null; if ($("sqread")) $("sqread").hidden = true; pvOpen = null; cmpR = cmpT = null; $("scmp").hidden = true; cancelAnimationFrame(playT); R = RB = X = null; vf = -1; tool = null; marks = []; mcache = {}; if (colorBy === "volt" || colorBy === "peak") colorBy = "part";
   cfg = {scale: "cell", model: "hh", test: "step", sim: "hippsim"}; $("ssetup").hidden = false; $("schosen").hidden = true; $("sout").hidden = true; $("stitle").textContent = "Simulate";
   renderSetup(); renderParts(); vLegend(); draw(); }
 function openSim(on) { $("simp").hidden = !on; $("vsim").setAttribute("aria-pressed", String(on));
@@ -940,7 +1021,7 @@ async function runModel(baseline) {
     if (baseline && cfg.sim !== "hippsim") { X = await loadExt(); if (!X) $("sres").textContent = `No ${cfg.sim} trace for this cell.`; }
     if (R.peakColour && R.vmax) colorBy = "peak"; else if (R.frames) colorBy = "volt"; else if (colorBy === "volt" || colorBy === "peak") colorBy = "part";
     renderParts(); $("ssave").disabled = false; $("ssave").textContent = "Save run";
-    showResult(); play(); $("simp").scrollTo({top: 0, behavior: "smooth"});
+    showResult(); renderQRead(); play(); $("simp").scrollTo({top: 0, behavior: "smooth"});
   } catch (e) { $("sres").textContent = "Could not simulate this cell: " + e.message; console.error(e); }
   busy = false; btn.disabled = false; btn.textContent = baseline ? "▶ Run baseline" : "▶ Run"; drawTrace();
 }
@@ -995,7 +1076,9 @@ async function route() {
   if (!D.cells.some(c => c.id === start)) return;
   await open(start, false);
   if (!q) return;
-  const a = new URLSearchParams(q), mk = a.get("model") || (a.has("amp") ? "hh" : null); if (!mk || !MOD[mk]) return;
+  const a = new URLSearchParams(q);
+  if (a.get("q") && QS.some(x => x.id === a.get("q"))) { smode = "q"; qSel = a.get("q"); openSim(true); renderSetup(); await startQ(qSel); return; }
+  const mk = a.get("model") || (a.has("amp") ? "hh" : null); if (!mk || !MOD[mk]) return;
   if (!a.has("test") && a.has("site")) a.set("marks", "electrode:" + a.get("site"));      // 0.9–0.10 links
   if (!MOD[mk].when(C)) return;
   cfg = {scale: MOD[mk].scale, model: mk, test: MOD[mk].tests.includes(a.get("test")) ? a.get("test") : MOD[mk].tests[0], sim: a.get("sim") || "hippsim"}; openSim(true); renderSetup();

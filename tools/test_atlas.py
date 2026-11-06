@@ -115,7 +115,7 @@ try:
                 check(f"{name}: Open from Runs restores cell, model, current and electrode",
                       pg.evaluate("C.id") == "ca3-c62563" and pg.evaluate("cfg.model") == "hh" and pg.input_value("#sp-amp") == "1" and pg.evaluate("marks.some(m => m.kind === 'electrode')"))
             if name == "web":
-                pg.goto(B + "index.html#ca1-n123?q=ih"); pg.wait_for_function(DONE, timeout=90000)
+                pg.goto(B + "index.html#ca1-n123?q=ih"); pg.wait_for_function("typeof qActive !== 'undefined' && qActive === 'ih' && RB && !busy && document.getElementById('sqread').textContent.includes('What it means')", timeout=90000)
                 t = pg.text_content("#sqread")
                 check("web: a question runs on its neuron and explains the result", pg.evaluate("C.id") == "ca1-n123" and pg.evaluate("cfg.model") == "migliore" and "What it means" in t and "Sag ratio" in t, t[:150])
                 pg.click("#sqman"); pg.wait_for_function("R !== RB && !busy", timeout=90000)

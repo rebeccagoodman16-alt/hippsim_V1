@@ -1,5 +1,17 @@
 # Release notes
 
+## 0.14 · 5 Nov 2026
+- **Start from a question**: eight biological questions (excitability, Iₕ, resonance, back-propagation, distal input,
+  Aβ-like A-type loss, bursting, feedforward inhibition). Each picks the neuron and the model, says why, gives the
+  wet-lab equivalent and what to expect (with its sources), runs it, explains the result in plain terms, and applies
+  the drug in one click to compare. On the Neurons page, in Simulate, and as a Docs page.
+- **App menu inside a neuron**: a Menu handle on the bottom bar pulls up Neurons · Runs · Tools · Models · Docs
+  (or hover the bottom edge, or press M).
+- **How hippsim works**: an intro page, shown once on the first visit and linked from the Neurons page and footer.
+- **Docs ↔ app links**: every model and test in the docs opens in the app; the app links back to the model's docs.
+- Repository files (YAML, JSON, Markdown, CSV) open inside the app with Back; the installed app offers a Reload when
+  a new version is ready (Display → Check for updates).
+
 ## 0.13 · 5 Nov 2026
 - **Where this comes from**: five rows under every simulation separate what is measured from what is modelled:
   experimental morphology (identity, archive, reconstruction ID, papers, how it was traced, and what hippsim
