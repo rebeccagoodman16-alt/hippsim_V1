@@ -39,6 +39,8 @@ What this shows: finer compartments almost never change either simulator's count
 
 ### Worked example: CA3 pyramidal cell l24b
 
+[Open this comparison in the app →](index.html#ca3-l24b?model=hh&test=step&pv=valid&cmp=1)
+
 hippsim fires no spike for the 0.5 nA step; NEURON fires one (10.6 ms after onset). Equations, densities, reversal potentials, temperature, stimulus, initial state and time step are the same, and the soma area is identical (2 030.6 µm²). The difference is geometric:
 
 - the reconstruction has 7 branches attached to the soma, and one of them starts inside the soma;

@@ -140,6 +140,19 @@ dialog#sim::backdrop{background:rgba(0,0,0,.35)}
 .readout td.b{text-align:right;color:var(--muted);font-size:12px;padding-left:10px;white-space:nowrap}
 .readout td.chg{color:var(--accent);font-weight:600}
 
+/* app tab bar inside the neuron view: hidden, pulled up with the handle, by hovering the bottom edge, or with M */
+body.hs-viewer-open .hs-tabbar{display:grid !important;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:1100;
+  background:rgba(255,249,242,.97);border-top:1px solid #d6c8bd;padding:4px max(6px,env(safe-area-inset-left,0px)) calc(4px + env(safe-area-inset-bottom,0px));
+  -webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px);transform:translateY(105%);transition:transform .22s ease;box-shadow:0 -8px 24px rgba(0,0,0,.08)}
+[data-hs-theme="dark"] body.hs-viewer-open .hs-tabbar{background:rgba(30,26,27,.96);border-top-color:#3a3233}
+body.hs-viewer-open.hs-tabs-peek .hs-tabbar{transform:none}
+.vtabs{position:absolute;left:50%;z-index:7;transform:translate(-50%,50%);display:flex;align-items:center;gap:6px;padding:3px 12px 3px 10px;border:1px solid var(--line);border-radius:999px;
+  background:var(--surface);color:var(--muted);font:600 11.5px system-ui,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);touch-action:none}
+.vtabs i{display:block;width:26px;height:4px;border-radius:2px;background:var(--line)}
+.vtabs:hover,.vtabs[aria-expanded="true"]{color:var(--ink);border-color:var(--accent)}
+.vtabzone{position:fixed;left:0;right:0;bottom:0;height:8px;z-index:1090}
+@media (hover:none){.vtabzone{display:none}}
+
 /* provenance strip + panels, details, hover explanations, simulator comparison */
 .mlist .meta,.tlist .meta{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
 .warn{display:inline-block;margin-top:5px;font-style:normal;font-size:11px;line-height:1.3;padding:2px 7px;border-radius:999px;border:1px solid #b9771e;color:#8a520c;background:color-mix(in srgb,#f3c97a 25%,transparent)}
@@ -267,7 +280,7 @@ aside.side > *{flex:none}
       <div class="sman" id="sman" hidden>
         <div class="mhead"><span id="snch">At baseline</span><button class="linkish" id="sreset">back to baseline</button></div>
         <div class="grp"><p class="gh">Published manipulations</p><div class="chips" id="spre" role="group" aria-label="Manipulations"></div></div>
-        <div class="grp" id="stoolg"><p class="gh">Branch tools <span class="muted">· pick one, tap the cell</span></p><div class="chips tools" id="stools"></div><ul class="marks" id="smarks"></ul><div id="stoolp"></div></div>
+        <div class="grp" id="stoolg"><p class="gh">Branch tools <span class="muted">· pick one, tap the cell · <a href="docs.html#model-tools" target="_blank" rel="noopener">what each does</a></span></p><div class="chips tools" id="stools"></div><ul class="marks" id="smarks"></ul><div id="stoolp"></div></div>
         <div id="sctl"></div>
         <button class="btn primary run" id="srun">▶ Run</button>
         <p class="note" id="sextnote" hidden></p>
@@ -276,6 +289,8 @@ aside.side > *{flex:none}
     </div>
   </aside>
   <div class="parts" id="parts"></div>
+  <button type="button" class="vtabs" id="vtabs" aria-expanded="false" aria-label="Show the app menu (Neurons, Runs, Tools, Models, Docs)" title="App menu (M)"><i></i>Menu</button>
+  <div class="vtabzone" id="vtabzone" aria-hidden="true"></div>
 </div>
 
 
@@ -303,7 +318,7 @@ const SYS = ["Hippocampal formation", "Beyond the hippocampus"];
 const thumb = c => { const t = c.thumb || {}; return `<svg viewBox="0 0 100 100" aria-hidden="true">${t.x ? `<path d="${t.x}" class="ax"/>` : ""}${t.b ? `<path d="${t.b}" class="ba"/>` : ""}${t.a ? `<path d="${t.a}" class="ap"/>` : ""}${t.s ? `<circle cx="${t.s[0]}" cy="${t.s[1]}" r="2.2" class="so"/>` : ""}</svg>`; };
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 function renderIndex() {
-  $("sub").textContent = `${D.cells.length} reconstructed neurons. Pick one to see it in 3D and simulate it.`;
+  $("sub").innerHTML = `${D.cells.length} reconstructed neurons. Pick one to see it in 3D and simulate it. <a href="welcome.html">How hippsim works →</a>`;
   const by = {};
   D.cells.forEach(c => ((by[c.system] = by[c.system] || {})[c.region] = by[c.system][c.region] || []).push(c));
   const regs = s => Object.keys(by[s] || {}).sort((a, b) => ((ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99)) || a.localeCompare(b));
@@ -408,7 +423,7 @@ let colorOf = function (i) {
     const t = Math.min(1, G.dist[i] / G.maxDist); return `hsl(${250 - 230 * t} 70% ${45 + 5 * t}%)`; }
   return css((PARTS.find(p => p[0] === G.part[i]) || [, , "--basal"])[2]);
 }
-function resize() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; draw(); }
+function resize() { if (typeof placeTabs === "function") setTimeout(placeTabs, 0); const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; draw(); }
 function draw(target) {
   if (!G) return;
   const c2 = target ? target.getContext("2d") : ctx, W = target ? target.width : cv.width, H = target ? target.height : cv.height, d = target ? W / cv.clientWidth : (devicePixelRatio || 1);
@@ -496,6 +511,7 @@ addEventListener("keydown", e => {
 
 /* parts bar: toggle compartments, colour by part or path distance */
 function renderParts() {
+  setTimeout(placeTabs, 0);
   const ps = PARTS.filter(p => G.parts.includes(p[0]));
   $("parts").innerHTML = `<span class="lbl">Show</span>` + ps.map(([k, l, v]) => `<button class="part" data-p="${k}" aria-pressed="${on[k] !== false}" data-ex="${esc(PART_NOTE[k])}"><i style="background:var(${v})"></i>${l}</button>`).join("") +
     `<span style="flex:1"></span><span class="lbl">Colour</span><span class="seg"><button data-c="part" aria-pressed="${colorBy === "part"}">Compartment</button><button data-c="dist" aria-pressed="${colorBy === "dist"}">Distance from soma</button>${R && R.frames ? `<button data-c="volt" aria-pressed="${colorBy === "volt"}">Voltage</button>` : ""}${R && R.vmax ? `<button data-c="peak" aria-pressed="${colorBy === "peak"}">Peak V</button>` : ""}</span>`;
@@ -536,6 +552,20 @@ function renderSide() {
     <div><h3>Morphology source</h3><p class="note">${esc((C.prov || {}).archive || "")}${C.code ? " · " + esc(C.code) : ""}<br>${esc(C.cite)}</p><p class="note">The reconstruction only: channel models and their sources are under Simulate → Where this comes from.</p><p><a href="library.html#cell/${encodeURIComponent(C.id)}">Full record, citation and SWC →</a></p></div>`;
 }
 
+
+/* app menu inside the neuron view: handle on the bottom bar (tap, or drag up / down), hover the bottom edge, or press M */
+let pinned = false;
+function peek(on, pin) { document.body.classList.toggle("hs-tabs-peek", on); $("vtabs").setAttribute("aria-expanded", String(on)); if (pin !== undefined) pinned = pin && on; }
+function placeTabs() { $("vtabs").style.bottom = $("parts").offsetHeight + "px"; }
+addEventListener("resize", placeTabs);
+let dragY = null;
+$("vtabs").addEventListener("pointerdown", e => { dragY = e.clientY; $("vtabs").setPointerCapture(e.pointerId); });
+$("vtabs").addEventListener("pointerup", e => { const dy = dragY == null ? 0 : e.clientY - dragY; dragY = null;
+  if (dy < -15) peek(true, true); else if (dy > 15) peek(false, false); else peek(!document.body.classList.contains("hs-tabs-peek"), true); });
+$("vtabzone").addEventListener("pointerenter", () => { if (!pinned) peek(true); });
+document.addEventListener("pointermove", e => { if (!pinned && document.body.classList.contains("hs-tabs-peek") && e.clientY < innerHeight - 90) peek(false); });
+document.addEventListener("keydown", e => { if ($("viewer").hidden || /INPUT|SELECT|TEXTAREA/.test((document.activeElement || {}).tagName || "")) return;
+  if (e.key === "m" || e.key === "M") peek(!document.body.classList.contains("hs-tabs-peek"), true); else if (e.key === "Escape" && document.body.classList.contains("hs-tabs-peek")) { peek(false, false); e.stopPropagation(); } }, true);
 /* screenshot and video */
 function offCanvas(w = 1920, h = 1080) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
 $("vshot").onclick = () => { const c = offCanvas(); draw(c); c.toBlob(b => saveFile(`${C.id}.png`, b), "image/png"); };
@@ -557,7 +587,7 @@ $("vvid").onclick = async () => {
 /* open / close */
 async function open(id, push = true) {
   const c = D.cells.find(x => x.id === id); if (!c) return;
-  C = c; $("viewer").hidden = false; document.body.style.overflow = "hidden";
+  C = c; $("viewer").hidden = false; document.body.style.overflow = "hidden"; document.body.classList.add("hs-viewer-open"); placeTabs();
   $("vname").textContent = c.name; $("vsub").textContent = `${c.code || c.id} · ${c.region} · ${c.species}`;
   $("side").hidden = (() => { try { return localStorage.getItem("hs-atlas-side") !== "1"; } catch (e) { return true; } })();
   $("vside").setAttribute("aria-pressed", String(!$("side").hidden));
@@ -570,7 +600,7 @@ async function open(id, push = true) {
   if (!raf) loop();
   $("vback").focus();
 }
-function close() { $("viewer").hidden = true; document.body.style.overflow = ""; cancelAnimationFrame(raf); raf = 0; spinOff(); history.replaceState(null, "", location.pathname); document.title = "hippsim Neuron atlas"; }
+function close() { $("viewer").hidden = true; document.body.style.overflow = ""; document.body.classList.remove("hs-viewer-open"); peek(false); cancelAnimationFrame(raf); raf = 0; spinOff(); history.replaceState(null, "", location.pathname); document.title = "hippsim Neuron atlas"; }
 
 /* ================= simulate: scale → model → test → baseline → manipulate (everything grouped) ================= */
 const MOD = HSModels.MODELS, TESTS = HSModels.EXPERIMENTS, TOOLS = HSModels.TOOLS, wide = () => matchMedia("(min-width:1200px)").matches, nTrim = x => (+x).toFixed(2).replace(/\.?0+$/, "");
@@ -653,7 +683,7 @@ function renderProv() {
     const ex = k => k && HSModels.EX[k] ? ` data-ex="${esc(HSModels.EX[k])}"` : "";
     const present = new Set(G.parts);
     $("pv-model").innerHTML = `<h4>${m.name}</h4>${w ? `<p><em class="warn">${esc(w)}</em></p>` : ""}<h4>Mechanisms and original references</h4>` +
-      tbl(["Mechanism", "Model source", "Reference"], cd.channels.map(([a, b, c, k]) => `<tr><td><span${ex(k)}>${esc(a)}</span></td><td>${cellText(b)}</td><td>${cellText(c)}</td></tr>`)) +
+      `<p><a href="docs.html#model-${cfg.model}" target="_blank" rel="noopener">Full reference in the docs →</a></p>` + tbl(["Mechanism", "Model source", "Reference"], cd.channels.map(([a, b, c, k]) => `<tr><td><span${ex(k)}>${esc(a)}</span></td><td>${cellText(b)}</td><td>${cellText(c)}</td></tr>`)) +
       `<h4>Passive properties</h4>` + tbl(["", "Value", "Source"], cd.passive.map(([a, b, c]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td><td>${cellText(c)}</td></tr>`)) +
       (cd.dist ? `<h4>Channel distribution by compartment</h4>` + tbl(["", ...cd.dist.cols], cd.dist.rows.map(r => { const ps = ROWPART[r[0]], here = !ps || ps.some(x => present.has(x));
         return `<tr${here ? "" : ' class="muted"'}><td>${esc(r[0])}${here ? "" : " <small>(none in this cell)</small>"}</td>${r.slice(1).map(x => `<td>${esc(x)}</td>`).join("")}</tr>`; })) + `<p class="note">${cellText(cd.dist.source)}</p>` : "");
@@ -750,7 +780,7 @@ function renderSetup() {
     return `<button role="radio" data-m="${k}" aria-checked="${k === cfg.model}" data-ex="${esc(strip(x.desc))}"><b>${x.name}</b><span class="meta">${esc(cd.short)} · ${esc(cd.meta)}</span>${w ? `<em class="warn">${esc(w)}</em>` : ""}</button>`; }).join("");
   $("stests").innerHTML = m.tests.map(k => `<button role="radio" data-t="${k}" aria-checked="${k === cfg.test}" data-ex="${esc(TESTS[k].desc)}"><b>${TESTS[k].name}</b><span class="meta">${esc(TESTS[k].short || "")}</span></button>`).join("");
   const cd = m.card(C);
-  $("sxb").innerHTML = `<p><b>${m.name}</b> · ${esc(cd.short)}</p><p>${m.desc}</p>${cellWarn(cfg.model) ? `<p><em class="warn">${esc(cellWarn(cfg.model))}</em></p>` : ""}<p><b>${TESTS[cfg.test].name}</b>: ${esc(TESTS[cfg.test].desc)}</p><p class="muted">Sources, channel distributions and assumptions: the strip below (Morphology · Published model · Adapted · Tested · Validated).</p>`;
+  $("sxb").innerHTML = `<p><b>${m.name}</b> · ${esc(cd.short)}</p><p>${m.desc}</p>${cellWarn(cfg.model) ? `<p><em class="warn">${esc(cellWarn(cfg.model))}</em></p>` : ""}<p><b>${TESTS[cfg.test].name}</b>: ${esc(TESTS[cfg.test].desc)}</p><p class="muted">Sources, channel distributions and assumptions: <b>Where this comes from</b> below.</p><p><a href="docs.html#model-${cfg.model}" target="_blank" rel="noopener">This model in the docs →</a> · <a href="docs.html#test-${cfg.test}" target="_blank" rel="noopener">This test →</a></p>`;
   renderProv();
   $("ssims").innerHTML = sims.map(x => `<button role="radio" data-sim="${x}" aria-checked="${x === cfg.sim}">${x}</button>`).join("");
   $("ssims").hidden = sims.length < 2;
@@ -969,13 +999,19 @@ async function route() {
   if (!q) return;
   const a = new URLSearchParams(q), mk = a.get("model") || (a.has("amp") ? "hh" : null); if (!mk || !MOD[mk]) return;
   if (!a.has("test") && a.has("site")) a.set("marks", "electrode:" + a.get("site"));      // 0.9–0.10 links
-  cfg = {scale: MOD[mk].scale, model: mk, test: a.get("test") || MOD[mk].tests[0], sim: a.get("sim") || "hippsim"}; openSim(true); renderSetup();
+  if (!MOD[mk].when(C)) return;
+  cfg = {scale: MOD[mk].scale, model: mk, test: MOD[mk].tests.includes(a.get("test")) ? a.get("test") : MOD[mk].tests[0], sim: a.get("sim") || "hippsim"}; openSim(true); renderSetup();
+  if (a.get("pv")) { pvOpen = a.get("pv"); renderProv(); }
+  if (a.get("run") === "0") return;                                    // links from the docs: open the setup, the person presses Run
   await runModel(true);
+  if (a.get("pv")) { pvOpen = a.get("pv"); renderProv(); }
+  if (a.get("cmp") === "1") { openCompare(); renderProv(); $("sprov").scrollIntoView({block: "start"}); }
   allParams().forEach(x => { if (a.has(x.k)) setCtl(x.k, x.type === "toggle" ? a.get(x.k) === "true" : a.get(x.k)); });
   marks = (a.get("marks") || "").split(",").filter(Boolean).map(s => { const [kind, pt] = s.split(":"); return {kind, pt: +pt}; }).filter(m => TOOLS[m.kind] && G.P[m.pt]);
   renderMarks(); syncOut(); draw();
   if (changes().length) { $("smanip").click(); await runModel(false); }
 }
+(() => { try { if (!location.hash && !navigator.webdriver && localStorage.getItem("hs-intro-seen") !== "1") { localStorage.setItem("hs-intro-seen", "1"); location.replace("welcome.html"); } } catch (e) {} })();
 route(); addEventListener("hashchange", route);
 
 </script>

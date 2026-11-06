@@ -114,6 +114,15 @@ try:
                 pg.wait_for_function("typeof R !== 'undefined' && R && R !== RB && !busy", timeout=60000)
                 check(f"{name}: Open from Runs restores cell, model, current and electrode",
                       pg.evaluate("C.id") == "ca3-c62563" and pg.evaluate("cfg.model") == "hh" and pg.input_value("#sp-amp") == "1" and pg.evaluate("marks.some(m => m.kind === 'electrode')"))
+            if name == "web":
+                pg.goto(B + "index.html#ca1-n123?q=ih"); pg.wait_for_function(DONE, timeout=90000)
+                t = pg.text_content("#sqread")
+                check("web: a question runs on its neuron and explains the result", pg.evaluate("C.id") == "ca1-n123" and pg.evaluate("cfg.model") == "migliore" and "What it means" in t and "Sag ratio" in t, t[:150])
+                pg.click("#sqman"); pg.wait_for_function("R !== RB && !busy", timeout=90000)
+                t = pg.text_content("#sqread")
+                check("web: the question's manipulation runs and is compared with baseline", "With ZD7288" in t and "baseline" in t, t[:150])
+                pg.goto(B + "index.html"); pg.wait_for_timeout(800)
+                check("web: questions listed on the Neurons page", pg.locator("#qhs a").count() == 8)
             pg.goto(B + "atlas.html#ca3-c62563"); pg.wait_for_timeout(1500)
             check(f"{name}: old atlas address redirects home", "index.html#ca3-c62563" in pg.url and pg.is_visible("#viewer"), pg.url)
             check(f"{name}: no page errors", not errs, errs[:2])

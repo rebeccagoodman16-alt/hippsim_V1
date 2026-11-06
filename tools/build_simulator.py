@@ -345,6 +345,7 @@ cell.clamp(t, I)                           # NEURON time domain</pre>
 <header></header>
 <main class="hs-log-wrap"><h1>Models</h1>
 <p class="hs-sub">What each tool runs, what it starts from, how it was checked and how to cite it. {len(reg["tools"])} tools · {sum(t["n_perturbations"] for t in reg["tools"].values())} perturbations · {len(refs)} references.</p>
+<p class="hs-sub" style="margin-top:-6px">The neuron models in the Neurons → Simulate panel: <a href="docs.html#models">Docs → Models</a> · how checks are done: <a href="docs.html#validation">Docs → Validation</a> · new here: <a href="welcome.html">How hippsim works</a></p>
 <nav class="hs-ptabs" role="tablist" aria-label="Models">{"".join(f'<a href="#{k}" role="tab" data-t="{k}">{n}</a>' for k, n, _ in tabs)}</nav>
 {"".join(f'<section class="hs-ptab" id="{k}" role="tabpanel" aria-label="{n}">{body}</section>' for k, n, body in tabs)}
 </main>

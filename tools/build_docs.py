@@ -50,20 +50,26 @@ process.stdout.write(JSON.stringify(out));"""
     J = json.loads(subprocess.run(["node", "-e", js, str(SITE / "hs-models.js")], capture_output=True, text=True, check=True).stdout)
     M, T, TOOLS = J["models"], J["tests"], J["tools"]
     scale = {"cell": "Single cell", "circuit": "Circuit", "population": "Population"}
-    parts = ['<p class="lead">Five models and eleven tests run in the Simulate panel. This page is generated from the code that runs them '
-             '(<code>site/hs-models.js</code>), so the values below are exactly what the panel uses.</p>',
+    TRY = "ca1-n123"                                       # a CA1 pyramidal cell: every model is offered on it
+    try_url = lambda mid, tid=None: f'index.html#{TRY}?model={mid}' + (f'&test={tid}' if tid else '') + '&run=0'
+    first_model = {t["id"]: next((m["id"] for m in M if t["name"] in m["tests"]), None) for t in T}
+    parts = ['<p class="lead">Five models and eleven tests run in the Simulate panel (open any neuron, press Simulate). This page is generated from the code that runs them '
+             '(<code>site/hs-models.js</code>), so the values below are exactly what the panel uses.</p>'
+             '<p>Looking for the 21 tool models (lessons, circuits, other systems) with their baseline files and perturbations? They are in the <a href="models.html">Models tab</a>.</p>',
              '<div class="tbl"><table><thead><tr><th>Scale</th><th>Model</th><th>Cells</th><th>Tests</th><th>Runs in</th></tr></thead><tbody>'
              + "".join(f'<tr><td>{scale[m["scale"]]}</td><td><a href="#model-{m["id"]}">{e(m["name"])}</a></td><td>{m["cell"]}</td><td>{len(m["tests"])}</td>'
                        f'<td>{", ".join(m["sims"])}{" (original: " + e(m["original"]) + ")" if m["original"] else ""}</td></tr>' for m in M)
              + "</tbody></table></div>",
              '<h2 id="model-tests">Tests</h2><p>A test is the experiment you run on a model: its stimulus, what is measured, and the plot. '
-             'Each test has its own baseline; manipulations are compared with it.</p><div class="tbl"><table><thead><tr><th>Test</th><th>What it does</th><th>Stimulus you can change</th></tr></thead><tbody>'
-             + "".join(f'<tr><td>{e(t["name"])}</td><td>{e(t["desc"])}</td><td>{"; ".join(e(q["label"] + " " + q["base"] + " (" + q["range"] + ")") for q in t["params"]) or "fixed"}</td></tr>' for t in T)
+             'Each test has its own baseline; manipulations are compared with it.</p><div class="tbl"><table><thead><tr><th>Test</th><th>What it does</th><th>Stimulus you can change</th><th></th></tr></thead><tbody>'
+             + "".join(f'<tr id="test-{t["id"]}"><td>{e(t["name"])}</td><td>{e(t["desc"])}</td><td>{"; ".join(e(q["label"] + " " + q["base"] + " (" + q["range"] + ")") for q in t["params"]) or "fixed"}</td>'
+                       f'<td>{f"<a href=\"{try_url(first_model[t['id']], t['id'])}\">Try it →</a>" if first_model[t["id"]] else ""}</td></tr>' for t in T)
              + "</tbody></table></div>",
              '<h2 id="model-tools">Branch tools</h2><p>Pick a tool under <b>Manipulate the baseline</b>, then tap a branch on the cell. Blocks apply from that point outward. Marks are listed and can be removed one by one.</p>'
              '<div class="tbl"><table><thead><tr><th>Tool</th><th>Effect</th></tr></thead><tbody>' + "".join(f"<tr><td>{e(a)}</td><td>{e(b)}</td></tr>" for a, b in TOOLS) + "</tbody></table></div>"]
     for m in M:
         parts.append(f'<h2 id="model-{m["id"]}">{e(m["name"])} <span class="tag">{scale[m["scale"]]}</span></h2><p>{e(m["desc"])}</p>'
+                     f'<p><a class="try" href="{try_url(m["id"])}">Open it on a CA1 pyramidal cell →</a> <span class="muted">or pick any neuron, then Simulate.</span></p>'
                      f'<p><b>Tests:</b> {e(", ".join(m["tests"]))}.' + (f' <b>Branch tools:</b> {e(", ".join(m["tools"]))}.' if m["tools"] else "") + "</p>")
         cd = m["card"]
         th = lambda *h: "<thead><tr>" + "".join(f"<th>{x}</th>" for x in h) + "</tr></thead>"
@@ -166,6 +172,99 @@ def file_page(APP_HEAD: str, APP_TAIL: str) -> str:
 {APP_TAIL}
 </body></html>"""
 
+
+def welcome_page(APP_HEAD: str, APP_TAIL: str, ver: str) -> str:
+    """welcome.html: what hippsim is and how to use it, before the Neurons page (shown once on first visit)."""
+    ic = {"pick": '<path d="M12 3v18M12 8l-5-4M12 8l5-4M12 15l-6 4M12 15l6 4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+          "run": '<path d="M3 12h4l2-6 4 12 2-6h6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+          "change": '<path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+          "check": '<path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'}
+    svg = lambda k: f'<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">{ic[k]}</svg>'
+    steps = [("pick", "Pick a neuron", "87 reconstructed cells, mostly hippocampal, from public archives. Rotate it in 3D, hover a branch to see what it is.", "docs.html#cells"),
+             ("run", "Run a baseline", "Choose a model and a test (current step, F–I curve, Iₕ sag, back-propagation, resonance…). The baseline uses published values.", "docs.html#simulate"),
+             ("change", "Manipulate it", "Drugs (TTX, ZD7288, XE991…), every channel and passive value, or tap a branch to block, cut, record or add a synapse.", "docs.html#simulate"),
+             ("check", "Check and keep it", "See where every number comes from, compare with NEURON, save the run, download a NEURON or Brian2 script.", "docs.html#validation")]
+    cats = [("Experimental morphology", "the reconstruction itself: who traced it, where it is archived"),
+            ("Published model", "channel equations and densities, each with its paper; unknown sources say <i>unspecified</i>"),
+            ("Adapted here", "how a model was applied to this cell, and what you changed"),
+            ("Tested computationally", "the test, every value, the assumptions"),
+            ("Validated", "what has been checked (NEURON, Brian2) and what has not (recordings)")]
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Welcome · hippsim</title>
+{APP_HEAD}
+<style>:root{{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}</style>
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="hs-sim.css">
+<style>
+.wx{{max-width:980px;margin:0 auto;padding:36px 16px 96px}}
+.wx .kick{{font:600 12px system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--hs-accent);margin:0 0 8px}}
+.wx h1{{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.2rem,6vw,3.4rem);line-height:1.05;margin:0 0 14px}}
+.wx .lead{{font-size:clamp(1.05rem,2.4vw,1.25rem);line-height:1.55;max-width:720px;margin:0 0 22px}}
+.wx .cta{{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 40px}}
+.wx .cta a{{font:600 15px system-ui,sans-serif;padding:11px 20px;border-radius:999px;text-decoration:none;border:1px solid var(--hs-line);color:var(--hs-ink);background:var(--hs-card)}}
+.wx .cta a.go{{background:var(--hs-accent);border-color:var(--hs-accent);color:#fff}}
+.wx h2{{font-family:Georgia,"Times New Roman",serif;font-size:1.5rem;margin:36px 0 14px}}
+.steps{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}}
+.steps a{{display:flex;flex-direction:column;gap:6px;padding:16px;border:1px solid var(--hs-line);border-radius:14px;background:var(--hs-card);color:var(--hs-ink);text-decoration:none}}
+.steps a:hover{{border-color:var(--hs-accent)}}
+.steps .n{{display:flex;align-items:center;gap:8px;color:var(--hs-accent)}}
+.steps .n svg{{width:26px !important;height:26px !important;flex:none}}
+.steps .n b{{font:700 12px system-ui,sans-serif;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--hs-ink);color:var(--hs-card)}}
+.steps h3{{margin:2px 0 0;font-size:16px}}.steps p{{margin:0;font-size:14px;line-height:1.5;color:var(--hs-muted)}}
+.steps .more{{margin-top:auto;font-size:13px;color:var(--hs-accent)}}
+.cats{{list-style:none;padding:0;margin:0;display:grid;gap:6px}}
+.cats li{{display:grid;grid-template-columns:210px 1fr;gap:12px;padding:10px 14px;border:1px solid var(--hs-line);border-radius:10px;background:var(--hs-card);font-size:14.5px}}
+.cats b{{font-weight:600}}
+.where{{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}}
+.where a{{padding:12px;border:1px solid var(--hs-line);border-radius:12px;text-decoration:none;color:var(--hs-ink);background:var(--hs-card);font-size:13.5px;line-height:1.4}}
+.where a b{{display:block;font-size:15px;margin-bottom:2px}}
+.wx .fine{{color:var(--hs-muted);font-size:13.5px;margin-top:36px}}
+@media (max-width:820px){{.steps{{grid-template-columns:1fr 1fr}} .where{{grid-template-columns:1fr 1fr}} .cats li{{grid-template-columns:1fr;gap:2px}}}}
+@media (max-width:480px){{.steps{{grid-template-columns:1fr}}}}
+</style>
+</head><body class="hs-hubpage">
+<header></header>
+<main class="wx">
+  <p class="kick">hippsim {e(ver)} · lab simulator</p>
+  <h1>Simulate real neurons, and know where every number comes from.</h1>
+  <p class="lead">hippsim runs published neuron models on reconstructed cells, right in the browser. Pick a cell, run its baseline, change anything, and compare. Every value is tied to its source, and the solver is checked against NEURON and Brian2.</p>
+  <div class="cta"><a class="go" href="index.html">Explore the neurons →</a><a href="index.html#qhome">Start from a biological question</a><a href="docs.html#quick-start">Quick start (2 min)</a><a href="docs.html">Read the documentation</a></div>
+  <h2>How it works</h2>
+  <div class="steps">{"".join(f'<a href="{h}"><span class="n"><b>{i + 1}</b>{svg(k)}</span><h3>{t}</h3><p>{d}</p><span class="more">Read more →</span></a>' for i, (k, t, d, h) in enumerate(steps))}</div>
+  <h2>What is measured and what is modelled</h2>
+  <p>Under every simulation, five rows keep these apart:</p>
+  <ul class="cats">{"".join(f"<li><b>{t}</b><span>{d}</span></li>" for t, d in cats)}</ul>
+  <h2>Where things are</h2>
+  <div class="where">
+    <a href="index.html"><b>Neurons</b>Every cell; open one to simulate it</a>
+    <a href="runs.html"><b>Runs</b>Your saved runs</a>
+    <a href="simulator.html"><b>Tools</b>The model library and lessons</a>
+    <a href="models.html"><b>Models</b>Every model, its sources and checks</a>
+    <a href="docs.html"><b>Docs</b>How everything works</a>
+  </div>
+  <p class="fine">This page is shown once. Find it again from the Neurons page (“How hippsim works”) or the footer. hippsim is a research and teaching tool; it is not validated against recordings for every cell type (see <a href="docs.html#limitations">Limitations</a>).</p>
+</main>
+<script>try {{ localStorage.setItem("hs-intro-seen", "1"); }} catch (e) {{}}</script>
+{APP_TAIL}
+</body></html>"""
+
+
+def questions_page() -> str:
+    """Start from a question: generated from site/hs-questions.js (the same data the Simulate panel uses)."""
+    js = "global.window = global; require(process.argv[1]); process.stdout.write(JSON.stringify(HSQuestions.Q.map(({read, ...x}) => x)))"
+    Q = json.loads(subprocess.run(["node", "-e", js, str(SITE / "hs-questions.js")], capture_output=True, text=True, check=True).stdout)
+    out = ['<p class="lead">Coming from the wet lab? Start from what you want to know, not from a model. Each question picks the neuron and the model '
+           'that show it best, says why, runs the experiment, and explains the result in biological terms.</p>'
+           '<p>In the app: <b>Neurons</b> → <i>Start from a question</i>, or in any neuron press <b>Simulate</b> → <i>Start from a question</i>. '
+           'After the baseline, one button applies the manipulation (the drug) and compares.</p>']
+    for x in Q:
+        out.append(f'<h2 id="q-{x["id"]}">{e(x["q"])} <span class="tag">{e(x["tag"])}</span></h2>'
+                   f'<p><a class="try" href="index.html#{x["cell"]}?q={x["id"]}">Run this question →</a></p><dl class="base">'
+                   + "".join(f"<dt>{k}</dt><dd>{e(v)}</dd>" for k, v in [("Why this neuron", x["whyCell"]), ("Why this model", x["whyModel"]), ("What we simulate", x["sim"]),
+                                                                        ("In the lab", x["lab"]), ("What to expect", x["expect"]), ("What it means", x["meaning"]), ("Sources", ", ".join(x["refs"]))])
+                   + "</dl>")
+    return "".join(out)
+
 def main() -> None:
     from build_simulator import APP_HEAD, APP_TAIL, changelog_html, version
     ver = version().split(" · ")[0]
@@ -177,7 +276,8 @@ def main() -> None:
         body = body.replace("{VERSION}", ver)
         if "validation" in f.stem: body = validation_numbers(body)
         pages.append((f.stem.split("-", 1)[1], title, md(body)))
-    pages.insert(3, ("models", "Models", models_page()))
+    pages.insert(2, ("questions", "Start from a question", questions_page()))
+    pages.insert(4, ("models", "Models", models_page()))
     pages.append(("release-notes", "Release notes", changelog_html()))
     nav = "".join(f'<a href="#{s}" data-p="{s}">{e(t)}</a>' for s, t, _ in pages)
     arts = "".join(f'<article id="doc-{s}" data-p="{s}" data-title="{e(t)}" hidden><h1>{e(t)}</h1>{b}</article>' for s, t, b in pages)
@@ -256,6 +356,7 @@ def main() -> None:
 """
     (SITE / "docs.html").write_text(page)
     (SITE / "file.html").write_text(file_page(APP_HEAD, APP_TAIL))
+    (SITE / "welcome.html").write_text(welcome_page(APP_HEAD, APP_TAIL, ver))
     print(f"docs.html: {len(pages)} pages, {len(page) / 1e3:.0f} kB")
 
 

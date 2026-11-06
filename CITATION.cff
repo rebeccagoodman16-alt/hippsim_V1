@@ -5,7 +5,7 @@ type: software
 authors:
   - given-names: Rebecca
 date-released: 2026-11-05
-version: "0.13.0"
+version: "0.14.0"
 keywords: [computational neuroscience, hippocampus, CA1, NEURON, compartmental model, Alzheimer's disease]
 references:
   - type: article

@@ -37,7 +37,7 @@
 
   /* ---------- one top menu on every page: Simulate · Runs · Models · Cells & data ---------- */
   const SECTIONS = [['index.html', 'Neurons', /^(index\.html|atlas|library|)$/], ['runs.html', 'Runs', /^runs/],
-                    ['simulator.html', 'Tools', /^(simulator|sim-)/], ['models.html', 'Models', /^(models|registry|validation)/], ['docs.html', 'Docs', /^(docs|about)/]];
+                    ['simulator.html', 'Tools', /^(simulator|sim-)/], ['models.html', 'Models', /^(models|registry|validation)/], ['docs.html', 'Docs', /^(docs|about|welcome|file)/]];
   const navHTML = () => SECTIONS.map(([h, n, re]) => `<a href="${h}"${re.test(here) ? ' aria-current="page"' : ''}>${n}</a>`).join('');
   const header = document.querySelector('body > header');
   if (header && header.querySelector('.hs-gnav')) header.querySelector('.hs-gnav').innerHTML = navHTML();
@@ -128,7 +128,7 @@
   if (!document.querySelector('.hs-foot')) {
     const f = document.createElement('footer'); f.className = 'hs-foot';
     const v = (window.HS_APP && HS_APP.version) || '';
-    f.innerHTML = `<span>hippsim${v ? ' ' + v : ''}</span><a href="docs.html">Docs</a><a href="docs.html#citing">How to cite</a><a href="docs.html#release-notes">Release notes</a><a href="library.html#files">Data &amp; files</a>`;
+    f.innerHTML = `<span>hippsim${v ? ' ' + v : ''}</span><a href="welcome.html">How hippsim works</a><a href="docs.html">Docs</a><a href="docs.html#citing">How to cite</a><a href="docs.html#release-notes">Release notes</a><a href="library.html#files">Data &amp; files</a>`;
     document.body.appendChild(f);
   }
 
