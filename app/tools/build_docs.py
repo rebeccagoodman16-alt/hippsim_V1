@@ -105,12 +105,66 @@ def validation_numbers(text: str) -> str:
                    and any(tag in x["run"] and x["spikes"] == r["metrics"]["neuron"]["soma"]["spikes"] for x in r.get("diagnostics", [])))
     same = sum(r["metrics"]["neuron"]["soma"]["spikes"] == r["metrics"]["hippsim"]["soma"]["spikes"] for r in c.values())
     rin = sorted(abs(r["passive"]["hippsim"]["rin_MOhm"] / r["passive"]["neuron"]["rin_MOhm"] - 1) * 100 for r in c.values() if r["passive"]["neuron"]["rin_MOhm"])
-    vals = {"CMP_N": len(c), "CMP_SAME": same, "CMP_DIFF": len(c) - same, "CMP_JOIN": fixed_by("joined at the soma"), "CMP_GEOM": fixed_by("NEURON's geometry"),
+    nn = lambda r: r["metrics"]["neuron"]["soma"]["spikes"]; hh = lambda r: r["metrics"]["hippsim"]["soma"]["spikes"]
+    none = [k for k, r in c.items() if nn(r) != hh(r) and not any(x["run"].startswith("hippsim") and x["spikes"] == nn(r) for x in r.get("diagnostics", []))]
+    rlow = sum(r["passive"]["hippsim"]["rin_MOhm"] < 0.99 * r["passive"]["neuron"]["rin_MOhm"] for r in c.values())
+    vals = {"CMP_W1": sum(abs(nn(r) - hh(r)) <= 1 for r in c.values()), "CMP_NONE": len(none), "CMP_NONE_IDS": ", ".join(none), "CMP_RLOW": rlow, "CMP_N": len(c), "CMP_SAME": same, "CMP_DIFF": len(c) - same, "CMP_JOIN": fixed_by("joined at the soma"), "CMP_GEOM": fixed_by("NEURON's geometry"),
             "CMP_FINE": fixed_by("compartments ≤ 5"), "CMP_RIN_MED": f"{rin[len(rin) // 2]:.1f}" if rin else "–", "CMP_RIN_MAX": f"{rin[-1]:.1f}" if rin else "–"}
     for k, v in vals.items():
         text = text.replace("{" + k + "}", str(v))
     return text
 
+
+
+def file_page(APP_HEAD: str, APP_TAIL: str) -> str:
+    """file.html?f=<path>: any repository file shown inside the app (site/hs-file.js)."""
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>File · hippsim</title>
+{APP_HEAD}
+<style>:root{{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}</style>
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="hs-sim.css">
+<style>
+.fx{{max-width:900px;margin:0 auto;padding:16px 16px 90px}}
+.fbar{{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0 14px;border-bottom:1px solid var(--hs-line);margin-bottom:18px}}
+.fbar .fp{{flex:1 1 220px;min-width:0;font:12.5px ui-monospace,Menlo,monospace;color:var(--hs-muted);overflow-wrap:anywhere}}
+.fbar .fk{{font:600 11px system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--hs-muted)}}
+.fbar button,.fbar a.b{{font:inherit;font-size:14px;padding:7px 14px;border:1px solid var(--hs-line);border-radius:999px;background:var(--hs-card);color:var(--hs-ink);cursor:pointer;text-decoration:none}}
+.fbar #fback{{font-weight:600}}
+#fv{{line-height:1.55;font-size:15px}}
+#fv h1{{font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.5rem,4vw,2rem);margin:0 0 8px;overflow-wrap:anywhere}}
+#fv h2{{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--hs-muted);margin:26px 0 8px}}
+#fv h3,#fv h4,#fv h5{{margin:18px 0 6px}}
+#fv .kind{{margin:0 0 4px;font:600 11px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--hs-accent)}}
+#fv .what{{font-size:17px;margin:0 0 12px}}
+#fv .meta{{display:flex;flex-wrap:wrap;gap:6px}}
+#fv .meta span{{font-size:12.5px;padding:3px 10px;border:1px solid var(--hs-line);border-radius:999px;background:var(--hs-card)}}
+#fv .meta b{{font-weight:600;color:var(--hs-muted);margin-right:4px}}
+#fv .tw{{overflow-x:auto}}
+#fv table{{border-collapse:collapse;width:100%;font-size:14px}}
+#fv th,#fv td{{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--hs-line)}}
+#fv th{{font-size:12.5px;color:var(--hs-muted);font-weight:600}}
+#fv dl.kv{{display:grid;grid-template-columns:minmax(110px,max-content) 1fr;gap:6px 16px;margin:0}}
+#fv dl.kv dt{{color:var(--hs-muted);font-size:13px}}
+#fv dl.kv dd{{margin:0;min-width:0;overflow-wrap:anywhere}}
+#fv .chips{{display:flex;flex-wrap:wrap;gap:4px}}#fv .chips span{{font-size:12.5px;padding:2px 8px;border:1px solid var(--hs-line);border-radius:6px}}
+#fv ul{{margin:4px 0;padding-left:20px}}#fv .refs li{{margin-bottom:6px}}
+#fv pre{{background:var(--hs-card);border:1px solid var(--hs-line);border-radius:10px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5}}
+#fv pre .k{{color:var(--hs-accent);font-weight:600}}#fv pre .c{{color:var(--hs-muted)}}
+#fv code{{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}}
+#fv .muted{{color:var(--hs-muted)}}#fv .ok{{color:#2f7d5b;font-weight:600}}#fv .no{{color:var(--hs-accent);font-weight:600}}
+@media (max-width:640px){{#fv dl.kv{{grid-template-columns:1fr}} #fv dl.kv dd{{margin-bottom:6px}}}}
+</style>
+</head><body class="hs-hubpage">
+<header></header>
+<main class="fx">
+  <div class="fbar"><button type="button" id="fback">← Back</button><span class="fp"><span class="fk" id="fkind"></span><br><span id="fpath"></span></span>
+    <button type="button" id="ftog" hidden></button><button type="button" id="fcpy">Copy</button><a class="b" id="fdl" href="#">Download</a></div>
+  <article id="fv"><p class="muted">Loading…</p></article>
+</main>
+<script src="hs-file.js"></script>
+{APP_TAIL}
+</body></html>"""
 
 def main() -> None:
     from build_simulator import APP_HEAD, APP_TAIL, changelog_html, version
@@ -201,6 +255,7 @@ def main() -> None:
 {APP_TAIL}</body></html>
 """
     (SITE / "docs.html").write_text(page)
+    (SITE / "file.html").write_text(file_page(APP_HEAD, APP_TAIL))
     print(f"docs.html: {len(pages)} pages, {len(page) / 1e3:.0f} kB")
 
 

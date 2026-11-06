@@ -119,3 +119,19 @@ Baseline (0.5 nA, 300 ms at the soma; spikes = soma crossing 0 mV) for every neu
 | pyr-nmo-121817 | Subiculum | 35 | 33 | 35 |
 | tc-nmo-121515 | Thalamus | 36 | 36 | 36 |
 | tc-nmo-163604 | Thalamus | 35 | 34 | 35 |
+
+## Detailed hippsim vs NEURON comparison (2026-11-05, `tools/compare_engines.py`)
+
+Same HH model, 0.5 nA step at the soma, both simulators on all 87 cells. Recorded at the soma, AIS (~30 µm), and dendrites at ~100 and ~300 µm: rest, peak, spike count, latency, threshold (dV/dt > 10 mV/ms, walked back from the first 0 mV crossing), max dV/dt (excluding the 0.5 ms charging jump at onset), soma I_Na / I_K, membrane area per type, compartments, passive R_in and τ, first time the soma traces are > 1 mV apart, and a set-up equivalence table. Diagnostics change one thing at a time; nothing is tuned and hippsim's defaults are unchanged. Results: `site/compare/index.json`, traces `site/compare/traces-<n>.json`.
+
+| | Cells |
+| --- | --- |
+| Same soma spike count | 53 / 87 |
+| Within ±1 spike | 74 / 87 |
+| Different count, NEURON's reproduced by joining dendrites at the soma as NEURON does | 16 |
+| … by running hippsim on NEURON's geometry after Import3d | 8 |
+| … by finer hippsim compartments (≤ 5 µm) | 2 |
+| … by none of the single changes | 10 (ca1-5038804, pyr-nmo-121938, fly-gf-manc, ca1-n128, ca3-cell2zr, ca3-cell3zr, ca3-cell4zr, ca3-cell5zr, ca3-c31162, ca3-c60361) |
+| hippsim R_in lower than NEURON's by > 1 % | 54 / 87 (median |ΔR_in| 2.6 %) |
+
+**ca3-l24b** (NEURON 1 spike, hippsim 0): same equations, densities, E_rev, temperature, stimulus, initial state, dt and soma area (2 030.6 µm²). hippsim basal area 35 208 vs 31 072 µm², R_in 31.4 vs 34.1 MΩ. Spike restored by: hippsim with NEURON's soma junction (1), on the cleaned SWC (1), on NEURON's geometry (1); not by finer compartments (0) or NEURON's soma area (0); NEURON with d_lambda 0.02 still 1. Cause: soma–dendrite junction convention (hippsim adds membrane from the soma centre to each attached branch's first point and keeps the part inside the soma). Open: the ~2 500 µm² residual basal area, and the 10 cells no single change explains (candidates: combined changes, multi-point soma representation).

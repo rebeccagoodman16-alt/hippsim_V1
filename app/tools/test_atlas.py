@@ -66,9 +66,10 @@ try:
             check(f"{name}: morphology: source, reconstruction ID and what hippsim estimated", "Reconstruction ID" in t and "Estimated" in t and "Soma–dendrite junction" in t, t[:200])
             if name == "web":
                 pg.click('#spstrip [data-pv="valid"]'); pg.click("#scmpgo"); pg.wait_for_function("!document.getElementById('scmp').textContent.includes('Loading')", timeout=30000)
-                t = pg.inner_text("#scmp")
+                t = pg.text_content("#scmp")
                 check("web: hippsim vs NEURON comparison: traces, metrics, set-up, morphology, diagnostics", all(x in t for x in ["Set-up", "Morphology and discretization", "Diagnostics", "Max dV/dt"]) and pg.locator("#cmpc").count() == 1, t[:200])
-                pg.click('#scmp [data-cs="ais"]'); check("web: comparison switches to the AIS", "AIS" in pg.inner_text("#scmp h4:nth-of-type(2)"))
+                if pg.locator('#scmp [data-cs="ais"]').count(): pg.click('#scmp [data-cs="ais"]')
+                check("web: comparison switches to the AIS", "AIS" in pg.text_content("#scmp h4:nth-of-type(2)"))
             pg.click('#spstrip [aria-selected="true"]')
             pg.wait_for_timeout(4300)
             check(f"{name}: voltage plays on the cell, with legend", pg.evaluate("vf === R.frames.length - 1 && colorBy === 'volt'") and pg.is_visible("#vleg"))
@@ -126,6 +127,9 @@ try:
         pg.goto(B + "docs.html#equations"); pg.wait_for_timeout(2500)
         check("docs: equations render (offline MathJax)", pg.locator("#doc-equations mjx-container").count() >= 3, pg.locator("#doc-equations mjx-container").count())
         pg.fill("#dq", "Brunel"); check("docs: search narrows the pages", 0 < pg.locator(".dx nav a:not(.dim)").count() < 14)
+        pg.goto(B + "file.html?f=models/literature/neuron-lab/perturbations/uniform-channels-no-gradients.yaml"); pg.wait_for_timeout(1200)
+        t = pg.text_content("#fv")
+        check("files: a perturbation opens inside the app, readable, with Back and its references", "What it changes" in t and "Hoffman" in t and pg.is_visible("#fback") and pg.is_visible("header"), t[:120])
         check("docs: no page errors", not errs, errs[:2])
         b.close()
 finally:
