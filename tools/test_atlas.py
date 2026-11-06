@@ -127,6 +127,9 @@ try:
         pg.goto(B + "docs.html#equations"); pg.wait_for_timeout(2500)
         check("docs: equations render (offline MathJax)", pg.locator("#doc-equations mjx-container").count() >= 3, pg.locator("#doc-equations mjx-container").count())
         pg.fill("#dq", "Brunel"); check("docs: search narrows the pages", 0 < pg.locator(".dx nav a:not(.dim)").count() < 14)
+        pg.goto(B + "file.html?f=models/literature/neuron-lab/perturbations/uniform-channels-no-gradients.yaml"); pg.wait_for_timeout(1200)
+        t = pg.inner_text("#fv")
+        check("files: a perturbation opens inside the app, readable, with Back and its references", "What it changes" in t and "Hoffman" in t and pg.is_visible("#fback") and pg.is_visible("header"), t[:120])
         check("docs: no page errors", not errs, errs[:2])
         b.close()
 finally:

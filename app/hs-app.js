@@ -78,11 +78,14 @@
   }
   applyDisplay();
   window.addEventListener('load', applyDisplay);
+  function checkUpdate(msg) { if (window.hsCheckUpdate) hsCheckUpdate(msg); else msg.textContent = 'This copy runs inside claude.ai and is always the latest published version.'; }
   const sheet = document.createElement('div');
   sheet.id = 'hs-display'; sheet.hidden = true;
   sheet.innerHTML = `<div class="hs-dsheet" role="dialog" aria-modal="true" aria-labelledby="hs-dh">
     <div class="hs-dhead"><h2 id="hs-dh">Display</h2><button type="button" class="hs-dclose" aria-label="Close">✕</button></div>
     <p class="hs-dsub">Saved on this device.</p>
+    <div class="hs-drow hs-dupd"><div><b>Version ${(window.HS_APP && HS_APP.version) || ''}</b><span class="hs-updmsg">The installed app updates itself when it is online; a banner offers a reload when a new version is ready.</span></div>
+      <div class="hs-seg"><button type="button" class="hs-updchk">Check for updates</button></div></div>
     ${OPTIONS.map(([k, t, hint, opts]) => `<div class="hs-drow" role="radiogroup" aria-label="${t}"><div><b>${t}</b>${hint ? `<span>${hint}</span>` : ''}</div>
       <div class="hs-seg">${opts.map(([v, l]) => `<button type="button" role="radio" data-k="${k}" data-v="${v}">${k === 'palette' ? `<span class="hs-sw" aria-hidden="true">${SWATCH[v].map(c => `<i style="background:${c}"></i>`).join('')}</span>` : ''}${l}</button>`).join('')}</div></div>`).join('')}
     <div class="hs-dfoot"><button type="button" class="hs-dreset">Reset</button><button type="button" class="hs-ddone">Done</button></div></div>`;
@@ -94,6 +97,7 @@
     if (b && b.dataset.k === 'layout') { if (window.hsLayout && hsLayout.get() !== b.dataset.v) hsLayout.set(b.dataset.v); return; }
     if (b) { D[b.dataset.k] = b.dataset.v; save(); applyDisplay(); mark(); return; }
     if (e.target === sheet || e.target.closest('.hs-dclose, .hs-ddone')) closeDisplay();
+    if (e.target.closest('.hs-updchk')) { checkUpdate(sheet.querySelector('.hs-updmsg')); return; }
     if (e.target.closest('.hs-dreset')) { Object.assign(D, DEFAULTS); save(); applyDisplay(); mark(); }
   });
   sheet.addEventListener('keydown', e => {
@@ -151,9 +155,40 @@
   document.body.appendChild(bar);
   if (location.hash === '#find' && here === 'simulator.html') setTimeout(() => { const q = document.getElementById('hs-hq'); if (q) q.focus(); }, 200);
 
+  /* ---------- repository files (YAML, JSON, Markdown, CSV, code, BibTeX) open in file.html with Back, not as bare text ---------- */
+  const FILE_RE = /\.(ya?ml|json|md|csv|py|bib|cff|txt|tsv)$/i;
+  document.addEventListener('click', e => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest && e.target.closest('a[href]'); if (!a || a.hasAttribute('download')) return;
+    let u; try { u = new URL(a.getAttribute('href'), location.href); } catch (err) { return; }
+    const root = new URL('.', location.href);
+    if (u.origin !== location.origin || !u.pathname.startsWith(root.pathname) || !FILE_RE.test(u.pathname)) return;
+    e.preventDefault();
+    location.href = 'file.html?f=' + encodeURIComponent(decodeURIComponent(u.pathname.slice(root.pathname.length)));
+  }, true);
+
   /* ---------- installed app (own address only; claude.ai keeps its own sandbox) ---------- */
   if (!CFG.sw || !('serviceWorker' in navigator) || !isSecureContext) return;
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  // updates: the browser fetches sw.js fresh (no HTTP cache); a new version installs in the background, takes over,
+  // and a banner offers a reload (never automatic, so a running simulation is not lost)
+  let swReg = null, hadCtl = !!navigator.serviceWorker.controller, shown = false;
+  navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'}).then(r => { swReg = r; r.update().catch(() => {}); }).catch(() => {});
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && swReg) swReg.update().catch(() => {}); });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadCtl) { hadCtl = true; return; }                       // first install: nothing to reload
+    if (shown) return; shown = true;
+    const box = document.createElement('div'); box.className = 'hs-install'; box.setAttribute('role', 'status');
+    box.innerHTML = '<p><b>hippsim has been updated.</b> Reload to use the new version.</p><button type="button" class="go">Reload</button><button type="button" class="x">Later</button>';
+    document.body.appendChild(box);
+    box.querySelector('.go').onclick = () => location.reload();
+    box.querySelector('.x').onclick = () => box.remove();
+  });
+  window.hsCheckUpdate = async msg => {
+    if (!swReg) { msg.textContent = 'Updates are checked when the app is opened from its own address.'; return; }
+    msg.textContent = 'Checking…';
+    try { await swReg.update(); } catch (e) { msg.textContent = 'Could not reach the server; try again when online.'; return; }
+    msg.textContent = swReg.installing || swReg.waiting ? 'A new version is downloading; a Reload banner will appear.' : 'You have the latest version.';
+  };
   let seen = false; try { seen = localStorage.getItem('hs-install-dismissed') === '1'; } catch (e) {}
   if (standalone || seen) return;
   function offer(text, onGo, goLabel) {

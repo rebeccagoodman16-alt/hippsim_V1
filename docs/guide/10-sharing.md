@@ -11,3 +11,8 @@ Today hippsim runs as a private page on claude.ai, shared with chosen people; op
 | A lab server | Copy `app/` to any HTTPS host | Ready |
 
 **Your data.** Saved runs are stored with your account; only you can change or delete yours. Display settings stay on your device.
+
+## Keeping the installed app up to date
+The installed app (from the GitHub Pages address) checks for a new version every time it opens or comes back to the front. A new version downloads in the background and a banner says **hippsim has been updated · Reload**; nothing reloads by itself, so a running simulation is never lost. **Display → Check for updates** checks on demand and shows the version you have. The claude.ai page is always the latest published version.
+
+If an old copy ever seems stuck (for example after a long time offline): close every hippsim window and open it again; as a last resort remove the app and install it again from the website.
