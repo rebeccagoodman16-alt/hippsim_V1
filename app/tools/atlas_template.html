@@ -140,17 +140,21 @@ dialog#sim::backdrop{background:rgba(0,0,0,.35)}
 .readout td.chg{color:var(--accent);font-weight:600}
 
 /* provenance strip + panels, details, hover explanations, simulator comparison */
-.mlist .meta,.tlist .meta{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;font-family:var(--f-mono);letter-spacing:.01em}
+.mlist .meta,.tlist .meta{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
 .warn{display:inline-block;margin-top:5px;font-style:normal;font-size:11px;line-height:1.3;padding:2px 7px;border-radius:999px;border:1px solid #b9771e;color:#8a520c;background:color-mix(in srgb,#f3c97a 25%,transparent)}
 [data-hs-theme="dark"] .warn{color:#f0c27a;border-color:#a8742b}
 .sxb{font-size:12.5px;line-height:1.45}.sxb p{margin:0 0 6px}.sxb b{font-size:12.5px}
 .prov{display:flex;flex-direction:column;gap:6px}
-.pstrip{display:flex;flex-wrap:wrap;gap:4px}
-.pstrip button{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:1px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);min-width:0;flex:1 1 80px}
-.pstrip button small{font-size:11.5px;text-transform:none;letter-spacing:0;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pstrip button i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:4px;vertical-align:1px}
-.pstrip button[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.pstrip button.alert small{color:#8a520c}[data-hs-theme="dark"] .pstrip button.alert small{color:#f0c27a}
+.pstrip{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.pstrip .ph{margin:0;padding:6px 10px 4px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.pstrip button{all:unset;cursor:pointer;display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:6px 10px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink)}
+.pstrip button small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;min-width:0}
+.pstrip button small::after{content:" ›";color:var(--muted)}
+.pstrip button[aria-selected="true"] small::after{content:" ⌄"}
+.pstrip button i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:7px}
+.pstrip button span{white-space:nowrap}
+.pstrip button:hover,.pstrip button[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.pstrip button.alert small{color:#8a520c;font-weight:600}[data-hs-theme="dark"] .pstrip button.alert small{color:#f0c27a}
 .ppanel{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);font-size:12.5px;line-height:1.45}
 .ppanel h4{margin:0 0 6px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .ppanel h4:not(:first-child){margin-top:12px}
@@ -162,7 +166,7 @@ dialog#sim::backdrop{background:rgba(0,0,0,.35)}
 .pt .bad{color:var(--accent);font-weight:600}.pt .ok{color:#2f7d5b}
 .uns{color:var(--muted);font-style:italic}
 .ptw{overflow-x:auto}
-.xtip{position:fixed;z-index:60;max-width:300px;padding:7px 10px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:12.5px;line-height:1.4;pointer-events:none;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+.xtip{position:fixed;z-index:1000;max-width:300px;padding:7px 10px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:12.5px;line-height:1.4;pointer-events:none;box-shadow:0 4px 18px rgba(0,0,0,.18)}
 [data-ex]{text-decoration-skip-ink:auto}
 :root:not([data-hs-hover="off"]) .pt [data-ex]{text-decoration:underline dotted;text-underline-offset:3px;cursor:help}
 .cmp .trace{height:170px}
@@ -527,7 +531,7 @@ function renderSide() {
       ${G.hasApical ? `<p class="note">Trunk, obliques and tuft are estimated: the trunk follows the largest apical branch; the tuft starts at 60 % of the apical height.</p>` : ""}</div>
     <div><h3>Sholl profile</h3>${shSvg}<p class="note">Dendrite crossings of spheres every ${step} µm from the soma: where branching is densest.</p></div>
     ${nrn ? `<div><h3>Passive NEURON check</h3><dl class="kv"><dt>Input resistance</dt><dd>${fmt(nrn.rin)} MΩ</dd><dt>Length constant (steady)</dt><dd>${fmt(nrn.lam0)} µm</dd><dt>Length constant (100 Hz)</dt><dd>${fmt(nrn.lam100)} µm</dd></dl><p class="note">R<sub>m</sub> 20 kΩ·cm², R<sub>a</sub> 150 Ω·cm, C<sub>m</sub> 1 µF/cm².</p></div>` : ""}
-    <div><h3>Source</h3><p class="note">${esc(C.cite)}</p><p><a href="library.html#cell/${encodeURIComponent(C.id)}">Full record, citation and SWC →</a></p></div>`;
+    <div><h3>Morphology source</h3><p class="note">${esc((C.prov || {}).archive || "")}${C.code ? " · " + esc(C.code) : ""}<br>${esc(C.cite)}</p><p class="note">The reconstruction only: channel models and their sources are under Simulate → Where this comes from.</p><p><a href="library.html#cell/${encodeURIComponent(C.id)}">Full record, citation and SWC →</a></p></div>`;
 }
 
 /* screenshot and video */
@@ -599,7 +603,7 @@ function cellWarn(k) {
   if ((k === "migliore" || k === "research" || k === "circuit") && !isCA1) return `CA1-derived parameters on a ${C.region} ${/pyramidal/i.test(C.name) ? "pyramidal cell" : "cell"}: not validated for ${C.region}`;
   return "";
 }
-const PV = [["morph", "Morphology", "--basal"], ["model", "Published model", "--trunk"], ["adapt", "Adapted", "#b9771e"], ["test", "Tested", "--accent"], ["valid", "Validated", "#2f7d5b"]];
+const PV = [["morph", "Experimental morphology", "--basal"], ["model", "Published model", "--trunk"], ["adapt", "Adapted here", "#b9771e"], ["test", "Tested computationally", "--accent"], ["valid", "Validated", "#2f7d5b"]];
 let pvOpen = null;
 const tbl = (head, rows) => `<div class="ptw"><table class="pt">${head ? `<tr>${head.map(h => `<th>${h}</th>`).join("")}</tr>` : ""}${rows.join("")}</table></div>`;
 function morphFacts() {
@@ -612,11 +616,12 @@ function morphFacts() {
 const ROWPART = {"Soma": ["soma"], "Axon": ["axon"], "Basal dendrites": ["basal", "dend"], "Apical trunk": ["trunk"], "Obliques": ["oblique"], "Tuft": ["tuft"], "Basal / trunk / obliques / tuft": ["basal", "dend", "trunk", "oblique", "tuft"]};
 function renderProv() {
   if (!C || !G) return;
+  const pos = $("sout").hidden ? $("schosen") : $("sread"); if (pos.nextElementSibling !== $("sprov")) pos.after($("sprov"));   // below the setup, or below the results once run
   const m = model(), cd = m.card(C), t = test(), w = cellWarn(cfg.model), nch = $("sout").hidden ? 0 : changes().length, e = (D.eng || {})[C.id] || {};
   const engOK = e.neuron && e.js ? e.neuron.spikes === e.js.spikes : null;
   const sub = {morph: m.pop ? "not used" : (C.code || C.id).replace(/\s*\(.*\)/, ""), model: cd.short, adapt: w ? `CA1 → ${C.region}` : nch ? `${nch} change${nch > 1 ? "s" : ""}` : "conventions",
     test: t.name, valid: cfg.model === "hh" && engOK != null ? (engOK ? "NEURON agrees" : "NEURON differs") : "not vs recordings"};
-  $("spstrip").innerHTML = PV.map(([k, l, col]) => `<button role="tab" data-pv="${k}" aria-selected="${pvOpen === k}" aria-controls="sppanel"${(k === "adapt" && w) || (k === "valid" && engOK === false && cfg.model === "hh") ? ' class="alert"' : ""}><span><i style="background:${col.startsWith("--") ? `var(${col})` : col}"></i>${l}</span><small>${esc(sub[k])}</small></button>`).join("");
+  $("spstrip").innerHTML = `<p class="ph">Where this comes from</p>` + PV.map(([k, l, col]) => `<button role="tab" data-pv="${k}" aria-selected="${pvOpen === k}" aria-controls="sppanel"${(k === "adapt" && w) || (k === "valid" && engOK === false && cfg.model === "hh") ? ' class="alert"' : ""}><span><i style="background:${col.startsWith("--") ? `var(${col})` : col}"></i>${l}</span><small>${esc(sub[k])}</small></button>`).join("");
   $("sppanel").hidden = !pvOpen; document.querySelectorAll("#sppanel > section").forEach(x => x.hidden = x.dataset.pv !== pvOpen);
   if (!pvOpen) return;
   // 1 experimental morphology
@@ -700,8 +705,8 @@ function renderCompare() {
     ? `Same spike count at the soma (${nN}).${dv.t_ms != null ? ` Traces first differ by more than 1 mV at ${fmt(dv.t_ms)} ms${dv.t_ms > 50 && nN ? " (spike timing drifts slightly)" : ""}.` : " Traces stay within 1 mV."}`
     : `Spike count differs: NEURON ${nN}, hippsim ${H.soma.spikes}. Traces first differ by more than 1 mV at ${fmt(dv.t_ms)} ms. ${fix.length ? `hippsim matches NEURON's count when: ${fix.map(x => esc(x.run)).join("; ")}.` : "No single diagnostic change reproduces NEURON's count."} Passive input resistance: NEURON ${fmt(r.passive.neuron.rin_MOhm)} MΩ, hippsim ${fmt(r.passive.hippsim.rin_MOhm)} MΩ.`;
   box.innerHTML = `<h4>hippsim vs NEURON · Hodgkin–Huxley model · 0.5 nA step at the soma, 50–350 ms</h4>
-    <div class="seg sm" id="cmps" role="radiogroup" aria-label="Recording site">${sites.map(k => `<button role="radio" data-cs="${k}" aria-checked="${k === cmpSite}">${SITEN[k].split(" (")[0].replace("Dendrite ~", "Dend ")}</button>`).join("")}</div>
-    <div class="seg sm" id="cmpz" role="radiogroup" aria-label="Time window"><button role="radio" data-cz="full" aria-checked="${cmpZoom === "full"}">Whole run</button><button role="radio" data-cz="div" aria-checked="${cmpZoom === "div"}" ${dv.t_ms == null ? "disabled" : ""}>Where they diverge</button><button role="radio" data-cz="on" aria-checked="${cmpZoom === "on"}">Stimulus onset</button></div>
+    <div class="seg sm" id="cmps" role="radiogroup" aria-label="Recording site">${sites.map(k => `<button role="radio" data-cs="${k}" aria-checked="${k === cmpSite}">${{soma: "Soma", ais: "AIS", dend100: "100 µm", dend300: "300 µm"}[k]}</button>`).join("")}</div>
+    <div class="seg sm" id="cmpz" role="radiogroup" aria-label="Time window"><button role="radio" data-cz="full" aria-checked="${cmpZoom === "full"}">All</button><button role="radio" data-cz="div" aria-checked="${cmpZoom === "div"}" ${dv.t_ms == null ? "disabled" : ""}>Divergence</button><button role="radio" data-cz="on" aria-checked="${cmpZoom === "on"}">Onset</button></div>
     <div class="trace"><canvas id="cmpc" aria-label="Voltage at ${SITEN[cmpSite]}: NEURON and hippsim"></canvas></div>
     <div class="cmpk"><span><i style="border-color:var(--ink)"></i>NEURON 9</span><span><i style="border-color:var(--accent);border-top-style:dashed"></i>hippsim</span>${dv.t_ms != null ? `<span>┆ first > 1 mV apart (soma): ${fmt(dv.t_ms)} ms</span>` : ""}</div>
     <h4>${sl(cmpSite)}</h4>` + tbl(["", "NEURON", "hippsim", "Δ"], [row("Rest (mV)", n.rest_mV, h.rest_mV, "", big(n.rest_mV, h.rest_mV, 0.5)), row("Peak (mV)", n.peak_mV, h.peak_mV, "", big(n.peak_mV, h.peak_mV, 3)),

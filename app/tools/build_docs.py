@@ -42,6 +42,7 @@ const out = {models: Object.entries(HSModels.MODELS).map(([id, m]) => { const p 
   return {id, scale: m.scale, name: m.name, desc: m.desc, sims: m.sims, original: m.original || '', tools: m.tools.map(k => HSModels.TOOLS[k][0]), tests: m.tests.map(k => HSModels.EXPERIMENTS[k].name),
     params: m.params.map(prm),
     presets: m.presets.map(x => ({label: x.label, title: x.title || '', set: Object.entries(x.set).map(([k, v]) => { const q = m.params.find(z => z.k === k); return `${q.label} → ${q.f(v)}`; }).join('; ')})),
+    card: m.card({region: 'CA1', name: 'CA1 pyramidal cell', group: 'Pyramidal & principal cells', species: 'Rat'}),
     base: m.base(p).map(r => [r[0], r[1]]), cell: m.when.toString().includes('CA1') ? 'CA1 pyramidal cells' : 'any cell'}; }),
   tests: Object.entries(HSModels.EXPERIMENTS).map(([id, t]) => ({id, name: t.name, desc: t.desc, params: t.params.map(prm)})),
   tools: Object.values(HSModels.TOOLS)};
@@ -64,6 +65,19 @@ process.stdout.write(JSON.stringify(out));"""
     for m in M:
         parts.append(f'<h2 id="model-{m["id"]}">{e(m["name"])} <span class="tag">{scale[m["scale"]]}</span></h2><p>{e(m["desc"])}</p>'
                      f'<p><b>Tests:</b> {e(", ".join(m["tests"]))}.' + (f' <b>Branch tools:</b> {e(", ".join(m["tools"]))}.' if m["tools"] else "") + "</p>")
+        cd = m["card"]
+        th = lambda *h: "<thead><tr>" + "".join(f"<th>{x}</th>" for x in h) + "</tr></thead>"
+        un = lambda x: e(x).replace("unspecified", "<i>unspecified</i>")
+        parts.append('<h3>Mechanisms and original references</h3><div class="tbl"><table>' + th("Mechanism", "Model source", "Reference") + "<tbody>"
+                     + "".join(f"<tr><td>{e(r[0])}</td><td>{un(r[1])}</td><td>{un(r[2])}</td></tr>" for r in cd["channels"]) + "</tbody></table></div>")
+        parts.append('<h3>Passive properties and sources</h3><div class="tbl"><table>' + th("", "Value", "Source") + "<tbody>"
+                     + "".join(f"<tr><td>{e(r[0])}</td><td>{e(r[1])}</td><td>{un(r[2])}</td></tr>" for r in cd["passive"]) + "</tbody></table></div>")
+        if cd.get("dist"):
+            parts.append('<h3>Channel distribution by compartment</h3><div class="tbl"><table>' + th("", *cd["dist"]["cols"]) + "<tbody>"
+                         + "".join("<tr>" + "".join(f"<td>{e(x)}</td>" for x in r) + "</tr>" for r in cd["dist"]["rows"]) + f'</tbody></table></div><p class="note">{un(cd["dist"]["source"])}</p>')
+        parts.append('<h3>Assumptions</h3><div class="tbl"><table><tbody>' + "".join(f"<tr><td>{e(a)}</td><td>{un(b)}</td></tr>" for a, b in cd["assumptions"]) + "</tbody></table></div>"
+                     + '<h3>Validated</h3><ul>' + "".join(f"<li>{e(x)}</li>" for x in cd["validated"]) + "</ul>"
+                     + (f'<p class="note">On cells other than CA1 pyramidal cells this is a CA1-derived parameterization, not a validated model of that cell type; the Simulate panel says so on the model card.</p>' if m["id"] in ("migliore", "research", "circuit") else ""))
         parts.append('<h3>Baseline</h3><dl class="base">' + "".join(f"<dt>{e(k)}</dt><dd>{v}</dd>" for k, v in m["base"]) + "</dl>")
         parts.append('<h3>Parameters you can change</h3><div class="tbl"><table><thead><tr><th>Group</th><th>Parameter</th><th>Baseline</th><th>Range</th></tr></thead><tbody>'
                      + "".join(f'<tr><td>{e(q["group"])}</td><td>{e(q["label"])}</td><td>{e(q["base"])}</td><td>{e(q["range"])}</td></tr>' for q in m["params"])
@@ -82,6 +96,18 @@ def validation_numbers(text: str) -> str:
         return sum(a == b for a, b in pr), sum(abs(a - b) <= 1 for a, b in pr)
     (ns, n1), (bs, b1) = st("neuron"), st("brian2")
     for k, v in {"N_CELLS": len(d), "NEURON_SAME": ns, "NEURON_1": n1, "BRIAN_SAME": bs, "BRIAN_1": b1}.items():
+        text = text.replace("{" + k + "}", str(v))
+    # detailed hippsim vs NEURON comparison (tools/compare_engines.py -> site/compare/index.json)
+    cf = SITE / "compare/index.json"
+    c = json.loads(cf.read_text()) if cf.exists() else {}
+    def fixed_by(tag):
+        return sum(1 for r in c.values() if r["metrics"]["neuron"]["soma"]["spikes"] != r["metrics"]["hippsim"]["soma"]["spikes"]
+                   and any(tag in x["run"] and x["spikes"] == r["metrics"]["neuron"]["soma"]["spikes"] for x in r.get("diagnostics", [])))
+    same = sum(r["metrics"]["neuron"]["soma"]["spikes"] == r["metrics"]["hippsim"]["soma"]["spikes"] for r in c.values())
+    rin = sorted(abs(r["passive"]["hippsim"]["rin_MOhm"] / r["passive"]["neuron"]["rin_MOhm"] - 1) * 100 for r in c.values() if r["passive"]["neuron"]["rin_MOhm"])
+    vals = {"CMP_N": len(c), "CMP_SAME": same, "CMP_DIFF": len(c) - same, "CMP_JOIN": fixed_by("joined at the soma"), "CMP_GEOM": fixed_by("NEURON's geometry"),
+            "CMP_FINE": fixed_by("compartments ≤ 5"), "CMP_RIN_MED": f"{rin[len(rin) // 2]:.1f}" if rin else "–", "CMP_RIN_MAX": f"{rin[-1]:.1f}" if rin else "–"}
+    for k, v in vals.items():
         text = text.replace("{" + k + "}", str(v))
     return text
 

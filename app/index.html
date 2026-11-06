@@ -618,6 +618,7 @@ function morphFacts() {
 const ROWPART = {"Soma": ["soma"], "Axon": ["axon"], "Basal dendrites": ["basal", "dend"], "Apical trunk": ["trunk"], "Obliques": ["oblique"], "Tuft": ["tuft"], "Basal / trunk / obliques / tuft": ["basal", "dend", "trunk", "oblique", "tuft"]};
 function renderProv() {
   if (!C || !G) return;
+  const pos = $("sout").hidden ? $("schosen") : $("sread"); if (pos.nextElementSibling !== $("sprov")) pos.after($("sprov"));   // below the setup, or below the results once run
   const m = model(), cd = m.card(C), t = test(), w = cellWarn(cfg.model), nch = $("sout").hidden ? 0 : changes().length, e = (D.eng || {})[C.id] || {};
   const engOK = e.neuron && e.js ? e.neuron.spikes === e.js.spikes : null;
   const sub = {morph: m.pop ? "not used" : (C.code || C.id).replace(/\s*\(.*\)/, ""), model: cd.short, adapt: w ? `CA1 → ${C.region}` : nch ? `${nch} change${nch > 1 ? "s" : ""}` : "conventions",
@@ -706,8 +707,8 @@ function renderCompare() {
     ? `Same spike count at the soma (${nN}).${dv.t_ms != null ? ` Traces first differ by more than 1 mV at ${fmt(dv.t_ms)} ms${dv.t_ms > 50 && nN ? " (spike timing drifts slightly)" : ""}.` : " Traces stay within 1 mV."}`
     : `Spike count differs: NEURON ${nN}, hippsim ${H.soma.spikes}. Traces first differ by more than 1 mV at ${fmt(dv.t_ms)} ms. ${fix.length ? `hippsim matches NEURON's count when: ${fix.map(x => esc(x.run)).join("; ")}.` : "No single diagnostic change reproduces NEURON's count."} Passive input resistance: NEURON ${fmt(r.passive.neuron.rin_MOhm)} MΩ, hippsim ${fmt(r.passive.hippsim.rin_MOhm)} MΩ.`;
   box.innerHTML = `<h4>hippsim vs NEURON · Hodgkin–Huxley model · 0.5 nA step at the soma, 50–350 ms</h4>
-    <div class="seg sm" id="cmps" role="radiogroup" aria-label="Recording site">${sites.map(k => `<button role="radio" data-cs="${k}" aria-checked="${k === cmpSite}">${SITEN[k].split(" (")[0].replace("Dendrite ~", "Dend ")}</button>`).join("")}</div>
-    <div class="seg sm" id="cmpz" role="radiogroup" aria-label="Time window"><button role="radio" data-cz="full" aria-checked="${cmpZoom === "full"}">Whole run</button><button role="radio" data-cz="div" aria-checked="${cmpZoom === "div"}" ${dv.t_ms == null ? "disabled" : ""}>Where they diverge</button><button role="radio" data-cz="on" aria-checked="${cmpZoom === "on"}">Stimulus onset</button></div>
+    <div class="seg sm" id="cmps" role="radiogroup" aria-label="Recording site">${sites.map(k => `<button role="radio" data-cs="${k}" aria-checked="${k === cmpSite}">${{soma: "Soma", ais: "AIS", dend100: "100 µm", dend300: "300 µm"}[k]}</button>`).join("")}</div>
+    <div class="seg sm" id="cmpz" role="radiogroup" aria-label="Time window"><button role="radio" data-cz="full" aria-checked="${cmpZoom === "full"}">All</button><button role="radio" data-cz="div" aria-checked="${cmpZoom === "div"}" ${dv.t_ms == null ? "disabled" : ""}>Divergence</button><button role="radio" data-cz="on" aria-checked="${cmpZoom === "on"}">Onset</button></div>
     <div class="trace"><canvas id="cmpc" aria-label="Voltage at ${SITEN[cmpSite]}: NEURON and hippsim"></canvas></div>
     <div class="cmpk"><span><i style="border-color:var(--ink)"></i>NEURON 9</span><span><i style="border-color:var(--accent);border-top-style:dashed"></i>hippsim</span>${dv.t_ms != null ? `<span>┆ first > 1 mV apart (soma): ${fmt(dv.t_ms)} ms</span>` : ""}</div>
     <h4>${sl(cmpSite)}</h4>` + tbl(["", "NEURON", "hippsim", "Δ"], [row("Rest (mV)", n.rest_mV, h.rest_mV, "", big(n.rest_mV, h.rest_mV, 0.5)), row("Peak (mV)", n.peak_mV, h.peak_mV, "", big(n.peak_mV, h.peak_mV, 3)),

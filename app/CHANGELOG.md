@@ -1,5 +1,23 @@
 # Release notes
 
+## 0.13 · 5 Nov 2026
+- **Where this comes from**: five rows under every simulation separate what is measured from what is modelled:
+  experimental morphology (identity, archive, reconstruction ID, papers, how it was traced, and what hippsim
+  estimated or changed), the published model (each mechanism with its original reference, passive values with
+  sources, channel distribution across soma, AIS, axon, basal, trunk, obliques and tuft), what was adapted for
+  this cell, what is being tested (every value and assumption) and what has been validated. Unknown sources
+  are labelled *unspecified*.
+- The Migliore option is now **Migliore-derived CA1 channel model**; on any cell other than a CA1 pyramidal
+  cell it is flagged as a CA1-derived parameterization that is not validated for that cell type.
+- **Show explanations on hover** (Display): models, tests, channels, sliders, branch tools and cell parts
+  explain themselves on hover or tap. Cards are short either way; Details holds the full text.
+- **hippsim vs NEURON, in detail**: for every cell, the same Hodgkin–Huxley model in both simulators with
+  traces at the soma, AIS and two dendritic sites, rest / peak / spikes / latency / threshold / max dV/dt,
+  Na⁺ and K⁺ currents, set-up equivalence, membrane area and compartments, passive R_in and τ, where the
+  traces diverge, and one-change-at-a-time diagnostics (`tools/compare_engines.py`). Nothing is tuned.
+  Finding for CA3 l24b (hippsim 0 spikes, NEURON 1): the soma–dendrite junction convention, not the
+  channel equations; documented on the Validation page. hippsim's default is unchanged.
+
 ## 0.12 · 5 Nov 2026
 - **Tests**: choose the experiment before running. Current step, F–I curve, Iₕ sag and input resistance,
   back-propagating spike (peak vs distance, cell coloured by peak voltage), clustered tuft input, scattered input,
