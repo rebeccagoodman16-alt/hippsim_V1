@@ -779,8 +779,8 @@ function renderCompare() {
       ...Object.keys(ty).filter(k => MN.area_um2[k] || MH.area_um2[k]).map(k => row(`${ty[k]} membrane (µm²)`, MN.area_um2[k], MH.area_um2[k], "", big(MN.area_um2[k], MH.area_um2[k], 0.02 * (MN.area_um2[k] || 1)))),
       row("Compartments", MN.compartments, MH.compartments), row("Passive R_in (MΩ)", r.passive.neuron.rin_MOhm, r.passive.hippsim.rin_MOhm, "", big(r.passive.neuron.rin_MOhm, r.passive.hippsim.rin_MOhm, 0.03 * r.passive.neuron.rin_MOhm)),
       row("Passive τ (ms)", r.passive.neuron.tau_ms, r.passive.hippsim.tau_ms)]) +
-    (r.junction ? `<p class="note">Soma junction: ${r.junction.branches} branches attach to the soma${r.junction.inside_soma ? `, ${r.junction.inside_soma} start inside it` : ""}; hippsim's centre-to-first-point segments add ${fmt(r.junction.area_um2)} µm² of membrane that NEURON does not have.</p>` : "") +
-    `<h4>Diagnostics: one change at a time (hippsim's default is unchanged)</h4>` + tbl(["Run", "Soma spikes", "Latency (ms)"], diag.map(x => `<tr><td>${esc(x.run)}</td><td class="n${x.spikes !== nN ? " bad" : ""}">${x.spikes}</td><td class="n">${d1(x.latency_ms)}</td></tr>`)) +
+    (r.junction ? `<p class="note">Soma junction: ${r.junction.branches} branches attach to the soma${r.junction.inside_soma ? `, ${r.junction.inside_soma} start inside it` : ""}${r.junction.first_point_repeats_soma ? `, ${r.junction.first_point_repeats_soma} start by repeating a soma point` : ""}${r.junction.zero_length_points ? `; ${r.junction.zero_length_points} zero-length points in the file (NEURON drops them)` : ""}; hippsim's centre-to-first-point segments add ${fmt(r.junction.area_um2)} µm² of membrane that NEURON does not have.</p>` : "") +
+    `<h4>Diagnostics: one change at a time (hippsim's default is unchanged)</h4>` + tbl(["Run", "Soma spikes", "Latency (ms)", "R_in (MΩ)"], diag.map(x => `<tr><td>${esc(x.run)}</td><td class="n${x.spikes !== nN ? " bad" : ""}">${x.spikes}</td><td class="n">${d1(x.latency_ms)}</td><td class="n">${x.rin_MOhm != null ? fmt(x.rin_MOhm) : ""}</td></tr>`)) +
     `<h4>Finding</h4><p>${finding}</p>${setupDiff.length ? `<p class="note">Set-up rows that differ: ${setupDiff.map(x => esc(x[0])).join("; ")}.</p>` : ""}<p class="note">Nothing was tuned to make the simulators agree. <a href="docs.html#validation" target="_blank" rel="noopener">How the comparison is run</a></p>`;
   drawCompare();
 }
@@ -802,10 +802,10 @@ addEventListener("resize", () => { if (!$("scmp").hidden) drawCompare(); });
 
 /* ---------- start from a question: why this neuron, why this model, what to expect, what it means ---------- */
 const QS = window.HSQuestions ? HSQuestions.Q : [];
-let smode = "own", qSel = null, qActive = null;
+let smode = (() => { try { const v = localStorage.getItem("hs-smode"); return v || (navigator.webdriver ? "own" : "q"); } catch (e) { return "own"; } })(), qSel = null, qActive = null;   // newcomers start from a question; the choice is remembered
 const cellName = id => { const c = D.cells.find(x => x.id === id); return c ? `${c.name} ${(c.code || "").replace(/\s*\(.*\)/, "")}`.trim() : id; };
 const refText = k => ({hodgkin1952: "Hodgkin & Huxley 1952", magee1998: "Magee 1998", hu2002: "Hu et al. 2002", narayanan2007: "Narayanan & Johnston 2007", stuart1994: "Stuart & Sakmann 1994",
-  hoffman1997: "Hoffman et al. 1997", golding2002: "Golding et al. 2002", magee2000: "Magee 2000", golomb2006: "Golomb et al. 2006", pouille2001: "Pouille & Scanziani 2001", palop2007: "Palop et al. 2007"}[k] || k);
+  hoffman1997: "Hoffman et al. 1997", golding2002: "Golding et al. 2002", magee2000: "Magee 2000", golomb2006: "Golomb et al. 2006", pouille2001: "Pouille & Scanziani 2001", palop2007: "Palop et al. 2007", busche2008: "Busche et al. 2008", verret2012: "Verret et al. 2012", migliore2005: "Migliore et al. 2005"}[k] || k);
 function renderQHome() {
   $("qhome").hidden = !QS.length;
   $("qhs").innerHTML = QS.map(x => `<a href="#${encodeURIComponent(x.cell)}?q=${x.id}" data-ex="${esc(x.expect)}"><span class="qtag">${esc(x.tag)}</span>${esc(x.q)}</a>`).join("");
@@ -827,7 +827,7 @@ function renderQ() {
     <p>${here ? `<button class="btn primary run" id="sqgo">▶ Run it on this neuron</button>`
       : `<a class="btn primary run" href="#${encodeURIComponent(x.cell)}?q=${x.id}" style="text-decoration:none">▶ Open ${esc(cellName(x.cell))} and run it</a>${ok ? ` <button class="linkish" id="sqgo">or run it on this ${esc(C.name.toLowerCase())}</button>` : ""}`}</p>`;
 }
-$("smode").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b || busy) return; smode = b.dataset.mode; renderQ(); };
+$("smode").onclick = e => { const b = e.target.closest("[data-mode]"); if (!b || busy) return; smode = b.dataset.mode; try { localStorage.setItem("hs-smode", smode); } catch (err) {} renderQ(); };
 $("sqlist").onclick = e => { const b = e.target.closest("[data-q]"); if (!b) return; qSel = b.dataset.q; renderQ(); };
 $("sqbrief").addEventListener("click", e => { if (e.target.id === "sqgo") startQ(qSel); });
 async function startQ(id) {
