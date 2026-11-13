@@ -6,7 +6,7 @@
 (function (root) {
   'use strict';
   const num = v => { const m = String(v ?? '').match(/-?\d+(\.\d+)?/); return m ? +m[0] : NaN; };
-  const rd = R => Object.fromEntries((R && R.readout || []).map(([k, v]) => [k, String(v).replace(/\s*\((?:0 = none|0–1|last \/ first ISI)\)$/, '')]));
+  const rd = R => Object.fromEntries((R && R.readout || []).map(([k, v]) => [k, String(v).replace(/\s*\((?:0 = none|0–1|last \/ first ISI|≈ 1 irregular, ≈ 0 regular|std \/ mean of the population rate)\)$/, '')]));
   const Q = [
     {
       id: 'excite', tag: 'Excitability', q: 'How does a neuron turn a steady input into spikes?',
@@ -111,6 +111,58 @@
       refs: ['pouille2001'],
       read: (R, B) => { const r = rd(R); if (!B) return `${r.Rate}, phase locking ${r['Phase locking']}.`;
         const b = rd(B); return `Without GABA-A: ${r.Rate} (baseline ${b.Rate}), phase locking ${r['Phase locking']} (baseline ${b['Phase locking']}). ${num(r['Phase locking']) < num(b['Phase locking']) ? 'More spikes, less precise timing.' : ''}`; }
+    },
+    {
+      id: 'temp', tag: 'Methods', q: 'Does recording temperature change what you measure?',
+      cell: 'ca1-n123', model: 'migliore', test: 'step', manip: 'cool',
+      whyCell: 'A CA1 pyramidal cell, the most common slice-recording target.',
+      whyModel: 'Migliore-derived CA1 model at 35 °C, with each channel’s own temperature sensitivity (Q10).',
+      sim: 'A 0.5 nA current step at 35 °C, then the same at 25 °C (room temperature).',
+      lab: 'The same current-clamp protocol in a slice at near-physiological vs room temperature.',
+      expect: 'Channels open and close more slowly when cold, so firing slows. How much depends on each channel’s Q10.',
+      meaning: 'Numbers from room-temperature slices (rates, latencies, spike widths) are not directly the numbers of a living animal: always note the temperature when comparing recordings, or a model with data.',
+      refs: ['hodgkin1952', 'migliore2005'],
+      read: (R, B) => { const r = rd(R); if (!B) return `At 35 °C: ${r.Spikes} spikes, ${r.Rate}.`;
+        const b = rd(B); return `At 25 °C: ${r.Spikes} spikes, ${r.Rate} (35 °C: ${b.Spikes}, ${b.Rate}).`; }
+    },
+    {
+      id: 'nmda', tag: 'Synapses', q: 'How much does a CA1 cell’s firing depend on NMDA receptors?',
+      cell: 'ca1-n123', model: 'circuit', test: 'circuit', manip: 'apv',
+      whyCell: 'A CA1 pyramidal cell receiving many excitatory synapses on its dendrites.',
+      whyModel: 'Synaptic input (AMPA + NMDA with Mg²⁺ block, and GABA-A) on the Migliore-derived cell.',
+      sim: '1 s of θ-modulated synaptic input; then the same with NMDA receptors blocked.',
+      lab: 'Afferent stimulation with somatic recording; then bath D-APV.',
+      expect: 'NMDA receptors add a slow, voltage-dependent current once the dendrite is depolarized. Blocking them should reduce firing; how much depends on how strong the AMPA drive is.',
+      meaning: 'NMDA receptors are more than a plasticity switch: they amplify coincident input. That is why NMDA antagonists can reduce ongoing firing as well as block learning.',
+      refs: ['Jahr & Stevens 1990 (Mg²⁺ block)', 'Davies & Watkins 1982 (APV)'],
+      read: (R, B) => { const r = rd(R); if (!B) return `${r.Rate}, phase locking ${r['Phase locking']}.`;
+        const b = rd(B); return `With APV: ${r['Spikes (0.1–1 s)']} spikes (baseline ${b['Spikes (0.1–1 s)']}). ${num(r['Spikes (0.1–1 s)']) === 0 ? 'In this model the cell only reaches threshold with NMDA current added to AMPA.' : ''}`; }
+    },
+    {
+      id: 'ad-circuit', tag: 'Disease', q: 'Could Aβ-like A-type K⁺ loss make CA1 cells hyperactive and lose their timing?',
+      cell: 'ca1-n123', model: 'circuit', test: 'circuit', manip: 'abeta',
+      whyCell: 'A CA1 pyramidal cell during θ-rhythmic input, as in a behaving animal.',
+      whyModel: 'Synaptic input on the Migliore-derived cell, with dendritic A-type K⁺ that can be halved (Aβ-like).',
+      sim: '1 s of θ-modulated synaptic input at baseline and with A-type K⁺ halved.',
+      lab: 'In vivo: hyperactive neurons near plaques in AD mouse models; in slices: Aβ application with dendritic recording.',
+      expect: 'Less A-type K⁺ makes dendrites amplify input, so the cell should fire more. Whether it keeps its timing relative to θ is the question. This is a model what-if from one reported Aβ effect (Chen 2005), not a model of Alzheimer’s disease.',
+      meaning: 'More spikes at the wrong time is a candidate link from a channel change to network hyperactivity, one of the early circuit changes described in Alzheimer’s mouse models.',
+      refs: ['hoffman1997', 'busche2008', 'palop2007'],
+      read: (R, B) => { const r = rd(R); if (!B) return `Baseline: ${r.Rate}, phase locking ${r['Phase locking']}. Now apply “Aβ-like”.`;
+        const b = rd(B); return `Aβ-like: ${r.Rate} (baseline ${b.Rate}), phase locking ${r['Phase locking']} (baseline ${b['Phase locking']}). ${num(r.Rate) > num(b.Rate) && num(r['Phase locking']) < num(b['Phase locking']) ? 'The cell fires more, and less tied to θ.' : ''}`; }
+    },
+    {
+      id: 'ei', tag: 'Networks', q: 'What happens to a network when inhibition weakens?',
+      cell: 'ca1-n123', model: 'population', test: 'network', manip: 'sr',
+      whyCell: 'Not used: this question is about a population of simplified neurons, not one cell’s shape.',
+      whyModel: 'Brunel’s network of 4 000 excitatory and 1 000 inhibitory integrate-and-fire neurons: the standard model for how the excitation–inhibition balance sets network states.',
+      sim: 'The network in its asynchronous-irregular state (relative inhibition g = 5), then with weaker inhibition (g = 3).',
+      lab: 'Reducing interneuron function (e.g. PV-cell deficits) and recording population activity (LFP, multi-unit).',
+      expect: 'With strong inhibition, neurons fire irregularly and at low rates. Weaker inhibition should push the network into fast, regular, synchronous firing.',
+      meaning: 'Healthy cortex and hippocampus sit near a balanced, irregular state. Losing inhibition does not just add firing: it changes the whole network’s state, one proposed route to the aberrant activity seen with interneuron deficits in Alzheimer’s models.',
+      refs: ['Brunel 2000 (J Comput Neurosci 8:183)', 'verret2012'],
+      read: (R, B) => { const r = rd(R); if (!B) return `Mean rate ${r['Mean rate']}, ISI CV ${r['ISI CV']} (≈ 1 = irregular).`;
+        const b = rd(B); return `Weaker inhibition: ${r['Mean rate']} (baseline ${b['Mean rate']}), ISI CV ${r['ISI CV']} (baseline ${b['ISI CV']}). ${num(r['ISI CV']) < num(b['ISI CV']) ? 'Firing became faster and more regular.' : ''}`; }
     }
   ];
   root.HSQuestions = {Q, byId: id => Q.find(x => x.id === id)};

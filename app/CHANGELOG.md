@@ -1,5 +1,15 @@
 # Release notes
 
+## 0.15 · 13 Nov 2026
+- **hippsim vs NEURON, explained**: the remaining differences come from two geometry conventions that only matter
+  together: NEURON's pipeline drops points that repeat their parent (many reconstructions repeat a soma point as
+  the first point of every dendrite), and starts soma-attached dendrites at their first point. With both, hippsim
+  matches NEURON's input resistance and, in most cells, its spike count; each cell's comparison now includes this
+  combined run and R_in for each diagnostic. hippsim's defaults are unchanged.
+- Four more questions: recording temperature, NMDA dependence, Aβ-like A-type loss during θ input, and weakened
+  inhibition in a network (12 in all).
+- First-time visitors start Simulate from a question; the choice (question / choose myself) is remembered.
+
 ## 0.14 · 5 Nov 2026
 - **Start from a question**: eight biological questions (excitability, Iₕ, resonance, back-propagation, distal input,
   Aβ-like A-type loss, bursting, feedforward inhibition). Each picks the neuron and the model, says why, gives the

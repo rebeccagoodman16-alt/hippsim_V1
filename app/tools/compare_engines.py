@@ -210,7 +210,9 @@ def compare(cid):
     soma_pts = [i for i, p in enumerate(P) if p[4] == 1]; cen = np.mean([P[i][:3] for i in soma_pts], axis=0) if soma_pts else np.zeros(3)
     kids = [p for p in P if p[5] >= 0 and P[p[5]][4] == 1 and p[4] != 1]
     res["junction"] = {"branches": len(kids), "area_um2": float(sum(2 * np.pi * p[3] * np.linalg.norm(np.subtract(p[:3], P[p[5]][:3])) for p in kids)),
-                       "first_radius_um": [round(p[3], 2) for p in kids], "inside_soma": sum(1 for p in kids if np.linalg.norm(np.subtract(p[:3], cen)) < max((P[i][3] for i in soma_pts), default=0))}
+                       "first_radius_um": [round(p[3], 2) for p in kids], "inside_soma": sum(1 for p in kids if np.linalg.norm(np.subtract(p[:3], cen)) < max((P[i][3] for i in soma_pts), default=0)),
+                       "first_point_repeats_soma": sum(1 for p in kids if tuple(p[:3]) == tuple(P[p[5]][:3])),
+                       "zero_length_points": sum(1 for p in P if p[5] >= 0 and p[4] != 1 and tuple(p[:3]) == tuple(P[p[5]][:3]))}
     res["morphology"] = {
         "neuron": {"area_um2": N["area"], "length_um": N["length"], "compartments": N["ncomp"], "sections": N["nsec"], "soma": N["soma"]},
         "hippsim": {"area_um2": Hs["area"], "compartments": Hs["ncomp"], "soma": Hs["soma"]}}
@@ -231,6 +233,11 @@ def compare(cid):
         ng = Path(tmp) / "ngeom.swc"; ng.write_text(N["geom_swc"])
         for label, f in (("hippsim on the cleaned SWC (zero-length points dropped, as NEURON's script does)", cs), ("hippsim on NEURON's geometry after Import3d", ng)):
             R = run_hippsim(f, {"soma": None}); diag.append({"run": label, **count(R), "area_um2": {k: round(v) for k, v in R["area"].items()}})
+        # both NEURON conventions together: duplicate / zero-length points dropped AND dendrites starting at their first point
+        for label, o in (("hippsim with both NEURON conventions (cleaned SWC + dendrites joined at the soma)", {"somaJoin": "neuron"}),
+                         ("hippsim with both NEURON conventions, compartments ≤ 5 µm", {"somaJoin": "neuron", "Lmax": 5})):
+            R = run_hippsim(cs, {"soma": None}, o); pR = run_hippsim(cs, {"soma": None}, o, passive=True, amp=-0.05)
+            diag.append({"run": label, **count(R), "rin_MOhm": passive_props(pR["t"], pR["v"]["soma"], -0.05)["rin_MOhm"], "area_um2": {k: round(v) for k, v in R["area"].items()}})
     res["diagnostics"] = diag
     res["setup"] = [
         ["Equations", "Cable equation + Hodgkin–Huxley Na⁺/K⁺ + leak", "Cable equation + hh.mod (Hodgkin–Huxley Na⁺/K⁺ + leak)", True],
