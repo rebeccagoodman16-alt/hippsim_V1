@@ -122,7 +122,7 @@ try:
                 t = pg.text_content("#sqread")
                 check("web: the question's manipulation runs and is compared with baseline", "With ZD7288" in t and "baseline" in t, t[:150])
                 pg.goto(B + "index.html"); pg.wait_for_timeout(800)
-                check("web: questions listed on the Neurons page", pg.locator("#qhs a").count() == 8)
+                check("web: questions listed on the Neurons page", pg.locator("#qhs a").count() == 12)
             pg.goto(B + "atlas.html#ca3-c62563"); pg.wait_for_timeout(1500)
             check(f"{name}: old atlas address redirects home", "index.html#ca3-c62563" in pg.url and pg.is_visible("#viewer"), pg.url)
             check(f"{name}: no page errors", not errs, errs[:2])

@@ -114,7 +114,10 @@ def validation_numbers(text: str) -> str:
     nn = lambda r: r["metrics"]["neuron"]["soma"]["spikes"]; hh = lambda r: r["metrics"]["hippsim"]["soma"]["spikes"]
     none = [k for k, r in c.items() if nn(r) != hh(r) and not any(x["run"].startswith("hippsim") and x["spikes"] == nn(r) for x in r.get("diagnostics", []))]
     rlow = sum(r["passive"]["hippsim"]["rin_MOhm"] < 0.99 * r["passive"]["neuron"]["rin_MOhm"] for r in c.values())
-    vals = {"CMP_W1": sum(abs(nn(r) - hh(r)) <= 1 for r in c.values()), "CMP_NONE": len(none), "CMP_NONE_IDS": ", ".join(none), "CMP_RLOW": rlow, "CMP_N": len(c), "CMP_SAME": same, "CMP_DIFF": len(c) - same, "CMP_JOIN": fixed_by("joined at the soma"), "CMP_GEOM": fixed_by("NEURON's geometry"),
+    both = sum(1 for r in c.values() if nn(r) != hh(r) and any("both NEURON conventions" in x["run"] and x["spikes"] == nn(r) for x in r.get("diagnostics", [])))
+    rin_both = sorted(abs(x["rin_MOhm"] / r["passive"]["neuron"]["rin_MOhm"] - 1) * 100 for r in c.values() for x in r.get("diagnostics", []) if x["run"].startswith("hippsim with both NEURON conventions (") and x.get("rin_MOhm"))
+    vals = {"CMP_BOTH": both, "CMP_RIN_BOTH": f"{rin_both[len(rin_both) // 2]:.1f}" if rin_both else "–", "CMP_RIN_BOTH_MAX": f"{rin_both[-1]:.1f}" if rin_both else "–",
+            "CMP_W1": sum(abs(nn(r) - hh(r)) <= 1 for r in c.values()), "CMP_NONE": len(none), "CMP_NONE_IDS": ", ".join(none), "CMP_RLOW": rlow, "CMP_N": len(c), "CMP_SAME": same, "CMP_DIFF": len(c) - same, "CMP_JOIN": fixed_by("joined at the soma"), "CMP_GEOM": fixed_by("NEURON's geometry"),
             "CMP_FINE": fixed_by("compartments ≤ 5"), "CMP_RIN_MED": f"{rin[len(rin) // 2]:.1f}" if rin else "–", "CMP_RIN_MAX": f"{rin[-1]:.1f}" if rin else "–"}
     for k, v in vals.items():
         text = text.replace("{" + k + "}", str(v))
