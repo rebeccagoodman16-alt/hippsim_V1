@@ -633,7 +633,7 @@ function close() { $("viewer").hidden = true; document.body.style.overflow = "";
 /* ================= simulate: scale → model → test → baseline → manipulate (everything grouped) ================= */
 const MOD = HSModels.MODELS, TESTS = HSModels.EXPERIMENTS, TOOLS = HSModels.TOOLS, wide = () => matchMedia("(min-width:1200px)").matches, nTrim = x => (+x).toFixed(2).replace(/\.?0+$/, "");
 const MARKCOL = {electrode: "#a62961", probe: "#d08a2e", syn: "#2f7d5b", ttx: "#7a3fa6", noka: "#c0507f", noh: "#6f4c27", passive: "#888888", cut: "#141111"};
-const GROUP_ORDER = ["Stimulus", "Excitation", "Inhibition", "Rhythm", "Channels", "Where channels are", "Gradients", "Cell", "Synapses", "Drive", "Passive", "Temperature", "Branch tools"];
+const GROUP_ORDER = ["Stimulus", "Excitation", "Inhibition", "Rhythm", "Channels", "Where channels are", "Gradients", "Cell", "Synapses", "Drive", "Passive", "Temperature", "Geometry", "Branch tools"];
 let cfg = {scale: "cell", model: "hh", test: "step", sim: "hippsim"}, R = null, RB = null, X = null, vf = -1, playT = 0, marks = [], tool = null, mcache = {}, busy = false, extTr = null;
 const model = () => MOD[cfg.model], test = () => TESTS[cfg.test];
 const modelsFor = sc => Object.entries(MOD).filter(([, m]) => m.scale === sc && m.when(C));
