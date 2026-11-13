@@ -8,6 +8,8 @@
   combined run and R_in for each diagnostic. hippsim's defaults are unchanged.
 - Four more questions: recording temperature, NMDA dependence, Aβ-like A-type loss during θ input, and weakened
   inhibition in a network (12 in all).
+- **Geometry option** (Hodgkin–Huxley): read the reconstruction as hippsim does (default) or as NEURON does; also a
+  *NEURON geometry* preset.
 - First-time visitors start Simulate from a question; the choice (question / choose myself) is remembered.
 
 ## 0.14 · 5 Nov 2026

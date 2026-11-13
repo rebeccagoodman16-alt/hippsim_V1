@@ -86,11 +86,23 @@
     return {sets, cuts: marks.filter(m => m.kind === 'cut').map(m => m.pt)};
   }
 
+  /* NEURON's reading of an SWC (its scripts' cleaning + Import3d): points that repeat their parent's position are dropped
+     (their children attach to the parent), radii are at least 0.05 µm. Returns the cleaned points and old -> new indices. */
+  function neuronClean(P) {
+    const keep = new Int32Array(P.length), out = [];
+    P.forEach((p, i) => {
+      const q = p[5], dup = q >= 0 && p[4] !== 1 && p[0] === P[q][0] && p[1] === P[q][1] && p[2] === P[q][2];
+      if (dup) { keep[i] = keep[q]; return; }
+      keep[i] = out.length; out.push([p[0], p[1], p[2], Math.max(p[3], 0.05), p[4], q >= 0 ? keep[q] : -1]);
+    });
+    return {P: out, map: keep};
+  }
   const ENGINES = {
     hh: {
       make(P0, cache, p, marks) {
-        const {sets, cuts} = markSets(P0, marks), {P, map} = applyCuts(P0, cuts);
-        const key = `hh|${p.Rm}|${p.Ra}|${p.Cm}|${cuts.join(',')}`, M = cache[key] || (cache[key] = HSCable.build(P, {Rm: p.Rm, Ra: p.Ra, Cm: p.Cm}));
+        const {sets, cuts} = markSets(P0, marks), cut = applyCuts(P0, cuts), nrn = p.geom === 'neuron';
+        const cl = nrn ? neuronClean(cut.P) : null, P = nrn ? cl.P : cut.P, map = nrn ? Int32Array.from(cut.map, j => j < 0 ? -1 : cl.map[j]) : cut.map;
+        const key = `hh|${p.geom || 'hippsim'}|${p.Rm}|${p.Ra}|${p.Cm}|${cuts.join(',')}`, M = cache[key] || (cache[key] = HSCable.build(P, {Rm: p.Rm, Ra: p.Ra, Cm: p.Cm, somaJoin: nrn ? 'neuron' : 'centre'}));
         const nodeOf = Int32Array.from(map, j => j < 0 ? -1 : M.nodeOf[j]);
         const naMask = new Float32Array(M.N).fill(1), kMask = new Float32Array(M.N).fill(1);
         P0.forEach((_, i) => { const nd = nodeOf[i]; if (nd < 0) return; if (sets.ttx.has(i) || sets.passive.has(i)) naMask[nd] = 0; if (sets.passive.has(i)) kMask[nd] = 0; });
@@ -316,9 +328,12 @@
         {k: 'Ra', g: 'Passive', label: 'Axial resistance R_a', min: 30, max: 400, step: 5, base: 150, f: v => v + ' Ω·cm'},
         {k: 'Cm', g: 'Passive', label: 'Capacitance C_m', min: 0.5, max: 2, step: 0.05, base: 1, f: v => n2(v) + ' µF/cm²'},
         {k: 'celsius', g: 'Temperature', label: 'Temperature', min: 6.3, max: 37, step: 0.1, base: 6.3, f: v => n2(v) + ' °C'},
+        {k: 'geom', g: 'Geometry', label: 'Reading the reconstruction', type: 'choice', options: [['hippsim', 'hippsim (dendrites from the soma centre)'], ['neuron', 'as NEURON does (Import3d)']], base: 'hippsim', f: v => v === 'neuron' ? 'as NEURON' : 'hippsim',
+          ex: 'hippsim starts each soma-attached dendrite at the soma centre and keeps every point in the file. NEURON drops points that repeat their parent and starts a dendrite at its first point. Choose NEURON to line up with NEURON scripts (see Validation).'},
         {k: 'wSyn', g: 'Branch tools', label: 'Synapse strength (tapped synapses)', min: 0.2, max: 10, step: 0.1, base: 2, f: v => n2(v) + ' nS'}],
       presets: [
         {id: 'ttx', label: 'TTX: block Na⁺', set: {na: 0}, title: 'Tetrodotoxin blocks voltage-gated Na⁺ channels (Narahashi et al. 1964)'},
+        {id: 'nrn', label: 'NEURON geometry', set: {geom: 'neuron'}, title: 'Read the reconstruction as NEURON does: drop repeated points, start dendrites at their first point (Validation page)'},
         {id: 'tea', label: 'TEA: block K⁺ 90 %', set: {k: 0.1}, title: 'Tetraethylammonium blocks delayed-rectifier K⁺ channels; 90 % block (Armstrong 1971)'},
         {id: 'pas', label: 'Passive dendrites', set: {dend: 0}, title: 'Model choice: no voltage-gated channels in dendrites'},
         {id: 'act', label: 'Active dendrites', set: {dend: 20}, title: 'Model choice: dendrites at 20 % of somatic density'},
@@ -328,6 +343,7 @@
         ['Na⁺, K⁺', `${n2(0.5 * p.na)}, ${n2(0.1 * p.k)} S/cm² in soma and axon; ${p.dend} % of that in dendrites`, p.na !== 1 || p.k !== 1 || p.dend !== 2],
         ['Passive', `R<sub>m</sub> ${n2(p.Rm / 1000)} kΩ·cm², R<sub>a</sub> ${p.Ra} Ω·cm, C<sub>m</sub> ${n2(p.Cm)} µF/cm², rest −65 mV`, p.Rm !== 20000 || p.Ra !== 150 || p.Cm !== 1],
         ['Temperature', `${n2(p.celsius)} °C`, p.celsius !== 6.3],
+        ['Geometry', p.geom === 'neuron' ? 'read as NEURON does: repeated points dropped, dendrites start at their first point' : 'hippsim: every point kept, soma-attached dendrites start at the soma centre', p.geom === 'neuron'],
         ['Source', '<span title="Hodgkin AL, Huxley AF (1952) J Physiol 117:500–544">Hodgkin &amp; Huxley 1952</span>']]
     },
     migliore: {
@@ -523,7 +539,7 @@
         source: 'hippsim choice so that typical reconstructions fire repetitively; not taken from a publication'},
       assumptions: [['Temperature', '6.3 °C (rates × 3^((T − 6.3)/10))'], ['Time step', '0.025 ms, backward Euler (voltage), exponential Euler (gates)'],
         ['Discretization', 'compartments ≤ 20 µm along unbranched paths; soma = one compartment with the area of a sphere of the largest traced soma radius'],
-        ['Soma–dendrite junction', 'each attached branch starts at the soma centre (NEURON starts it at its first point; see Validation)'],
+        ['Soma–dendrite junction', 'each attached branch starts at the soma centre and every point in the file is kept (default); Geometry → “as NEURON does” drops repeated points and starts branches at their first point, matching NEURON (see Validation)'],
         ['Initial state', 'V −65 mV, gates at steady state'], ['Missing', 'no Iₕ, A-type, Ca²⁺ or other channels; uniform densities']],
       adapted: ['Densities and the 2 % dendritic fraction are hippsim choices, applied identically to every cell type.', `Applied to a ${c.name} (${c.species}) morphology.`],
       validated: ['Same model in NEURON 9 and Brian2 for every cell (spike counts, Validation page).', 'Not fitted to or validated against recordings from this cell type.']

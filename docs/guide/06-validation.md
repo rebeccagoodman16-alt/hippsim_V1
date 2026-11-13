@@ -61,7 +61,7 @@ hippsim fires no spike for the 0.5 nA step; NEURON fires one (10.6 ms after onse
 | hippsim on the cleaned SWC | 1 |
 | hippsim on NEURON's geometry | 1 |
 
-So the discrepancy comes from the soma–dendrite junction convention, not from the channel equations or the integrator. hippsim's default is unchanged; the NEURON convention is available as an option of the engine (`somaJoin: 'neuron'`). A remaining ~2 500 µm² of basal area is not fully explained and comes from how Import3d repositions the first points of soma-attached dendrites.
+So the discrepancy comes from the soma–dendrite junction convention, not from the channel equations or the integrator. hippsim's default is unchanged. To read a reconstruction the way NEURON does, choose **Hodgkin–Huxley → Manipulate → Geometry → “as NEURON does”** (or the *NEURON geometry* preset): repeated points are dropped and dendrites start at their first point; with it, l24b fires its one spike as in NEURON. A remaining ~2 500 µm² of basal area is not fully explained and comes from how Import3d repositions the first points of soma-attached dendrites.
 
 | Other checks | Result |
 | --- | --- |
