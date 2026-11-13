@@ -3,8 +3,9 @@ message: "If you use hippsim, please cite it as below, and cite the models and m
 title: "hippsim: lab simulator for hippocampal and cellular neuroscience"
 type: software
 authors:
-  - given-names: Rebecca
-date-released: 2026-11-05
+  - family-names: Goodman
+    given-names: Rebecca
+date-released: 2026-11-13
 version: "0.15.0"
 keywords: [computational neuroscience, hippocampus, CA1, NEURON, compartmental model, Alzheimer's disease]
 references:
