@@ -1,21 +1,11 @@
-/* hs-placefields.js: additions to the Place fields page (renderResearchPlace in modellab.js, which stays untouched).
-   - two more cells: Golomb et al. 2006 (1 compartment, Fig 6Da parameter set) and the Ceballos 2025 soma without its
-     Iₕ dendrite, so the menu walks through the three papers;
+/* hs-placefields.js: additions to the Place fields page (renderResearchPlace in modellab.js).
+   - the two extra cells (Golomb 2006 one-compartment, Ceballos 2025 soma only) are added to the built copy of
+     modellab.js by tools/guide_patches.py; sources/raw stays untouched;
    - "Three papers, five cells": the same session run on every cell (tools/placefield_compare.js ->
      placefields-compare.json), with the Lowet 2023 observations checked on each. */
 (function () {
   'use strict';
-  if (typeof PF_CELLS === 'undefined' || typeof irMake !== 'function' || typeof renderResearchPlace !== 'function') return;
-  const add = {
-    golomb: ['Golomb et al. 2006: 1 compartment (Fig 6Da set)', () => Object.assign({}, IR_HH, IR_GATE.code[1], {dend: 0, gL: 0.05, gNaP: 0.3, gKdr: 6.0, gKA: 1.4, gM: 1.0, gHCa: 0, gfKCa: 0, gsKCa: 0, EL: -70}), {site: 'soma', I0: 0, gain: 1.5, Ath: 0.3}],
-    hhsoma: ['Ceballos 2025 soma only (no Iₕ dendrite)', () => Object.assign({}, IR_HH, IR_GATE.hybrid[1], {dend: 0}), {site: 'soma', I0: -1.5, gain: 5.5, Ath: 0.3}]
-  };
-  // menu order follows the papers: Golomb 2006 → Lowet 2023 → Ceballos 2025 (with and without dendrite) → reduced AdEx
-  const old = Object.assign({}, PF_CELLS); Object.keys(PF_CELLS).forEach(k => delete PF_CELLS[k]);
-  ['golomb', 'lowet', 'hh', 'hhsoma', 'adex'].forEach(k => { if (add[k] || old[k]) PF_CELLS[k] = add[k] || old[k]; });
-  Object.keys(old).forEach(k => { if (!PF_CELLS[k]) PF_CELLS[k] = old[k]; });
-  const make = irMake;
-  window.irMake = function (m, P, S) { return make(m === 'golomb' || m === 'hhsoma' ? 'hh' : m, P, S); };
+  if (typeof renderResearchPlace !== 'function') return;   // the two extra cells are added to the built modellab.js by tools/guide_patches.py
 
   const INFO = {
     golomb: {paper: 'Golomb 2006', comp: '1', url: 'compartments.html#p-golomb'},
@@ -35,7 +25,7 @@
     bio.after(sec);
     let D;
     try { D = await (await fetch('placefields-compare.json')).json(); } catch (e) { document.getElementById('pfcmp-p').textContent = 'The comparison file could not be loaded.'; return; }
-    const C = D.cells, keys = Object.keys(PF_CELLS).filter(k => C[k]);
+    const C = D.cells, keys = ['golomb', 'lowet', 'hh', 'hhsoma', 'adex'].filter(k => C[k]);
     const moreInfo = c => c.SI_burst == null || c.SI_single == null || !c.bursts || !c.singles ? null : c.SI_burst > c.SI_single;
     const earlier = c => c.comBurst_cm == null || c.comSingle_cm == null ? null : c.comBurst_cm < c.comSingle_cm;
     document.getElementById('pfcmp-p').innerHTML = `<b>Protocol</b> (identical for every cell, run with <code>tools/placefield_compare.js</code>): ${D.protocol}. Drive is calibrated per cell (as on this page) so each is near-silent before the plateau.`;

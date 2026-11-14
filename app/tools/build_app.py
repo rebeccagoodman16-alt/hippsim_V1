@@ -65,6 +65,7 @@ def main() -> None:
         src = SITE / f if (SITE / f).exists() else T / f
         (APP / f).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(src, APP / f)
+    import guide_patches; guide_patches.patch_dir(APP)   # documented changes to the built copy of Guide files (raw stays untouched)
     shutil.copytree(SITE / "icons", APP / "icons", dirs_exist_ok=True)
     for f in ["hs-app-config.js", "hs-app.js"]:
         shutil.copy(SITE / f, APP / f)

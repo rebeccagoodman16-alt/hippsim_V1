@@ -10692,9 +10692,11 @@ window.renderResearchMorph = renderResearchMorph;
    (irMake): the AdEx fitted to the biophysical model, the biophysical HH itself, or the Lowet et al. 2023 minimal model. */
 const PF = { L: 180, nIn: 60, sig: 9, tauB: 1300, tauA: 700, wmax: 1, w0: 0.05 };
 const PF_CELLS = {   // drive calibrated so each cell is silent outside a field and fires 15–30 Hz inside one
+  golomb: ['Golomb et al. 2006: 1 compartment (Fig 6Da set)', () => Object.assign({}, IR_HH, IR_GATE.code[1], { dend: 0, gL: 0.05, gNaP: 0.3, gKdr: 6.0, gKA: 1.4, gM: 1.0, gHCa: 0, gfKCa: 0, gsKCa: 0, EL: -70 }), { site: 'soma', I0: 0, gain: 1.5, Ath: 0.3 }],   // hippsim patch
   lowet: ['Lowet et al. 2023 minimal bursting model', () => Object.assign({}, IR_LW, { Ibias: 5, Ibd: -0.2 }), { site: 'dend', I0: 0, gain: 4.2, Ath: 0.3 }],
   adex: ['AdEx fitted to the HH model', () => Object.assign({}, IR_ADEX_FIT), { site: 'soma', I0: 0, gain: 3.2, Ath: 0.6 }],
-  hh: ['Biophysical two-compartment HH (Ceballos 2025, hybrid reading)', () => Object.assign({}, IR_HH, IR_GATE.hybrid[1]), { site: 'soma', I0: -1.5, gain: 5.5, Ath: 0.3 }] };
+  hh: ['Biophysical two-compartment HH (Ceballos 2025, hybrid reading)', () => Object.assign({}, IR_HH, IR_GATE.hybrid[1]), { site: 'soma', I0: -1.5, gain: 5.5, Ath: 0.3 }],
+  hhsoma: ['Ceballos 2025 soma only (no Iₕ dendrite)', () => Object.assign({}, IR_HH, IR_GATE.hybrid[1], { dend: 0 }), { site: 'soma', I0: -1.5, gain: 5.5, Ath: 0.3 }] };   // hippsim patch
 /* the same rodent drawing style as the place-cell page (mouse-sized: ~9 cm head + body) */
 function pfDrawMouse(x, X, Y, s, t, moving, dir = 1) {
   const L = s * 9; x.save(); x.translate(X, Y); x.scale(dir, 1);
@@ -10763,7 +10765,7 @@ function renderResearchPlace() {
   function reset() {
     const def = PF_CELLS[S.cell]; D.P = def[1](); D.cfg = def[2];
     D.S = { Iapp: def[2].I0, Ath: def[2].Ath, fth: S.fth, Aga: 0, fga: 40, site: def[2].site, D: 0, seed: 1 };
-    D.M = irMake(S.cell, D.P, D.S); D.w = new Float64Array(C).fill(PF.w0); D.x = 5; D.lap = 1; D.v = S.v0; D.vn = 0; D.pause = 0; D.t = 0;
+    D.M = irMake(S.cell === 'golomb' || S.cell === 'hhsoma' ? 'hh' : S.cell, D.P, D.S);   /* hippsim patch: these two are HH cells */ D.w = new Float64Array(C).fill(PF.w0); D.x = 5; D.lap = 1; D.v = S.v0; D.vn = 0; D.pause = 0; D.t = 0;
     D.hist = []; D.events = []; D.plateaus = []; D.post = []; D.plOn = 0; D.nextPl = { lap: S.auto, x: S.plX }; D.seen = 0;
     D.ring = ngRing(4000, ['t', 'V', 'th', 'pl']); D.occ = new Float64Array(PF.L / 5); D.firstPl = Infinity; D.k = 0;
   }

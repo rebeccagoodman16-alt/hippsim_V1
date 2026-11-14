@@ -521,6 +521,7 @@ def resolve() -> dict:
     tmp = ROOT / "simtest"
     subprocess.run(["rm", "-rf", str(tmp)]); tmp.mkdir()
     subprocess.run(f"cp -r {GUIDE}/* {tmp}/", shell=True, check=True)
+    import guide_patches; guide_patches.patch_dir(tmp)
     srv = subprocess.Popen([sys.executable, "-m", "http.server", "8766"], cwd=tmp, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1)
     prior = json.loads(DEPS.read_text()) if DEPS.exists() else {}
