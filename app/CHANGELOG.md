@@ -1,5 +1,17 @@
 # Release notes
 
+## 0.16 · 13 Nov 2026
+- **One, two, or thousands of compartments** (new page): what a compartment is, the same CA1 cell drawn as
+  1 compartment (Golomb 2006), 2 compartments (Lowet 2023, Ceballos 2025) and as the reconstruction the Neurons
+  page simulates; what each can and cannot show; the three papers in order (question, model and data, findings,
+  meaning for place fields, and what hippsim reproduces); the research ladder; which to use.
+- **Try it** on the same page: θ + γ input to the soma or the dendrites of a 1-compartment cell, the Ceballos
+  2-compartment cell and the research model on a reconstructed CA1 cell, side by side.
+- **Place fields**: the cell menu now follows the three papers (Golomb 2006 one-compartment cell, Lowet 2023,
+  Ceballos 2025 with and without its Iₕ dendrite, and the reduced AdEx), and a new section runs the same session
+  on every cell (`tools/placefield_compare.js`): rates in and out of the field, bursts vs single spikes, spatial
+  information of each, and whether Lowet 2023's observations hold in each model.
+
 ## 0.15 · 13 Nov 2026
 - **hippsim vs NEURON, explained**: the remaining differences come from two geometry conventions that only matter
   together: NEURON's pipeline drops points that repeat their parent (many reconstructions repeat a soma point as

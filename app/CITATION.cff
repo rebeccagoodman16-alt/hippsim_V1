@@ -6,7 +6,7 @@ authors:
   - family-names: Goodman
     given-names: Rebecca
 date-released: 2026-11-13
-version: "0.15.0"
+version: "0.16.0"
 keywords: [computational neuroscience, hippocampus, CA1, NEURON, compartmental model, Alzheimer's disease]
 references:
   - type: article

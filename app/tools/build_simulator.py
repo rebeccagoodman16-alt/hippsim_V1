@@ -68,6 +68,8 @@ def page_html(slug, title, routes, scripts, css) -> str:
             tags.append(f'<script src="{s}"></script>')
             if s == "modellab.js" and (ROOT / "site/hs-morph-extra.js").exists():   # more reconstructions (tools/import_modeldb_morphologies.py)
                 tags.append('<script src="hs-morph-extra.js"></script>')
+            if s == "modellab.js" and slug == "lab-models":   # Place fields: Golomb 2006 cell + same-session comparison (site/hs-placefields.js)
+                tags.append('<script src="hs-placefields.js"></script>')
     links = "".join(f'<link rel="stylesheet" href="{c}">' for c in ["styles.css", *css, "hs-sim.css"])
     where = {r: f"sim-{sl}.html" for sl, _, _, rs, _, _ in PAGES for r, _ in rs}
     allt = [[r, n, sl, tt] for sl, tt, _, rs, _, _ in PAGES for r, n in rs]
@@ -345,7 +347,7 @@ cell.clamp(t, I)                           # NEURON time domain</pre>
 <header></header>
 <main class="hs-log-wrap"><h1>Models</h1>
 <p class="hs-sub">What each tool runs, what it starts from, how it was checked and how to cite it. {len(reg["tools"])} tools · {sum(t["n_perturbations"] for t in reg["tools"].values())} perturbations · {len(refs)} references.</p>
-<p class="hs-sub" style="margin-top:-6px">The neuron models in the Neurons → Simulate panel: <a href="docs.html#models">Docs → Models</a> · how checks are done: <a href="docs.html#validation">Docs → Validation</a> · new here: <a href="welcome.html">How hippsim works</a></p>
+<p class="hs-sub" style="margin-top:-6px">The neuron models in the Neurons → Simulate panel: <a href="docs.html#models">Docs → Models</a> · how checks are done: <a href="docs.html#validation">Docs → Validation</a> · new here: <a href="welcome.html">How hippsim works</a> · <a href="compartments.html">1, 2 or thousands of compartments? (Golomb, Lowet, Ceballos vs reconstructions)</a></p>
 <nav class="hs-ptabs" role="tablist" aria-label="Models">{"".join(f'<a href="#{k}" role="tab" data-t="{k}">{n}</a>' for k, n, _ in tabs)}</nav>
 {"".join(f'<section class="hs-ptab" id="{k}" role="tabpanel" aria-label="{n}">{body}</section>' for k, n, body in tabs)}
 </main>

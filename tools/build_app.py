@@ -70,6 +70,8 @@ def main() -> None:
         shutil.copy(SITE / f, APP / f)
     if (SITE / "engine_traces.json").exists():            # NEURON / Brian2 baseline traces, fetched on demand by the Neurons viewer
         shutil.copy(SITE / "engine_traces.json", APP / "engine_traces.json")
+    if (SITE / "placefields-compare.json").exists():      # Place fields: every cell, same session (tools/placefield_compare.js)
+        shutil.copy(SITE / "placefields-compare.json", APP / "placefields-compare.json")
     if (SITE / "compare").exists():                       # hippsim vs NEURON comparison (tools/compare_engines.py), fetched on demand
         shutil.copytree(SITE / "compare", APP / "compare", dirs_exist_ok=True)
 

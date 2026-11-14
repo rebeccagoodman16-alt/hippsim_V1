@@ -1,0 +1,120 @@
+{
+ "protocol": "speed 25 cm/s, 1.5 s pause at the reward, plateau on lap 3 at 110 cm (3.5 µA/cm², 300 ms), BTSP η 0.9, θ 8 Hz, 8 laps; field = within 30 cm of the plateau site; events after the BTSP window closed",
+ "cells": {
+  "lowet": {
+   "cell": "lowet",
+   "cfg": {
+    "site": "dend",
+    "I0": 0,
+    "gain": 4.2,
+    "Ath": 0.3
+   },
+   "eventsBeforePlateau": 1,
+   "ratePre": 0.07,
+   "fieldRate_Hz": 10.8,
+   "outRate_Hz": 4.71,
+   "singles": 97,
+   "bursts": 145,
+   "burstFrac": 0.6,
+   "SI_single": 1.26,
+   "SI_burst": 0.67,
+   "precession_deg_per_cm": 3,
+   "precessionR": 0.57,
+   "comSingle_cm": -10.3,
+   "comBurst_cm": -7,
+   "spikesPerBurst": 2.2
+  },
+  "adex": {
+   "cell": "adex",
+   "cfg": {
+    "site": "soma",
+    "I0": 0,
+    "gain": 3.2,
+    "Ath": 0.6
+   },
+   "eventsBeforePlateau": 0,
+   "ratePre": 0,
+   "fieldRate_Hz": 1.7,
+   "outRate_Hz": 0,
+   "singles": 20,
+   "bursts": 0,
+   "burstFrac": 0,
+   "SI_single": 3.65,
+   "SI_burst": null,
+   "precession_deg_per_cm": -0.25,
+   "precessionR": 0.64,
+   "comSingle_cm": -3.5,
+   "comBurst_cm": null,
+   "spikesPerBurst": 0
+  },
+  "hh": {
+   "cell": "hh",
+   "cfg": {
+    "site": "soma",
+    "I0": -1.5,
+    "gain": 5.5,
+    "Ath": 0.3
+   },
+   "eventsBeforePlateau": 2,
+   "ratePre": 0.14,
+   "fieldRate_Hz": 12.1,
+   "outRate_Hz": 3.21,
+   "singles": 222,
+   "bursts": 0,
+   "burstFrac": 0,
+   "SI_single": 1.32,
+   "SI_burst": null,
+   "precession_deg_per_cm": 0.5,
+   "precessionR": 0.31,
+   "comSingle_cm": -12.8,
+   "comBurst_cm": null,
+   "spikesPerBurst": 1
+  },
+  "hhsoma": {
+   "cell": "hhsoma",
+   "cfg": {
+    "site": "soma",
+    "I0": -1.5,
+    "gain": 5.5,
+    "Ath": 0.3
+   },
+   "eventsBeforePlateau": 0,
+   "ratePre": 0,
+   "fieldRate_Hz": 7.7,
+   "outRate_Hz": 0.96,
+   "singles": 115,
+   "bursts": 0,
+   "burstFrac": 0,
+   "SI_single": 1.95,
+   "SI_burst": null,
+   "precession_deg_per_cm": 0.75,
+   "precessionR": 0.38,
+   "comSingle_cm": -14.6,
+   "comBurst_cm": null,
+   "spikesPerBurst": 0
+  },
+  "golomb": {
+   "cell": "golomb",
+   "cfg": {
+    "site": "soma",
+    "I0": 0,
+    "gain": 1.5,
+    "Ath": 0.3
+   },
+   "eventsBeforePlateau": 0,
+   "ratePre": 0,
+   "fieldRate_Hz": 5.3,
+   "outRate_Hz": 2.29,
+   "singles": 0,
+   "bursts": 119,
+   "burstFrac": 1,
+   "SI_single": null,
+   "SI_burst": 0.89,
+   "precession_deg_per_cm": 1.25,
+   "precessionR": 0.9,
+   "comSingle_cm": null,
+   "comBurst_cm": -9.3,
+   "spikesPerBurst": 6.6
+  }
+ }
+}

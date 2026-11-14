@@ -68,6 +68,8 @@ def page_html(slug, title, routes, scripts, css) -> str:
             tags.append(f'<script src="{s}"></script>')
             if s == "modellab.js" and (ROOT / "site/hs-morph-extra.js").exists():   # more reconstructions (tools/import_modeldb_morphologies.py)
                 tags.append('<script src="hs-morph-extra.js"></script>')
+            if s == "modellab.js" and slug == "lab-models":   # Place fields: Golomb 2006 cell + same-session comparison (site/hs-placefields.js)
+                tags.append('<script src="hs-placefields.js"></script>')
     links = "".join(f'<link rel="stylesheet" href="{c}">' for c in ["styles.css", *css, "hs-sim.css"])
     where = {r: f"sim-{sl}.html" for sl, _, _, rs, _, _ in PAGES for r, _ in rs}
     allt = [[r, n, sl, tt] for sl, tt, _, rs, _, _ in PAGES for r, n in rs]
