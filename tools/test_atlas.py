@@ -139,6 +139,9 @@ try:
         pg.goto(B + "file.html?f=models/literature/neuron-lab/perturbations/uniform-channels-no-gradients.yaml"); pg.wait_for_timeout(1200)
         t = pg.text_content("#fv")
         check("files: a perturbation opens inside the app, readable, with Back and its references", "What it changes" in t and "Hoffman" in t and pg.is_visible("#fback") and pg.is_visible("header"), t[:120])
+        pg.goto(B + "compartments.html"); pg.wait_for_function("document.getElementById('tx3').textContent.includes('single')", timeout=90000)
+        check("compartments page: the same rhythm runs on 1, 2 and ~1 000 compartments", all("single" in pg.text_content(f"#tx{i}") for i in (1, 2, 3)))
+        check("compartments page: the CA1 cell is counted and the three papers are there", pg.text_content("[data-ncomp]").replace(",", "").isdigit() and all(x in pg.text_content("main") for x in ["Golomb", "Lowet", "Ceballos"]))
         check("docs: no page errors", not errs, errs[:2])
         b.close()
 finally:

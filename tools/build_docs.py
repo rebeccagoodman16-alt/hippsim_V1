@@ -55,7 +55,7 @@ process.stdout.write(JSON.stringify(out));"""
     first_model = {t["id"]: next((m["id"] for m in M if t["name"] in m["tests"]), None) for t in T}
     parts = ['<p class="lead">Five models and eleven tests run in the Simulate panel (open any neuron, press Simulate). This page is generated from the code that runs them '
              '(<code>site/hs-models.js</code>), so the values below are exactly what the panel uses.</p>'
-             '<p>Looking for the 21 tool models (lessons, circuits, other systems) with their baseline files and perturbations? They are in the <a href="models.html">Models tab</a>.</p>',
+             '<p>Looking for the 21 tool models (lessons, circuits, other systems) with their baseline files and perturbations? They are in the <a href="models.html">Models tab</a>. How the 1- and 2-compartment CA1 models (Golomb 2006, Lowet 2023, Ceballos 2025) differ from these reconstructions: <a href="compartments.html">One, two, or thousands of compartments</a>.</p>',
              '<div class="tbl"><table><thead><tr><th>Scale</th><th>Model</th><th>Cells</th><th>Tests</th><th>Runs in</th></tr></thead><tbody>'
              + "".join(f'<tr><td>{scale[m["scale"]]}</td><td><a href="#model-{m["id"]}">{e(m["name"])}</a></td><td>{m["cell"]}</td><td>{len(m["tests"])}</td>'
                        f'<td>{", ".join(m["sims"])}{" (original: " + e(m["original"]) + ")" if m["original"] else ""}</td></tr>' for m in M)
@@ -268,6 +268,160 @@ def questions_page() -> str:
                    + "</dl>")
     return "".join(out)
 
+
+def compartments_page(APP_HEAD: str, APP_TAIL: str) -> str:
+    """compartments.html: 1-, 2- and multi-compartment CA1 models, the three papers, and which to use."""
+    rows = [
+        ("What one compartment is", "the whole neuron", "the soma, plus one box standing for “the dendrites”", "a short piece (≤ 20 µm here) of a traced branch"),
+        ("Voltages computed", "1", "2", '<span data-ncomp>≈ 1 500</span> for this CA1 cell'),
+        ("Where input arrives", "everywhere at once", "at the soma or at “the dendrite”", "at any point on any branch"),
+        ("Signals shrinking along dendrites", "no", "one step, set by the coupling conductance", "yes, continuously along each branch"),
+        ("Back-propagating and dendritic spikes", "no", "only as a soma–dendrite ping-pong", "yes, branch by branch"),
+        ("Channel density changing with distance (e.g. Iₕ)", "no", "one value in the dendrite box", "yes, a gradient along the tree"),
+        ("Cell shape (branching, length, layers)", "no", "no: the box is not a measured dendrite", "yes, from the reconstruction"),
+        ("Speed", "very fast: sweeps, networks", "very fast", "seconds per run in the browser"),
+        ("Parameters you must choose", "the channel conductances", "+ coupling g_c and soma : dendrite area ratio (fitted, not measured)", "+ R_m, R_a, C_m and where every channel sits"),
+        ("Best for", "which currents make bursts vs single spikes; parameter sweeps", "how dendritic currents (NaP, Iₕ) shape soma firing and resonance", "where inputs land, attenuation, back-propagation, comparing cell shapes"),
+    ]
+    papers = [
+        dict(id="golomb", y="2006", cite="Golomb D, Yue C, Yaari Y (2006) J Neurophysiol 96:1912–1926", doi="10.1152/jn.00205.2006", extra='ModelDB <a href="https://modeldb.science/66268" target="_blank" rel="noopener">66268</a>',
+             comp="1 compartment", title="Persistent Na⁺ and M-type K⁺ currents and somatic bursting",
+             q="Which currents let a CA1 pyramidal cell fire bursts instead of single spikes?",
+             model="A one-compartment conductance-based CA1 pyramidal cell: transient and persistent Na⁺ (I_NaT, I_NaP), delayed-rectifier and A-type K⁺, and the M-current (I_M). Combined with recordings.",
+             found=["Increasing I_NaP induces bursting and adds spikes per burst, but it is neither necessary nor sufficient for bursting.",
+                    "I_M enables bursting: its slow activation switches the cell between silent and tonically firing (“square bursting”, with I_M as the slow variable).",
+                    "Lowering extracellular Ca²⁺ is modelled as shifting I_NaP activation to more negative voltages.",
+                    "Different parameter sets reproduce the range of firing patterns seen in the recordings."],
+             pf="It has no dendrite and no space, so it says nothing about place fields directly. It gives the somatic currents (I_NaP, I_M) that the later models build on.",
+             hs="The soma equations in hippsim’s Python ladder (ir_ladder) reproduce the spike times of Golomb 2006 Fig 6Da exactly (67 spikes; <code>validate.py</code>). The same currents sit at the soma and axon of the full-morphology research model.",
+             try_=("Model ladder", "sim-lab-models.html#biology.interleaved-resonance")),
+        dict(id="lowet", y="2023", cite="Lowet E, et al. (2023) Cell Reports 42:112906", doi="10.1016/j.celrep.2023.112906", extra='code: <a href="https://github.com/HanLabBU/Lowet-Cell-Reports-2023" target="_blank" rel="noopener">HanLabBU/Lowet-Cell-Reports-2023</a>',
+             comp="2 compartments", title="Theta and gamma rhythmic coding through two spike output modes",
+             q="Do CA1 cells send different messages with bursts and with single spikes during navigation?",
+             model="Recordings: tetrodes in rats on a 180 cm track (147 cells), SomArchon voltage imaging in head-fixed mice (56 cells), Allen Neuropixels data (1 689 cells). Model: a minimal two-compartment cell: soma with Na⁺/K⁺, dendrite with persistent Na⁺ and a slow K⁺ current (Pinsky–Rinzel style), driven by dendritic θ + γ input.",
+             found=["Bursts lock to θ; single spikes lock more to γ (strongest around mid-γ).",
+                    "Bursts carry more spatial information, come earlier in the place field and precess more strongly with position; single spikes dominate as the animal leaves the field.",
+                    "8 Hz optogenetic pulses increase bursts; 40 Hz stimulation selectively increases single spikes; steady depolarization increases single spikes, not bursts.",
+                    "In the model, a ramping (place-field-like) input reproduces the early-field bursts and their stronger precession."],
+             pf="The first of the three to connect the two spike codes to place fields: bursts mark entering the field, single spikes leaving it.",
+             hs="The minimal model (<code>dXdT_HH_3.m</code> equations) is the default cell of the Place fields page. Its figures have not been re-run in hippsim for a numerical check.",
+             try_=("Place fields", "sim-lab-models.html#biology.research-place-fields")),
+        dict(id="ceballos", y="2025", cite="Ceballos CC, Chadly N, Lowet E, Pena RFO (2025) PLoS Comput Biol 21:e1013126", doi="10.1371/journal.pcbi.1013126", extra='code: <a href="https://github.com/rodrigo-pena-lab/interleaved_resonance" target="_blank" rel="noopener">rodrigo-pena-lab/interleaved_resonance</a>',
+             comp="1 compartment, then 2 (soma + Iₕ dendrite)", title="Interleaved single and bursting spiking resonance",
+             q="Do bursts and single spikes prefer different input rhythms, and which conductances decide?",
+             model="A CA1 soma derived from Golomb 2006 and Lowet 2023 (NaT, NaP, K_dr, M, A-type, high-threshold Ca²⁺, two Ca²⁺-activated K⁺ currents), refitted to voltage imaging; later a dendritic compartment with Iₕ. Inputs: sinusoidal currents at θ (10 Hz) and γ (40 Hz). A burst is spikes < 14 ms apart.",
+             found=["More g_NaP moves firing from single spikes to bursts, then to depolarization block; more g_Kdr moves it back to single spikes.",
+                    "Single spikes and bursts each have a resonance, at different frequencies (“interleaved”); low g_NaP or high g_Kdr lock bursts to θ; g_h mainly affects γ.",
+                    "Bursts follow long silences (> 100 ms); single spikes also follow short ones. With θ + γ together, the cell behaves as with θ alone.",
+                    "Place fields are not simulated; the paper links its result to Lowet 2023 (bursts/θ entering a field, single spikes/γ leaving)."],
+             pf="It explains <i>why</i> one cell can carry both codes at once: the same voltage trace has a θ-preferring burst resonance and a different single-spike resonance.",
+             hs="Rebecca’s reproduction (Model ladder; Python <code>ir_ladder</code>): reproduced the interleaving (bursts 8–20 Hz, single spikes in γ), f_SS &gt; f_BS for every g_h, and bursting from g_NaP ≈ 0.35. Not reproduced: the sign reversals of Δf with g_NaP and g_Kdr, and ΔA &lt; 0. Uses the “hybrid” reading of the printed parameters (θ_p −35 mV).",
+             try_=("Resonance analysis", "sim-lab-models.html#biology.research-resonance")),
+    ]
+    card = lambda p: f"""<article class="paper" id="p-{p['id']}"><p class="pk">{p['y']} · {p['comp']}</p><h3>{p['title']}</h3>
+      <p class="cite">{p['cite']} · <a href="https://doi.org/{p['doi']}" target="_blank" rel="noopener">doi</a> · {p['extra']}</p>
+      <dl><dt>Question</dt><dd>{p['q']}</dd><dt>Model and data</dt><dd>{p['model']}</dd><dt>What they found</dt><dd><ul>{''.join(f'<li>{x}</li>' for x in p['found'])}</ul></dd>
+      <dt>For place fields</dt><dd>{p['pf']}</dd><dt>In hippsim</dt><dd>{p['hs']}</dd></dl>
+      <p><a class="go" href="{p['try_'][1]}">Open: {p['try_'][0]} →</a></p></article>"""
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Compartments · hippsim</title>
+{APP_HEAD}
+<style>:root{{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}</style>
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="hs-sim.css">
+<style>
+.cx{{max-width:1000px;margin:0 auto;padding:30px 16px 96px;line-height:1.55}}
+.cx .kick{{font:600 12px system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--hs-accent);margin:0 0 6px}}
+.cx h1{{font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.9rem,5vw,2.9rem);line-height:1.1;margin:0 0 12px}}
+.cx h2{{font-family:Georgia,"Times New Roman",serif;font-size:1.5rem;margin:40px 0 12px}}
+.cx .lead{{font-size:1.12rem;max-width:760px}}
+.cx .jump{{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 6px}}.cx .jump a{{font-size:13.5px;padding:5px 12px;border:1px solid var(--hs-line);border-radius:999px;text-decoration:none;color:var(--hs-ink);background:var(--hs-card)}}
+.fig{{border:1px solid var(--hs-line);border-radius:14px;background:var(--hs-card);padding:10px}}
+.fig canvas{{width:100%;height:420px;display:block}}
+.seg3{{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}}
+.seg3 button{{font:600 13.5px system-ui,sans-serif;padding:7px 14px;border-radius:999px;border:1px solid var(--hs-line);background:var(--hs-card);color:var(--hs-ink);cursor:pointer}}
+.seg3 button[aria-checked="true"]{{background:var(--hs-ink);color:var(--hs-card);border-color:var(--hs-ink)}}
+.three{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}}
+.three div{{border:1px solid var(--hs-line);border-radius:12px;padding:12px;background:var(--hs-card);font-size:14px}}
+.three b{{display:block;font-size:15px;margin-bottom:2px}}
+.tw{{overflow-x:auto}}
+table.ct{{border-collapse:collapse;width:100%;font-size:14px;min-width:720px}}
+table.ct th,table.ct td{{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--hs-line)}}
+table.ct th{{font-size:12.5px;color:var(--hs-muted)}}table.ct td:first-child{{font-weight:600;width:22%}}
+.paper{{border:1px solid var(--hs-line);border-radius:14px;padding:16px 18px;background:var(--hs-card);margin:12px 0}}
+.paper .pk{{margin:0;font:600 11.5px system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--hs-accent)}}
+.paper h3{{margin:2px 0 4px;font-size:1.2rem}}.paper .cite{{margin:0 0 8px;font-size:13px;color:var(--hs-muted)}}
+.paper dl{{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;margin:0;font-size:14.5px}}.paper dt{{font-weight:600;color:var(--hs-muted)}}.paper dd{{margin:0}}.paper ul{{margin:0;padding-left:18px}}
+.paper a.go,.cx a.go{{font-weight:600}}
+.ladder{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;counter-reset:r}}
+.ladder div{{border:1px solid var(--hs-line);border-radius:12px;padding:12px;background:var(--hs-card);font-size:14px}}
+.ladder b{{display:block}}
+.use{{display:grid;grid-template-columns:1fr 1fr;gap:10px}}.use div{{border:1px solid var(--hs-line);border-radius:12px;padding:12px 14px;background:var(--hs-card)}}
+.note{{color:var(--hs-muted);font-size:13.5px}}
+.trio{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}}.trio>div{{border:1px solid var(--hs-line);border-radius:10px;padding:8px 10px;background:var(--hs-bg,transparent)}}
+.trio>div>b{{display:block}}.trio canvas{{width:100%;height:150px;display:block;margin-top:6px}}
+@media (max-width:760px){{.trio{{grid-template-columns:1fr}}}}
+@media (max-width:760px){{.three,.ladder,.use{{grid-template-columns:1fr}} .paper dl{{grid-template-columns:1fr}} .fig canvas{{height:340px}}}}
+</style>
+</head><body class="hs-hubpage">
+<header></header>
+<main class="cx">
+  <p class="kick">CA1 pyramidal cell models</p>
+  <h1>One, two, or thousands of compartments</h1>
+  <p class="lead">The CA1 models in Golomb 2006, Lowet 2023 and Ceballos 2025 are not simplified copies of a reconstructed neuron. They have one or two compartments: the soma, and sometimes one box that stands for “the dendrites”. The neurons on hippsim’s Neurons page are the traced cell itself, cut into hundreds or thousands of compartments. This page explains the difference, what each kind of model can tell you, and how the three papers lead to the full-morphology model.</p>
+  <nav class="jump"><a href="#see">See it</a><a href="#try">Try it</a><a href="#compare">What each can show</a><a href="#papers">The three papers</a><a href="#ladder">From 1 compartment to the full cell</a><a href="#which">Which should I use?</a></nav>
+
+  <h2 id="see">A compartment is one patch of membrane with one voltage</h2>
+  <p>Inside one compartment the voltage is the same everywhere. Between compartments current flows through a resistance, so neighbouring compartments can have different voltages. The more compartments, the more places the cell can be “at different voltages at the same time”. Below is the same CA1 pyramidal cell (n123, <span data-npts>…</span> traced points) as each kind of model sees it.</p>
+  <div class="fig"><div class="seg3" role="radiogroup" aria-label="How many compartments"><button data-view="one" aria-checked="false">1 compartment (Golomb 2006)</button><button data-view="two" aria-checked="false">2 compartments (Lowet 2023, Ceballos 2025)</button><button data-view="full" aria-checked="true">Reconstruction (Neurons page)</button></div>
+    <canvas id="cmpcv" aria-label="The CA1 cell n123 drawn as 1, 2 or many compartments"></canvas></div>
+  <div class="three">
+    <div><b>1 compartment</b>The tree is ignored: the soma’s channels and the whole cell’s membrane act as one sphere. Input injected “into the cell” reaches every channel at once.</div>
+    <div><b>2 compartments</b>A soma and one dendrite box joined by a coupling conductance g_c. The box has its own channels (NaP and slow K⁺ in Lowet; Iₕ in Ceballos). Its size and coupling are <i>fitted</i>, not measured from a tracing.</div>
+    <div><b>Reconstruction</b>The traced branches are cut into <span data-ncomp>≈ 1 500</span> pieces of ≤ 20 µm, each with its own voltage and channels, joined by the cytoplasm’s resistance. This is what the Neurons page simulates.</div>
+  </div>
+
+  <h2 id="try">Try it: the same rhythm into 1, 2 and ~1 000 compartments</h2>
+  <p>θ (10 Hz) + γ (40 Hz) current, as in Ceballos 2025, into three cells built on the same somatic currents (Golomb-type: NaP, M, K_dr…). Send it to the soma, then to the dendrites, and see what each model can say.</p>
+  <div class="fig"><div class="seg3" role="radiogroup" aria-label="Where the input goes"><button data-site="soma" aria-checked="true">Input at the soma</button><button data-site="dend" aria-checked="false">Input in the dendrites</button><button class="go" id="trun" style="margin-left:auto">▶ Run all three</button></div>
+    <div class="trio">
+      <div><b>1 compartment</b><span class="note">Ceballos soma alone (no dendrite)</span><canvas id="tr1"></canvas><p id="tx1" class="note"></p></div>
+      <div><b>2 compartments</b><span class="note">Ceballos 2025: soma + Iₕ dendrite</span><canvas id="tr2"></canvas><p id="tx2" class="note"></p></div>
+      <div><b>Reconstruction</b><span class="note">Research model on CA1 n123</span><canvas id="tr3"></canvas><p id="tx3" class="note"></p></div>
+    </div>
+    <p class="note" id="tnote">Blue dots: single spikes; purple: bursts (spikes &lt; 14 ms apart). The 1- and 2-compartment cells use Ceballos’s input (DC 1, θ 1, γ 2 µA/cm²); the reconstruction has a real membrane area, so its input is in nA (the research model’s own θ + γ test). Compare patterns, not exact numbers.</p></div>
+
+  <h2 id="compare">What each kind of model can and cannot show</h2>
+  <div class="tw"><table class="ct"><thead><tr><th></th><th>1 compartment</th><th>2 compartments</th><th>Reconstruction</th></tr></thead><tbody>
+    {''.join(f'<tr><td>{a}</td><td>{b}</td><td>{c}</td><td>{d}</td></tr>' for a, b, c, d in rows)}
+  </tbody></table></div>
+  <p class="note">Neither is “more correct”. A small model isolates a mechanism and can be explored completely; a reconstruction adds the cell’s real geometry, at the cost of many more parameters that each need a source.</p>
+
+  <h2 id="papers">The three papers, in order</h2>
+  <p>Each builds on the one before: Golomb gives the somatic burst currents, Lowet links bursts and single spikes to θ, γ and place fields with a two-compartment cell, Ceballos explains how one cell can carry both codes.</p>
+  {''.join(card(p) for p in papers)}
+
+  <h2 id="ladder">From 1 compartment to the full cell: the research ladder</h2>
+  <div class="ladder">
+    <div><b>1 · Golomb 2006</b>1 compartment. Somatic I_NaP + I_M make bursts. <a href="sim-lab-models.html#biology.interleaved-resonance">Model ladder</a></div>
+    <div><b>2 · Lowet 2023</b>2 compartments. Dendritic NaP + slow K⁺; bursts at θ, single spikes at γ, place fields. <a href="sim-lab-models.html#biology.research-place-fields">Place fields</a></div>
+    <div><b>3 · Ceballos 2025</b>Golomb-type soma + Iₕ dendrite. Interleaved burst / single-spike resonance. <a href="sim-lab-models.html#biology.research-resonance">Resonance analysis</a></div>
+    <div><b>4 · Full morphology</b>The same somatic I_M and I_NaP at the soma and axon of a reconstructed CA1 cell, with Migliore-derived dendrites (Iₕ and A-type gradients). A lab model, not yet validated. <a href="index.html#ca1-n123?model=research&amp;test=thetagamma&amp;run=0">Open on n123</a></div>
+  </div>
+  <p class="note">Going up a rung changes more than detail: the reconstruction’s dendrites draw current from the soma (lower input resistance), so conductances that made bursts in one compartment may not on the full tree, and must be re-checked, not copied.</p>
+
+  <h2 id="which">Which should I use?</h2>
+  <div class="use">
+    <div><b>Use 1 or 2 compartments when</b> the question is about <i>which currents</i> produce a firing pattern (bursts, resonance, phase locking), you need to sweep parameters, or you want many cells in a network.</div>
+    <div><b>Use a reconstruction when</b> the question is about <i>where</i>: where a synapse sits, how input from entorhinal cortex vs CA3 reaches the soma, how far a spike back-propagates, or whether cell shape changes the answer.</div>
+  </div>
+  <p class="note">Coming from the wet lab: a whole-cell recording at the soma sees something close to the 1-compartment picture when the cell is compact; dendritic recordings, local drug puffs and input-specific stimulation are where the reconstruction matters.</p>
+</main>
+<script src="hs-cable.js"></script><script src="hs-ngc.js"></script><script src="hs-models.js"></script><script src="hs-ir.js"></script>
+<script src="hs-compartments.js"></script>
+{APP_TAIL}
+</body></html>"""
+
 def main() -> None:
     from build_simulator import APP_HEAD, APP_TAIL, changelog_html, version
     ver = version().split(" · ")[0]
@@ -360,6 +514,12 @@ def main() -> None:
     (SITE / "docs.html").write_text(page)
     (SITE / "file.html").write_text(file_page(APP_HEAD, APP_TAIL))
     (SITE / "welcome.html").write_text(welcome_page(APP_HEAD, APP_TAIL, ver))
+    (SITE / "compartments.html").write_text(compartments_page(APP_HEAD, APP_TAIL))
+    raw = (ROOT / "sources/raw/little_neural_guide/modellab.js").read_text()
+    a, b = raw.index("const IR_GATE ="), raw.index("/* ---------- reduction: steady state")
+    (SITE / "hs-ir.js").write_text("/* hs-ir.js: generated by tools/build_docs.py from sources/raw/little_neural_guide/modellab.js (unmodified):\n"
+                                   "   the research ladder models (Golomb-type HH soma + Iₕ dendrite of Ceballos 2025, Lowet 2023 minimal model, LIF, GLIF, AdEx)\n"
+                                   "   and irMake / irRun / irClassify. Do not edit; edit the source and rebuild. */\n" + raw[a:b])
     print(f"docs.html: {len(pages)} pages, {len(page) / 1e3:.0f} kB")
 
 
