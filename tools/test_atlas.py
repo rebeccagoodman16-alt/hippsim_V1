@@ -142,6 +142,11 @@ try:
         pg.goto(B + "compartments.html"); pg.wait_for_function("document.getElementById('tx3').textContent.includes('single')", timeout=90000)
         check("compartments page: the same rhythm runs on 1, 2 and ~1 000 compartments", all("single" in pg.text_content(f"#tx{i}") for i in (1, 2, 3)))
         check("compartments page: the CA1 cell is counted and the three papers are there", pg.text_content("[data-ncomp]").replace(",", "").isdigit() and all(x in pg.text_content("main") for x in ["Golomb", "Lowet", "Ceballos"]))
+        pg.goto(B + "sim-lab-models.html#biology.research-place-fields"); pg.wait_for_selector("#pfcmp table", timeout=30000)
+        opts = pg.eval_on_selector_all("#pfCell option", "o => o.map(x => x.value)")
+        check("place fields: Golomb 2006 and Ceballos soma-only cells in the menu, same-session table for five cells", "golomb" in opts and "hhsoma" in opts and pg.locator("#pfcmp tbody tr").count() == 5, str(opts))
+        pg.click('.pf-use[data-cell="golomb"]'); pg.wait_for_timeout(2500)
+        check("place fields: the Golomb cell runs live", pg.eval_on_selector("#pfCell", "s => s.value") == "golomb" and not [e for e in errs if "irMake" in e or "PF_" in e])
         check("docs: no page errors", not errs, errs[:2])
         b.close()
 finally:
